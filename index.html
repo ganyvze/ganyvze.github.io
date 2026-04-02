@@ -11,8 +11,8 @@
             --glass-hover: rgba(255, 255, 255, 0.15);
             --text-main: #ffffff;
             --text-sub: #b2bec3;
-            --accent: #00cec9;
-            --accent-glow: rgba(0, 206, 201, 0.5);
+            --accent: #555555;
+            --accent-glow: rgba(20, 20, 20, 0.5);
         }
 
         body {
@@ -20,7 +20,8 @@
             padding: 0;
             min-height: 100vh;
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #064e3b, #312e81);
+            /* 修改为灰色调的动态渐变背景 */
+            background: linear-gradient(-45deg, #121212, #2c2c2c, #1a1a1a, #383838);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
             display: flex;
@@ -64,7 +65,7 @@
             padding: 50px;
             width: 90%;
             max-width: 800px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255,255,255,0.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
             text-align: center;
             position: relative;
         }
@@ -95,7 +96,7 @@
 
         /* 游戏卡片 */
         .game-card {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3); /* 在灰色背景下稍微加深一点卡片底色 */
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
@@ -196,7 +197,7 @@
         <div class="game-grid">
             <!-- 游戏1：班主任模拟器 -->
             <div class="game-card animate-up" style="animation-delay: 0.4s;" onclick="launchGame('banzhuren', 'banzhuren.html')">
-                <div class="last-played-badge" id="badge-whk">上次游玩</div>
+                <div class="last-played-badge" id="badge-banzhuren">上次游玩</div>
                 <div class="game-icon">🏫</div>
                 <h2 class="game-title">whk班主任模拟器</h2>
                 <p class="game-desc">接手一群天才但偏科的OI退役生，合理分配资源、安抚压力，带他们冲刺2026年高考清北防线。</p>
@@ -233,7 +234,7 @@
             // 记录选择到 LocalStorage
             localStorage.setItem('hub_last_played', gameId);
             
-            // 添加一个退出动画效果（可选）
+            // 添加一个退出动画效果
             document.body.style.opacity = '0';
             document.body.style.transition = 'opacity 0.4s ease';
             
