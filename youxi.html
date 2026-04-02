@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏档案库</title>
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.05); /* 极高透明度 */
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-hover: rgba(255, 255, 255, 0.15);
+            --text-main: #ffffff;
+            --text-sub: #b2bec3;
+            --accent: #00cec9;
+            --accent-glow: rgba(0, 206, 201, 0.5);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #064e3b, #312e81);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        /* 动态背景 */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 底部向上浮出动画 */
+        @keyframes slideUpFade {
+            0% { 
+                opacity: 0; 
+                transform: translateY(60px) scale(0.95); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .animate-up {
+            opacity: 0;
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* 主容器 - 极致毛玻璃 */
+        .main-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px); /* 强大的模糊效果支撑高透明度 */
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 50px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255,255,255,0.05);
+            text-align: center;
+            position: relative;
+        }
+
+        .main-title {
+            font-size: 2.5em;
+            margin: 0 0 10px 0;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sub-title {
+            color: var(--text-sub);
+            font-size: 1.1em;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        /* 游戏卡片网格 */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        /* 游戏卡片 */
+        .game-card {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 30px 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            color: var(--text-main);
+            display: block;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            background: var(--glass-hover);
+            border-color: var(--accent);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-glow);
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+            transition: transform 0.3s;
+        }
+
+        .game-card:hover .game-icon {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .game-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+
+        .game-desc {
+            font-size: 0.9em;
+            color: var(--text-sub);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* 上次游玩提示标签 */
+        .last-played-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: #000;
+            font-size: 0.75em;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 206, 201, 0.4);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .last-played-badge.active {
+            opacity: 1;
+            transform: scale(1);
+            animation: pulseBadge 2s infinite;
+        }
+
+        @keyframes pulseBadge {
+            0% { box-shadow: 0 0 0 0 rgba(0, 206, 201, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 206, 201, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 206, 201, 0); }
+        }
+
+        /* 装饰光晕 */
+        .glow-orb {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            top: -100px;
+            left: -100px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container animate-up" style="animation-delay: 0.1s;">
+        <div class="glow-orb"></div>
+        
+        <h1 class="main-title animate-up" style="animation-delay: 0.2s;">游戏档案库</h1>
+        <p class="sub-title animate-up" style="animation-delay: 0.3s;">选择载入模块，开始您的模拟演练</p>
+
+        <div class="game-grid">
+            <!-- 游戏1：班主任模拟器 -->
+            <div class="game-card animate-up" style="animation-delay: 0.4s;" onclick="launchGame('banzhuren', 'banzhuren.html')">
+                <div class="last-played-badge" id="badge-whk">上次游玩</div>
+                <div class="game-icon">🏫</div>
+                <h2 class="game-title">whk班主任模拟器</h2>
+                <p class="game-desc">接手一群天才但偏科的OI退役生，合理分配资源、安抚压力，带他们冲刺2026年高考清北防线。</p>
+            </div>
+
+            <!-- 游戏2：无限塔防 -->
+            <div class="game-card animate-up" style="animation-delay: 0.5s;" onclick="launchGame('tafang', 'tafang.html')">
+                <div class="last-played-badge" id="badge-tafang">上次游玩</div>
+                <div class="game-icon">🗼</div>
+                <h2 class="game-title">无限塔防 - 亿万富翁</h2>
+                <p class="game-desc">斥巨资构建防线，无尽升级与究极觉醒。使用黑客入侵与天基武器，抵御几何怪物的无尽狂潮。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时检查上次游玩记录
+        document.addEventListener('DOMContentLoaded', () => {
+            const lastPlayed = localStorage.getItem('hub_last_played');
+            
+            if (lastPlayed) {
+                const badge = document.getElementById(`badge-${lastPlayed}`);
+                if (badge) {
+                    badge.classList.add('active');
+                    // 将上次游玩的卡片稍微高亮
+                    badge.parentElement.style.borderColor = 'rgba(0, 206, 201, 0.4)';
+                    badge.parentElement.style.background = 'rgba(255, 255, 255, 0.08)';
+                }
+            }
+        });
+
+        // 点击进入游戏并记录
+        function launchGame(gameId, targetUrl) {
+            // 记录选择到 LocalStorage
+            localStorage.setItem('hub_last_played', gameId);
+            
+            // 添加一个退出动画效果（可选）
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.4s ease';
+            
+            // 延迟跳转等待动画完成
+            setTimeout(() => {
+                window.location.href = targetUrl;
+            }, 400);
+        }
+    </script>
+</body>
+</html>
