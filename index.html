@@ -20,7 +20,6 @@
             padding: 0;
             min-height: 100vh;
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            /* 修改为灰色调的动态渐变背景 */
             background: linear-gradient(-45deg, #121212, #2c2c2c, #1a1a1a, #383838);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
@@ -29,6 +28,8 @@
             align-items: center;
             color: var(--text-main);
             overflow: hidden;
+            /* 预设默认不透明，防止缓存导致的闪烁 */
+            opacity: 1; 
         }
 
         /* 动态背景 */
@@ -58,13 +59,13 @@
         /* 主容器 - 极致毛玻璃 */
         .main-container {
             background: var(--glass-bg);
-            backdrop-filter: blur(20px); /* 强大的模糊效果支撑高透明度 */
+            backdrop-filter: blur(20px); 
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 50px;
             width: 90%;
-            max-width: 1000px; /* 增加到1000px以适应3张卡片同行显示 */
+            max-width: 1000px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
             text-align: center;
             position: relative;
@@ -96,7 +97,7 @@
 
         /* 游戏卡片 */
         .game-card {
-            background: rgba(0, 0, 0, 0.3); /* 在灰色背景下稍微加深一点卡片底色 */
+            background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
@@ -222,29 +223,46 @@
     </div>
 
     <script>
-        // 页面加载时检查上次游玩记录
-        document.addEventListener('DOMContentLoaded', () => {
-            const lastPlayed = localStorage.getItem('hub_last_played');
+        // 修复：当页面从浏览器的缓存中恢复时（如点击后退按钮），重置页面的透明度
+        window.addEventListener('pageshow', (event) => {
+            // event.persisted 为 true 表示页面是从浏览器的缓存(BFCache)中读取的
+            document.body.style.opacity = '1';
+            // 移除过渡效果以便立即显示，避免返回时出现奇怪的闪烁
+            document.body.style.transition = 'none'; 
             
+            // 可选：每次回到主页动态刷新上次游玩的标记
+            updateLastPlayedBadge();
+        });
+
+        // 将之前直接在DOMContentLoaded里的高亮逻辑封装成函数，便于复用
+        function updateLastPlayedBadge() {
+            // 清除旧的激活状态（防止缓存导致两个都亮）
+            document.querySelectorAll('.last-played-badge').forEach(badge => {
+                badge.classList.remove('active');
+                badge.parentElement.style.borderColor = 'var(--glass-border)';
+                badge.parentElement.style.background = 'rgba(0, 0, 0, 0.3)';
+            });
+
+            const lastPlayed = localStorage.getItem('hub_last_played');
             if (lastPlayed) {
                 const badge = document.getElementById(`badge-${lastPlayed}`);
                 if (badge) {
                     badge.classList.add('active');
-                    // 将上次游玩的卡片稍微高亮
                     badge.parentElement.style.borderColor = 'rgba(0, 206, 201, 0.4)';
                     badge.parentElement.style.background = 'rgba(255, 255, 255, 0.08)';
                 }
             }
-        });
+        }
+
+        document.addEventListener('DOMContentLoaded', updateLastPlayedBadge);
 
         // 点击进入游戏并记录
         function launchGame(gameId, targetUrl) {
-            // 记录选择到 LocalStorage
             localStorage.setItem('hub_last_played', gameId);
             
-            // 添加一个退出动画效果
-            document.body.style.opacity = '0';
+            // 执行退出动画
             document.body.style.transition = 'opacity 0.4s ease';
+            document.body.style.opacity = '0';
             
             // 延迟跳转等待动画完成
             setTimeout(() => {
