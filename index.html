@@ -64,7 +64,7 @@
             border-radius: 24px;
             padding: 50px;
             width: 90%;
-            max-width: 800px;
+            max-width: 1000px; /* 增加到1000px以适应3张卡片同行显示 */
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
             text-align: center;
             position: relative;
@@ -90,7 +90,7 @@
         /* 游戏卡片网格 */
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
         }
 
@@ -209,6 +209,14 @@
                 <div class="game-icon">🗼</div>
                 <h2 class="game-title">无限塔防 - 亿万富翁</h2>
                 <p class="game-desc">斥巨资构建防线，无尽升级与究极觉醒。使用黑客入侵与天基武器，抵御几何怪物的无尽狂潮。</p>
+            </div>
+
+            <!-- 游戏3：florr.oi -->
+            <div class="game-card animate-up" style="animation-delay: 0.6s;" onclick="launchGame('florr', 'florr.html')">
+                <div class="last-played-badge" id="badge-florr">上次游玩</div>
+                <div class="game-icon">🌸</div>
+                <h2 class="game-title">florr.oi</h2>
+                <p class="game-desc">收集花瓣，合成更高稀有度的武装，在这个充满挑战的微观生态中对抗强大的怪物并不断进化。</p>
             </div>
         </div>
     </div>
