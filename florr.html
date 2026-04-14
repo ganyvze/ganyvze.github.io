@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>floor.oi</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select: none; }
+    body { background: #0f172a; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; }
+    canvas { display: block; background: #1e293b; cursor: crosshair; position: absolute; top:0; left:0; }
+    #ui-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; }
+    
+    .panel { background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; border-radius: 8px; padding: 10px; pointer-events: auto; backdrop-filter: blur(6px); color: #e2e8f0; font-size: 13px; }
+    
+    #stats { position: absolute; top: 12px; left: 12px; }
+    #stats span { color: #60a5fa; font-weight: bold; }
+    #game-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; letter-spacing: 1px; color: #facc15; text-shadow: 0 0 6px rgba(234, 179, 8, 0.4); }
+
+    #instructions { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.7); color: #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 12px; line-height: 1.4; pointer-events: none; max-width: 35%; text-align: right; }
+    #instructions b { color: #38bdf8; }
+    #inv-hint { position: absolute; bottom: 80px; left: 12px; color: #94a3b8; font-size: 12px; pointer-events: none; opacity: 0.7; }
+    #inv-hint b { color: #38bdf8; }
+    
+    #equip-bar { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 300px; }
+    #equip-grid { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+    
+    #inventory-modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 420px; max-width: 650px; z-index: 50; display: none; flex-direction: column; gap: 10px; align-items: center; }
+    .modal-header { width: 100%; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+    .close-btn { cursor: pointer; opacity: 0.6; font-size: 16px; transition: 0.2s; }
+    .close-btn:hover { opacity: 1; transform: scale(1.2); }
+    
+    #inv-grid { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; min-height: 46px; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 6px; width: 100%; }
+    #craft-panel { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%; margin-top: 4px; }
+    
+    .craft-btn { padding: 6px 10px; background: #1e293b; border: 1px solid #475569; color: #94a3b8; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+    .craft-btn:hover:not(:disabled) { background: #334155; color: #e2e8f0; border-color: #60a5fa; }
+    .craft-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .craft-btn span { color: #facc15; }
+
+    #drag-ghost { position: fixed; pointer-events: none; z-index: 1000; display: none; width: 38px; height: 38px; border-radius: 8px; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; color: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); text-shadow: 0 0 3px #fff; }
+    
+    #gameOver { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 23, 42, 0.95); color: #f8fafc; padding: 30px; border-radius: 12px; text-align: center; border: 2px solid #ef4444; box-shadow: 0 0 30px rgba(239,68,68,0.3); z-index: 10; pointer-events: auto; }
+    #gameOver h2 { margin-bottom: 10px; color: #f87171; }
+    button { margin-top: 15px; padding: 10px 24px; font-size: 15px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #2563eb; transform: scale(1.05); }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="ui-layer">
+    <div id="stats" class="panel">
+      <div id="game-title">floor.oi - 生态深渊</div>
+      🌼 等级: <span id="lvl">1</span> | ❤️ HP: <span id="hp">100</span>/<span id="maxHp">100</span><br>
+      ⭐ 经验: <span id="xp">0</span>/<span id="xpMax">20</span> | 🌸 最高阶: <span id="maxTier">普通</span><br>
+      🧭 探索深度: <span id="depth" style="color:#a78bfa;">0</span>m
+    </div>
+    <div id="inv-hint">按 <b>Z</b> 打开/关闭背包</div>
+    <div id="instructions">
+      🎮 <b>鼠标</b>：控制移动 | <b>Shift+点击</b>：快速穿脱<br>
+      ⚠️ <b>离中心越远，敌人越强，掉落越好！</b><br>
+      🔴 自爆怪靠近会爆炸 | 🟡 冲刺怪会突然加速
+    </div>
+    
+    <div id="equip-bar" class="panel">
+      🎒 已装备
+      <div id="equip-grid"></div>
+    </div>
+    
+    <div id="inventory-modal" class="panel">
+      <div class="modal-header">
+        📦 背包 (拖拽取出 / Shift+点击装备)
+        <span class="close-btn" onclick="toggleInventory()">✕</span>
+      </div>
+      <div id="inv-grid"></div>
+      <div id="craft-panel"></div>
+    </div>
+  </div>
+  
+  <div id="drag-ghost" class="petal-item"></div>
+  <div id="gameOver">
+    <h2>💀 花朵凋零</h2>
+    <p>最终等级: <span id="finalLvl">1</span> | 存活: <span id="survTime">0</span>s</p>
+    <p>最远探索: <span id="finalPos">0</span>m</p>
+    <button onclick="location.reload()">🔄 重新开始</button>
+  </div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+
+let running = true, frame = 0, startTime = Date.now();
+let mouseX = canvas.width/2, mouseY = canvas.height/2;
+window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+
+let shiftPressed = false, showInventory = false;
+let needsUIRender = true; // 性能优化：UI 脏检查标志
+let screenShake = 0;      // 视觉优化：屏幕抖动
+
+window.addEventListener('keydown', e => { 
+  if(e.key === 'Shift') shiftPressed = true; 
+  if(e.key.toLowerCase() === 'z') toggleInventory(); 
+});
+window.addEventListener('keyup', e => { if(e.key === 'Shift') shiftPressed = false; });
+
+function toggleInventory() {
+  showInventory = !showInventory;
+  document.getElementById('inventory-modal').style.display = showInventory ? 'flex' : 'none';
+  if(showInventory) needsUIRender = true;
+}
+
+const camera = { x: 0, y: 0 };
+const player = {
+  x: 0, y: 0, vx: 0, vy: 0, r: 18, speed: 5.5,
+  hp: 100, maxHp: 100, lvl: 1, xp: 0, xpMax: 20,
+  invincibleTimer: 0, hurtFlashTimer: 0
+};
+
+// 玩法优化：不同阶级的花瓣不仅影响伤害，还影响旋转速度加成和恢复速度
+const TIERS = ['common', 'unusual', 'rare', 'epic', 'legendary'];
+const TIER_NAMES = { common:'普通', unusual:'不凡', rare:'稀有', epic:'史诗', legendary:'传奇' };
+const TIER_COLORS = { common:'#22c55e', unusual:'#eab308', rare:'#3b82f6', epic:'#a855f7', legendary:'#ef4444' };
+const TIER_STATS = { 
+  common:   { dmg:3, speedBonus:1.0, regen: 180 }, 
+  unusual:  { dmg:5, speedBonus:1.1, regen: 150 }, 
+  rare:     { dmg:8, speedBonus:1.2, regen: 120 }, 
+  epic:     { dmg:12, speedBonus:1.35, regen: 90 }, 
+  legendary:{ dmg:18, speedBonus:1.5, regen: 60 } 
+};
+const CRAFT_RATES = { common:0.64, unusual:0.32, rare:0.16, epic:0.08 };
+const ENEMY_TYPES = ['basic', 'dasher', 'bomber'];
+
+let equipped = [];
+let inventory = [];
+let groundPetals = [];
+let enemies =[];
+let particles = [];
+let damageTexts =[]; // 视觉优化：浮动伤害数字
+
+const rand = (a,b)=>Math.random()*(b-a)+a;
+const dist = (a,b)=>Math.hypot(a.x-b.x, a.y-b.y);
+const collides = (a,b)=>dist(a,b)<a.r+b.r;
+
+const createPetal = (type, x=0, y=0)=>({
+  id: Date.now() + Math.random(), type: String(type), dmg: TIER_STATS[String(type)].dmg, r: 8, x, y,
+  durability: 5, maxDurability: 5, isActive: true, cooldownTimer: 0
+});
+
+for(let i=0;i<4;i++) equipped.push(createPetal('common'));
+
+function getCurrentMaxTierIdx() {
+  const all =[...equipped, ...inventory];
+  return all.length ? Math.max(...all.map(p => TIERS.indexOf(p.type))) : 0;
+}
+
+// 视觉优化：产生粒子
+function spawnParticles(x, y, color, count=5, speedMult=1){
+  for(let i=0;i<count;i++) particles.push({x, y, vx:rand(-3,3)*speedMult, vy:rand(-3,3)*speedMult, life:rand(15,40), color, r:rand(2,5)});
+}
+
+// 视觉优化：浮动伤害跳字
+function spawnDamageText(x, y, text, color) {
+  damageTexts.push({ x: x + rand(-10, 10), y: y - 10, text, color, life: 40, maxLife: 40, vy: -1.5 });
+}
+
+// 玩法优化：根据离原点的距离计算难度深度
+function getMapDepth() {
+  return Math.floor(Math.hypot(player.x, player.y) / 100);
+}
+
+function spawnEnemy() {
+  const angle = Math.random()*Math.PI*2;
+  const maxDim = Math.max(canvas.width, canvas.height);
+  const sd = rand(maxDim*0.6, maxDim*1.25);
+  const depth = getMapDepth();
+  
+  // 离原点越远，怪物越强
+  const lvlMult = player.lvl + (depth * 0.5); 
+  const hp = Math.floor(10 + lvlMult*2 + Math.pow(lvlMult, 1.6)*0.3);
+  
+  // 决定怪物类型
+  let type = 'basic';
+  const typeRoll = Math.random();
+  if (depth > 5 && typeRoll > 0.7) type = 'bomber';
+  else if (depth > 2 && typeRoll > 0.4) type = 'dasher';
+
+  let color = '#ef4444';
+  if (type === 'dasher') color = '#eab308';
+  if (type === 'bomber') color = '#f97316';
+
+  enemies.push({
+    x: player.x+Math.cos(angle)*sd, y: player.y+Math.sin(angle)*sd,
+    r: type === 'bomber' ? 18 : 14, hp, maxHp:hp, 
+    speed: (type === 'dasher' ? 1.5 : 2.0) + lvlMult*0.05,
+    type, color, hitFlash:0, aggro:false, wander:Math.random()*Math.PI*2,
+    dashTimer: rand(60, 180), state: 'normal' // 冲刺怪/自爆怪专用状态
+  });
+}
+
+function dropGroundPetal(x, y) {
+  const depth = getMapDepth();
+  let maxIdx = getCurrentMaxTierIdx();
+  // 玩法优化：高深度增加高阶掉落概率
+  if (depth > 15 && maxIdx < TIERS.length - 1 && Math.random() < 0.1) maxIdx++;
+  
+  // 权重掉落，低阶概率高，高阶概率低
+  let dropIdx = 0;
+  for (let i = maxIdx; i >= 0; i--) {
+    if (Math.random() < 0.35 + (depth*0.01)) { dropIdx = i; break; }
+  }
+  
+  const p = createPetal(TIERS[dropIdx], x, y);
+  p.life = 600;
+  groundPetals.push(p);
+  needsUIRender = true;
+}
+
+// 性能优化：UI 更新逻辑重构
+function renderUINow() {
+  document.getElementById('lvl').textContent = player.lvl;
+  document.getElementById('hp').textContent = Math.ceil(player.hp);
+  document.getElementById('maxHp').textContent = player.maxHp;
+  document.getElementById('xp').textContent = player.xp;
+  document.getElementById('xpMax').textContent = player.xpMax;
+  document.getElementById('maxTier').textContent = TIER_NAMES[TIERS[getCurrentMaxTierIdx()]];
+  document.getElementById('depth').textContent = getMapDepth();
+
+  // 1. 更新装备栏 (使用 DocumentFragment 优化 DOM)
+  const eqGrid = document.getElementById('equip-grid');
+  eqGrid.innerHTML = ''; 
+  const eqFrag = document.createDocumentFragment();
+  
+  equipped.forEach(p => {
+    const s = document.createElement('div');
+    const col = TIER_COLORS[p.type] || '#22c55e';
+    s.style.cssText = `background:${col}; border:2px solid rgba(255,255,255,0.3); border-radius:8px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; color:#000; position:relative; opacity:${p.isActive?1:0.3}; box-shadow:0 2px 6px rgba(0,0,0,0.3); cursor:pointer;`;
+    s.textContent = p.dmg;
+    s.title = `类型: ${TIER_NAMES[p.type]}\n耐久: ${p.durability}/${p.maxDurability}`;
+    
+    const bar = document.createElement('div');
+    bar.style.cssText = `position:absolute; bottom:0; left:0; width:100%; height:3px; background:${p.durability>2?'#22c55e':'#ef4444'}; transition:height 0.15s;`;
+    s.appendChild(bar);
+    
+    s.onmousedown = (e) => { if(shiftPressed) { quickSwap(p, 'equip'); return; } startDrag(e, p, 'equip'); };
+    eqFrag.appendChild(s);
+  });
+  eqGrid.appendChild(eqFrag);
+
+  // 2. 更新背包和合成栏
+  if(showInventory) {
+    const invGrid = document.getElementById('inv-grid');
+    invGrid.innerHTML = '';
+    const invFrag = document.createDocumentFragment();
+    
+    const counts = {};
+    inventory.forEach(p => counts[p.type] = (counts[p.type] || 0) + 1);
+
+    TIERS.forEach(tier => {
+      const count = counts[tier] || 0;
+      if (count === 0) return;
+      const el = document.createElement('div');
+      const col = TIER_COLORS[tier];
+      el.style.cssText = `background:${col}; border:2px solid rgba(255,255,255,0.3); border-radius:8px; width:42px; height:42px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; font-size:15px; color:#000; position:relative; cursor:grab; box-shadow:0 2px 6px rgba(0,0,0,0.3);`;
+      el.innerHTML = `<span>${TIER_STATS[tier].dmg}</span><span style="position:absolute;bottom:2px;left:3px;background:rgba(0,0,0,0.65);color:#fff;border-radius:4px;padding:0 4px;font-size:11px;font-weight:600;line-height:1.6;pointer-events:none;">x${count}</span>`;
+      el.title = TIER_NAMES[tier];
+      el.onmousedown = (e) => {
+        if(shiftPressed) { quickSwapByType(tier, 'inv'); return; }
+        startDragByType(e, tier);
+      };
+      invFrag.appendChild(el);
+    });
+    invGrid.appendChild(invFrag);
+
+    const panel = document.getElementById('craft-panel');
+    panel.innerHTML = '';
+    const craftFrag = document.createDocumentFragment();
+    
+    TIERS.slice(0, -1).forEach(t => {
+      const count = inventory.filter(p=>p.type===t).length;
+      const btn = document.createElement('button');
+      btn.className = 'craft-btn';
+      btn.disabled = count < 5;
+      btn.innerHTML = `5 ${TIER_NAMES[t]} → ${TIER_NAMES[TIERS[TIERS.indexOf(t)+1]]} (<span>${Math.floor(CRAFT_RATES[t]*100)}%</span>)`;
+      btn.onclick = () => craft(t);
+      craftFrag.appendChild(btn);
+    });
+    panel.appendChild(craftFrag);
+  }
+}
+
+// -- 拖拽与装备逻辑保持原样，只把渲染改为标记脏位 --
+function quickSwap(petal, source) {
+  const srcArr = source === 'equip' ? equipped : inventory;
+  const dstArr = source === 'equip' ? inventory : equipped;
+  const idx = srcArr.indexOf(petal);
+  if (idx === -1) return;
+  if (source === 'inv' && dstArr.length >= 12) return;
+  srcArr.splice(idx, 1); dstArr.push(petal); needsUIRender = true;
+}
+function quickSwapByType(type, source) {
+  if (source === 'inv' && equipped.length < 12) {
+    const idx = inventory.findIndex(p => p.type === type);
+    if (idx !== -1) { equipped.push(inventory.splice(idx, 1)[0]); needsUIRender = true; }
+  }
+}
+function startDragByType(e, type) {
+  e.preventDefault(); const idx = inventory.findIndex(p => p.type === type);
+  if (idx === -1) return;
+  dragData = { petal: inventory.splice(idx, 1)[0], source: 'inv' };
+  setupDragGhost(e, dragData.petal);
+}
+let dragData = null, ghost = document.getElementById('drag-ghost');
+function startDrag(e, petal, source) {
+  e.preventDefault(); dragData = { petal, source };
+  const srcArr = source === 'equip' ? equipped : inventory;
+  const idx = srcArr.indexOf(petal);
+  if(idx > -1) srcArr.splice(idx, 1);
+  setupDragGhost(e, petal);
+}
+function setupDragGhost(e, p) {
+  ghost.style.background = TIER_COLORS[p.type]; ghost.textContent = p.dmg;
+  ghost.style.display = 'flex'; ghost.style.left = e.clientX - 19 + 'px'; ghost.style.top = e.clientY - 19 + 'px';
+  window.addEventListener('mousemove', onDrag); window.addEventListener('mouseup', endDrag);
+  needsUIRender = true;
+}
+function onDrag(e) { ghost.style.left = e.clientX-19+'px'; ghost.style.top = e.clientY-19+'px'; }
+function endDrag(e) {
+  ghost.style.display = 'none';
+  window.removeEventListener('mousemove', onDrag); window.removeEventListener('mouseup', endDrag);
+  if(!dragData) return;
+  const target = document.elementFromPoint(e.clientX, e.clientY);
+  const eqSlots = document.getElementById('equip-grid').children;
+  let droppedInEquip = false;
+  for(let s of eqSlots) { if(s.contains(target) || s===target) { droppedInEquip = true; break; } }
+  if(droppedInEquip && equipped.length < 12) equipped.push(dragData.petal);
+  else inventory.push(dragData.petal);
+  dragData = null; needsUIRender = true;
+}
+
+function craft(tier) {
+  const idx = TIERS.indexOf(tier);
+  if(idx >= TIERS.length - 1) return;
+  const count = inventory.filter(p=>p.type===tier).length;
+  if(count < 5) return;
+  let removed = 0;
+  for(let i = inventory.length - 1; i >= 0 && removed < 5; i--) {
+    if(inventory[i].type === tier) { inventory.splice(i, 1); removed++; }
+  }
+  if(Math.random() < CRAFT_RATES[tier]) inventory.push(createPetal(TIERS[idx+1]));
+  else for(let i=0;i<Math.floor(rand(1, 5));i++) inventory.push(createPetal(tier));
+  needsUIRender = true;
+}
+
+// 核心循环更新
+function loop() {
+  if(!running) return; frame++;
+  
+  // 玩家移动逻辑
+  const dx = mouseX - canvas.width/2, dy = mouseY - canvas.height/2;
+  const mDist = Math.hypot(dx, dy);
+  
+  if(!showInventory && mDist > 15) { 
+    const a = Math.atan2(dy, dx); 
+    player.vx+=Math.cos(a)*0.45; player.vy+=Math.sin(a)*0.45; 
+  }
+  player.vx*=0.87; player.vy*=0.87;
+  if(Math.hypot(player.vx,player.vy)>player.speed) {
+    const s = player.speed/Math.hypot(player.vx,player.vy); player.vx*=s; player.vy*=s;
+  }
+  player.x+=player.vx; player.y+=player.vy;
+  
+  // 缓动平滑相机
+  camera.x += (player.x - canvas.width/2 - camera.x) * 0.2; 
+  camera.y += (player.y - canvas.height/2 - camera.y) * 0.2;
+
+  // 深度与刷新
+  if (frame % 30 === 0) needsUIRender = true; // 定期更新深度显示
+  const maxDim = Math.max(canvas.width, canvas.height);
+  const AGGRO = maxDim*0.5, DESPAWN = maxDim*2.0;
+  if(frame%20===0 && enemies.length < 35+player.lvl*1.5) spawnEnemy();
+
+  player.invincibleTimer=Math.max(0, player.invincibleTimer-1);
+  player.hurtFlashTimer=Math.max(0, player.hurtFlashTimer-1);
+  const isInv = player.invincibleTimer>0;
+
+  // 计算综合花瓣旋转速度 (高阶花转得更快)
+  let speedMultiSum = equipped.reduce((sum, p) => sum + TIER_STATS[p.type].speedBonus, 0);
+  let avgSpeedBonus = equipped.length ? speedMultiSum / equipped.length : 1;
+  const rot = (0.022 + player.lvl*0.0015) * avgSpeedBonus;
+
+  equipped.forEach((p,i)=>{
+    if(!p.isActive) {
+      p.cooldownTimer--;
+      if(p.cooldownTimer <= 0) { p.isActive = true; p.durability = p.maxDurability; needsUIRender = true; }
+    }
+    const base=(Math.PI*2/equipped.length)*i;
+    p.x=player.x+Math.cos(base+frame*rot)*(45+player.lvl*4);
+    p.y=player.y+Math.sin(base+frame*rot)*(45+player.lvl*4);
+  });
+
+  // 掉落物吸附
+  for(let i=groundPetals.length-1;i>=0;i--){
+    const p=groundPetals[i]; p.life--;
+    const d=dist(player,p);
+    if(d<80){ p.x+=(player.x-p.x)*0.15; p.y+=(player.y-p.y)*0.15; } // 吸铁石效果增强
+    if(d<25 || p.life<=0){
+      if(p.life>0) { inventory.push(p); spawnDamageText(p.x, p.y, "+物品", "#38bdf8"); }
+      groundPetals.splice(i,1); needsUIRender = true; continue;
+    }
+  }
+
+  // 物理碰撞预防重叠
+  for(let i=0; i<enemies.length; i++) {
+    for(let j=i+1; j<enemies.length; j++) {
+      const e1 = enemies[i], e2 = enemies[j];
+      const d = dist(e1, e2), minD = e1.r + e2.r;
+      if(d < minD && d > 0) {
+        const ov = minD-d, nx = (e2.x-e1.x)/d, ny = (e2.y-e1.y)/d, p = ov*0.5;
+        e1.x-=nx*p; e1.y-=ny*p; e2.x+=nx*p; e2.y+=ny*p;
+      }
+    }
+    const ep = enemies[i];
+    const dP = dist(ep, player), minP = ep.r + player.r;
+    if(dP < minP && dP > 0) {
+      const ov = minP-dP, nx = (player.x-ep.x)/dP, ny = (player.y-ep.y)/dP, p = ov*0.5;
+      ep.x-=nx*p; ep.y-=ny*p; player.x+=nx*p; player.y+=ny*p;
+    }
+  }
+
+  // 敌人逻辑更新
+  for(let i=enemies.length-1;i>=0;i--){
+    const e=enemies[i];
+    const edx=player.x-e.x, edy=player.y-e.y, edist=Math.hypot(edx,edy)||1;
+    if(!e.aggro && edist<=AGGRO) e.aggro=true;
+    
+    // 敌人行为树
+    if(e.aggro){ 
+      let currentSpeed = e.speed;
+      // 玩法优化：冲刺怪逻辑
+      if (e.type === 'dasher') {
+        e.dashTimer--;
+        if (e.dashTimer <= 0) { e.state = 'dashing'; e.dashTimer = rand(80, 150); }
+        if (e.state === 'dashing' && e.dashTimer > 130) { currentSpeed *= 3.5; spawnParticles(e.x, e.y, '#eab308', 1); }
+        else { e.state = 'normal'; }
+      }
+      e.x+=(edx/edist)*currentSpeed; e.y+=(edy/edist)*currentSpeed; 
+    }
+    else{ 
+      const wa=e.wander+Math.sin(frame*0.05+i*0.1)*0.5; e.x+=Math.cos(wa)*e.speed*0.12; e.y+=Math.sin(wa)*e.speed*0.12; 
+    }
+    
+    e.hitFlash=Math.max(0,e.hitFlash-1);
+    if(edist>DESPAWN){ enemies.splice(i,1); continue; }
+
+    // 花瓣击中敌人
+    let died = false;
+    for(let p of equipped){
+      if(p.isActive && collides(p,e)){
+        e.hp -= p.dmg; e.hitFlash = 5; p.durability -= 1; 
+        spawnDamageText(e.x, e.y, p.dmg, e.hp <= 0 ? '#facc15' : '#fff');
+        spawnParticles(e.x, e.y, TIER_COLORS[p.type], 3);
+        
+        if(p.durability <= 0) { p.isActive = false; p.cooldownTimer = TIER_STATS[p.type].regen; } // 高阶恢复更快
+        if(e.hp <= 0) { died = true; break; }
+      }
+    }
+
+    if(died) {
+      player.xp += 2 + Math.floor(player.lvl/4); 
+      dropGroundPetal(e.x, e.y);
+      spawnParticles(e.x, e.y, e.color, 10, 1.5);
+      enemies.splice(i, 1);
+      
+      // 升级爆发特效
+      if(player.xp >= player.xpMax) {
+        player.lvl++; player.xp=0; player.xpMax=Math.floor(player.xpMax*1.35);
+        player.maxHp+=15; player.hp=player.maxHp;
+        spawnDamageText(player.x, player.y - 30, "LEVEL UP!", "#facc15");
+        screenShake = 10;
+        // 升级七彩爆发['#ef4444','#eab308','#22c55e','#3b82f6','#a855f7'].forEach(c => spawnParticles(player.x, player.y, c, 15, 3));[...equipped, ...inventory].forEach(p => { p.durability = p.maxDurability; p.isActive = true; p.cooldownTimer = 0; });
+      }
+      needsUIRender = true;
+      continue;
+    }
+
+    // 敌人伤害玩家
+    if(!isInv && collides(player,e)){
+      let dmgTaken = 8;
+      
+      // 自爆怪逻辑
+      if (e.type === 'bomber') {
+        dmgTaken = 25;
+        spawnParticles(e.x, e.y, '#f97316', 30, 4); // 巨大爆炸
+        screenShake = 15;
+        enemies.splice(i, 1); // 自爆后消失
+      } else {
+        e.hp -= 2; e.hitFlash = 4; e.x -= (edx/edist)*25; e.y -= (edy/edist)*25; // 弹开敌人
+        screenShake = 5;
+      }
+      
+      player.hp -= dmgTaken; 
+      player.invincibleTimer = 35; 
+      player.hurtFlashTimer = 8;
+      spawnDamageText(player.x, player.y, `-${dmgTaken}`, '#ef4444');
+      
+      if(player.hp <= 0) gameOver();
+      needsUIRender = true;
+    }
+  }
+
+  // 更新粒子与跳字
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.life--; p.vx*=0.9; p.vy*=0.9;
+    if(p.life<=0) particles.splice(i,1);
+  }
+  for(let i=damageTexts.length-1;i>=0;i--){
+    const dt = damageTexts[i]; dt.y += dt.vy; dt.life--;
+    if(dt.life<=0) damageTexts.splice(i,1);
+  }
+
+  // 性能优化：每帧末尾统一更新一次UI
+  if (needsUIRender) { renderUINow(); needsUIRender = false; }
+
+  draw(isInv, mDist);
+  requestAnimationFrame(loop);
+}
+
+function gameOver(){
+  running=false; document.getElementById('gameOver').style.display='block';
+  document.getElementById('finalLvl').textContent=player.lvl;
+  document.getElementById('survTime').textContent=Math.floor((Date.now()-startTime)/1000);
+  document.getElementById('finalPos').textContent=getMapDepth();
+}
+
+function draw(isInv, mouseDist) {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  
+  ctx.save();
+  // 视觉优化：屏幕抖动
+  if (screenShake > 0) {
+    ctx.translate(rand(-screenShake, screenShake), rand(-screenShake, screenShake));
+    screenShake *= 0.85;
+    if (screenShake < 0.5) screenShake = 0;
+  }
+
+  // 绘制网格背景
+  const gs=60, offX=-(camera.x%gs), offY=-(camera.y%gs);
+  ctx.strokeStyle='#334155'; ctx.lineWidth=1; ctx.globalAlpha=0.25;
+  for(let x=offX-gs;x<canvas.width+gs;x+=gs){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+  for(let y=offY-gs;y<canvas.height+gs;y+=gs){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+  ctx.globalAlpha=1;
+
+  // 绘制瞄准线
+  if (mouseDist > 20 && !showInventory) {
+    const angle = Math.atan2(mouseY - canvas.height/2, mouseX - canvas.width/2);
+    const startX = canvas.width/2 + Math.cos(angle) * 22;
+    const startY = canvas.height/2 + Math.sin(angle) * 22;
+    const len = mouseDist - 22;
+    ctx.save(); ctx.translate(startX, startY); ctx.rotate(angle);
+    ctx.strokeStyle = 'rgba(200, 215, 240, 0.25)'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(len, 0);
+    ctx.moveTo(len, 0); ctx.lineTo(len - 9, -5); ctx.moveTo(len, 0); ctx.lineTo(len - 9, 5);
+    ctx.stroke(); ctx.restore();
+  }
+
+  ctx.translate(-camera.x,-camera.y);
+
+  // 绘制地面物品（发光效果）
+  groundPetals.forEach(p=>{
+    ctx.globalAlpha = p.life<100 ? p.life/100 : 0.8;
+    ctx.shadowBlur = 10; ctx.shadowColor = TIER_COLORS[p.type];
+    ctx.fillStyle = TIER_COLORS[p.type];
+    ctx.beginPath(); ctx.ellipse(p.x,p.y,8,5, Math.atan2(p.y-player.y,p.x-player.x),0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0; ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+  });
+  ctx.globalAlpha=1;
+
+  // 绘制敌人
+  enemies.forEach(e=>{
+    ctx.fillStyle = e.aggro ? (e.hitFlash>0?'#fff': e.color) : '#64748b';
+    ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fill();
+    
+    // 视觉细节：冲刺怪/爆炸怪 特殊标记
+    if (e.type === 'bomber' && e.aggro) {
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(e.x,e.y,e.r*0.5,0,Math.PI*2); ctx.fill();
+    }
+    
+    ctx.fillStyle='#0f172a'; ctx.fillRect(e.x-12,e.y-e.r-8,24,4);
+    ctx.fillStyle='#22c55e'; ctx.fillRect(e.x-12,e.y-e.r-8,24*Math.max(0,e.hp/e.maxHp),4);
+  });
+
+  // 绘制花瓣 (材质提升: 渐变)
+  equipped.forEach(p=>{
+    if(!p.isActive) {
+      ctx.globalAlpha = 0.25; ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.ellipse(p.x,p.y,10,6,Math.atan2(p.y-player.y,p.x-player.x),0,Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1; return;
+    }
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 10);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(1, TIER_COLORS[p.type]);
+    ctx.fillStyle = grad;
+    ctx.globalAlpha = 0.6 + (p.durability/p.maxDurability)*0.4;
+    ctx.beginPath(); ctx.ellipse(p.x,p.y,10,6,Math.atan2(p.y-player.y,p.x-player.x),0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke(); ctx.globalAlpha = 1;
+  });
+
+  // 绘制玩家
+  ctx.save(); ctx.translate(player.x,player.y);
+  if (player.hurtFlashTimer > 0) { ctx.fillStyle = '#ef4444'; ctx.shadowBlur = 15; ctx.shadowColor = '#ef4444'; }
+  else { ctx.fillStyle = '#38bdf8'; ctx.shadowBlur = 10; ctx.shadowColor = '#38bdf8'; }
+  ctx.beginPath(); ctx.arc(0,0,player.r,0,Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+  ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=3; ctx.stroke();
+  ctx.fillStyle='#fef08a'; ctx.beginPath(); ctx.arc(0,0,7,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // 绘制粒子
+  particles.forEach(p=>{ ctx.globalAlpha=p.life/35; ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); });
+  ctx.globalAlpha=1;
+
+  // 绘制浮动跳字
+  ctx.font = "bold 16px system-ui";
+  ctx.textAlign = "center";
+  damageTexts.forEach(dt => {
+    ctx.globalAlpha = dt.life / dt.maxLife;
+    ctx.fillStyle = dt.color;
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 4;
+    ctx.fillText(dt.text, dt.x, dt.y);
+  });
+  ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+
+  ctx.restore(); // 结束相机与屏幕抖动变换
+}
+
+// 初始化启动
+needsUIRender = true;
+loop();
+</script>
+</body>
+</html>
