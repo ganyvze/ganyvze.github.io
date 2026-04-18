@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--floor.oi - v3.0-->
+<!--floor.oi - v5.0-->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -17,12 +17,11 @@
     #stats span { color: #60a5fa; font-weight: bold; }
     #game-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; letter-spacing: 1px; color: #facc15; text-shadow: 0 0 6px rgba(234, 179, 8, 0.4); }
 
-    #instructions { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.7); color: #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 12px; line-height: 1.4; pointer-events: none; max-width: 35%; text-align: right; }
+    #instructions { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.7); color: #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 12px; line-height: 1.4; pointer-events: none; max-width: 40%; text-align: right; }
     #instructions b { color: #38bdf8; }
     #inv-hint { position: absolute; bottom: 80px; left: 12px; color: #94a3b8; font-size: 12px; pointer-events: none; opacity: 0.7; }
     #inv-hint b { color: #38bdf8; }
     
-    /* 装备栏层级提升，确保在暂停蒙版之上 */
     #equip-bar { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 300px; z-index: 45; }
     #equip-grid { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
     
@@ -41,7 +40,6 @@
 
     #drag-ghost { position: fixed; pointer-events: none; z-index: 1000; display: none; width: 38px; height: 38px; border-radius: 8px; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; color: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); text-shadow: 0 0 3px #fff; }
 
-    /* 彩色动画（至臻级专属） */
     @keyframes rainbow-bg {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -65,7 +63,6 @@
       text-shadow: none !important;
     }
 
-    /* 暂停遮罩与过渡效果 */
     .overlay { backdrop-filter: blur(8px) saturate(120%); z-index: 40; opacity: 0; pointer-events: none; background: rgba(15, 23, 42, 0.6); display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; transition: opacity 0.4s ease; position: absolute; top: 0; left: 0; }
     .overlay.visible { opacity: 1; pointer-events: auto; }
     #pause-content { display: flex; flex-direction: column; align-items: center; opacity: 0; transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s; transform: translateY(20px); }
@@ -73,7 +70,6 @@
     #pause-content h1 { color: #60a5fa; text-shadow: 0 0 20px rgba(59, 130, 246, 0.8); letter-spacing: 8px; margin-bottom: 20px; font-size: 56px; }
     #pause-content p { color: #cbd5e1; letter-spacing: 2px; font-size: 20px; font-weight: bold; }
 
-    /* 全屏死亡界面 */
     #gameOver { backdrop-filter: blur(10px) saturate(100%); z-index: 100; opacity: 0; pointer-events: none; background: rgba(11, 12, 16, 0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; transition: opacity 0.5s ease; position: absolute; top: 0; left: 0; }
     #gameOver.visible { opacity: 1; pointer-events: auto; }
     #gameOver-content { display: flex; flex-direction: column; align-items: center; opacity: 0; transform: translateY(30px); transition: opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s; }
@@ -103,12 +99,12 @@
       ⭐ 经验: <span id="xp">0</span>/<span id="xpMax">20</span> | 🌸 最高阶: <span id="maxTier">普通</span><br>
       🧭 探索深度: <span id="depth" style="color:#a78bfa;">0</span>m
     </div>
-    <div id="inv-hint">按 <b>Z</b> 或 <b>空格键</b> 管理暂停状态</div>
+    <div id="inv-hint">按 <b>Z</b> 或 <b>空格</b> 管理暂停状态<br>Shift+点击 快速整理物品</div>
     <div id="instructions">
-      🎮 <b>鼠标</b>：控制移动 | <b>Shift+点击</b>：快速穿脱<br>
-      ⏸️ <b>空格键</b> 或 <b>Z</b>：暂停 / 背包<br>
-      ⚠️ <b>离中心越远，敌人越强，掉落越好！</b><br>
-      🔴 自爆怪靠近爆炸 | 🟡 冲刺怪突然加速
+      🎮 <b>左键长按</b>：提速、扩圈、发射飞刀<br>
+      🖱️ <b>右键长按</b>：聚拢防身、全面增加伤害<br>
+      🧭 <b>` 键 (波浪号)</b>：显示 / 隐藏中心导航<br>
+      💡 <b>花瓣标识</b>：普[无] 爆[爆] 射[射] 速[速] 护[护]
     </div>
     
     <div id="equip-bar" class="panel">
@@ -118,7 +114,7 @@
     
     <div id="inventory-modal" class="panel">
       <div class="modal-header">
-        📦 背包 (拖拽取出 / Shift+点击装备)
+        📦 背包 (不同类型同阶花瓣可任意混合合成)
         <span class="close-btn" onclick="toggleInventory()">✕</span>
       </div>
       <div id="inv-grid"></div>
@@ -151,8 +147,24 @@ let shiftPressed = false;
 let isPaused = false;
 let isPausedBySpace = false;
 let showInventory = false;
+let showNav = false;
+let navProgress = 0; 
 let needsUIRender = true; 
 let screenShake = 0;      
+
+let isLeftMouseDown = false;
+let isRightMouseDown = false;
+let currentRadiusOffset = 0; 
+
+window.addEventListener('mousedown', e => { 
+    if (e.button === 0) isLeftMouseDown = true;
+    if (e.button === 2) isRightMouseDown = true;
+});
+window.addEventListener('mouseup', e => { 
+    if (e.button === 0) isLeftMouseDown = false;
+    if (e.button === 2) isRightMouseDown = false;
+});
+window.addEventListener('contextmenu', e => e.preventDefault());
 
 window.addEventListener('keydown', e => { 
   if (!running) return;
@@ -165,6 +177,9 @@ window.addEventListener('keydown', e => {
     if (e.repeat) return;
     if (showInventory) toggleInventory(); 
     else togglePause();                   
+  }
+  if (e.key === '`' || e.code === 'Backquote') {
+    showNav = !showNav;
   }
 });
 window.addEventListener('keyup', e => { if(e.key === 'Shift') shiftPressed = false; });
@@ -202,13 +217,16 @@ function handleOverlayClick() {
 
 const camera = { x: 0, y: 0 };
 const player = {
-  x: 0, y: 0, vx: 0, vy: 0, r: 18, speed: 5.5,
+  // 玩家初始移速调低至 3.5
+  x: 0, y: 0, vx: 0, vy: 0, r: 18, baseSpeed: 3.5,
   hp: 100, maxHp: 100, lvl: 1, xp: 0, xpMax: 20,
   invincibleTimer: 0, hurtFlashTimer: 0
 };
 
-// 【至臻级别相关】数据补充
-const TIERS = ['common', 'unusual', 'rare', 'epic', 'legendary', 'mythic'];
+const sessionDropMult = 0.85 + Math.random() * 0.3;
+const sessionCraftMult = 0.95 + Math.random() * 0.1;
+
+const TIERS =['common', 'unusual', 'rare', 'epic', 'legendary', 'mythic'];
 const TIER_NAMES = { common:'普通', unusual:'不凡', rare:'稀有', epic:'史诗', legendary:'传奇', mythic:'至臻' };
 const TIER_COLORS = { common:'#22c55e', unusual:'#eab308', rare:'#3b82f6', epic:'#a855f7', legendary:'#ef4444', mythic:'#ffffff' };
 const TIER_STATS = { 
@@ -219,31 +237,49 @@ const TIER_STATS = {
   legendary:{ dmg:18, speedBonus:1.5, regen: 60 },
   mythic:   { dmg:28, speedBonus:1.8, regen: 30 }
 };
-const CRAFT_RATES = { common:0.64, unusual:0.32, rare:0.16, epic:0.08, legendary:0.04 };
 
-// 【至臻级别相关】提取Canvas绘制实时渐变色
+const KIND_ICONS = { melee:'', explosive:'爆', missile:'射', speed:'速', guardian:'护' };
+
+const BASE_CRAFT_RATES = { common:0.68, unusual:0.58, rare:0.48, epic:0.38, legendary:0.28 };
+const CRAFT_RATES = {};
+for (let key in BASE_CRAFT_RATES) {
+  CRAFT_RATES[key] = Math.min(1.0, BASE_CRAFT_RATES[key] * sessionCraftMult);
+}
+
 function getPetalColor(type, offset=0) {
   if (type === 'mythic') return `hsl(${((frame + offset) * 3) % 360}, 100%, 60%)`;
   return TIER_COLORS[type];
 }
 
-let equipped = [];
+let equipped =[];
 let inventory = [];
 let groundPetals = [];
 let enemies =[];
-let particles = [];
+let particles =[];
 let damageTexts =[]; 
+let blastWaves = []; 
 
 const rand = (a,b)=>Math.random()*(b-a)+a;
 const dist = (a,b)=>Math.hypot(a.x-b.x, a.y-b.y);
 const collides = (a,b)=>dist(a,b)<a.r+b.r;
 
-const createPetal = (type, x=0, y=0)=>({
-  id: Date.now() + Math.random(), type: String(type), dmg: TIER_STATS[String(type)].dmg, r: 8, x, y,
-  durability: 5, maxDurability: 5, isActive: true, cooldownTimer: 0
+// 掉落比例：普35% 飞20% 爆20% 速20% 护5%
+const randomKind = () => {
+    const r = Math.random();
+    if(r < 0.35) return 'melee';
+    if(r < 0.55) return 'missile';
+    if(r < 0.75) return 'explosive';
+    if(r < 0.95) return 'speed';
+    return 'guardian';
+};
+
+const createPetal = (type, x=0, y=0, kind=randomKind())=>({
+  id: Date.now() + Math.random(), type: String(type), kind: kind, dmg: TIER_STATS[String(type)].dmg, r: 8, x, y,
+  durability: 5, maxDurability: 5, isActive: true, cooldownTimer: 0,
+  missileState: 'idle', missileTimer: 0, missileVx: 0, missileVy: 0
 });
 
-for(let i=0;i<4;i++) equipped.push(createPetal('common'));
+for(let i=0;i<4;i++) equipped.push(createPetal('common', 0, 0, 'melee'));
 
 function getCurrentMaxTierIdx() {
   const all =[...equipped, ...inventory];
@@ -278,10 +314,16 @@ function spawnEnemy() {
   if (type === 'dasher') color = '#eab308';
   if (type === 'bomber') color = '#f97316';
 
+  // 限制怪物移动速度，等比下降
+  const maxAllowedSpeed = player.baseSpeed * 0.85;
+  const baseSpd = (type === 'dasher' ? 1.2 : (type === 'bomber' ? 1.4 : 1.6));
+  const speedInc = 2.5 * (1 - Math.exp(-lvlMult * 0.02)); 
+  let finalSpeed = baseSpd + speedInc;
+  finalSpeed = Math.min(finalSpeed, maxAllowedSpeed);
+
   enemies.push({
     x: player.x+Math.cos(angle)*sd, y: player.y+Math.sin(angle)*sd,
-    r: type === 'bomber' ? 18 : 14, hp, maxHp:hp, 
-    speed: (type === 'dasher' ? 1.5 : 2.0) + lvlMult*0.05,
+    r: type === 'bomber' ? 18 : 14, hp, maxHp:hp, speed: finalSpeed,
     type, color, hitFlash:0, aggro:false, wander:Math.random()*Math.PI*2,
     dashTimer: rand(60, 180), state: 'normal' 
   });
@@ -290,10 +332,14 @@ function spawnEnemy() {
 function dropGroundPetal(x, y) {
   const depth = getMapDepth();
   let maxIdx = getCurrentMaxTierIdx();
-  if (depth > 30 && maxIdx < TIERS.length - 1 && Math.random() < 0.1) maxIdx++;
+  if (depth > 20 && maxIdx < TIERS.length - 1 && Math.random() < 0.05 * sessionDropMult) maxIdx++;
   
   let dropIdx = 0;
-  for (let i = maxIdx; i >= 0; i--) { if (Math.random() < 0.35 + (depth*0.01)) { dropIdx = i; break; } }
+  for (let i = maxIdx; i >= 0; i--) { 
+    let dropChance = (0.35 / Math.pow(2.2, i) + (depth * 0.0015)) * sessionDropMult;
+    dropChance = Math.min(dropChance, 0.85); 
+    if (i === 0 || Math.random() < dropChance) { dropIdx = i; break; } 
+  }
   const p = createPetal(TIERS[dropIdx], x, y);
   p.life = 600; groundPetals.push(p); needsUIRender = true;
 }
@@ -320,11 +366,11 @@ function renderUINow() {
     const s = document.createElement('div');
     const col = TIER_COLORS[p.type];
     s.style.cssText = `background:${col}; border:2px solid rgba(255,255,255,0.3); border-radius:8px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; color:#000; position:relative; opacity:${p.isActive?1:0.3}; box-shadow:0 2px 6px rgba(0,0,0,0.3); cursor:pointer;`;
-    
     if(p.type === 'mythic') s.classList.add('mythic-bg');
 
-    s.textContent = p.dmg;
-    s.title = `类型: ${TIER_NAMES[p.type]}\n耐久: ${p.durability}/${p.maxDurability}`;
+    let iconHtml = KIND_ICONS[p.kind] ? `<div style="position:absolute; top:2px; right:3px; color:#fff; font-size:10px; font-weight:bold; text-shadow:0 0 2px #000; pointer-events:none;">${KIND_ICONS[p.kind]}</div>` : '';
+    s.innerHTML = `${p.dmg}${iconHtml}`;
+    s.title = `品质: ${TIER_NAMES[p.type]}\n耐久: ${p.durability}/${p.maxDurability}`;
     
     const bar = document.createElement('div');
     bar.style.cssText = `position:absolute; bottom:0; left:0; width:100%; height:3px; background:${p.durability>2?'#22c55e':'#ef4444'}; transition:height 0.15s;`;
@@ -341,22 +387,34 @@ function renderUINow() {
     const invFrag = document.createDocumentFragment();
     
     const counts = {};
-    inventory.forEach(p => counts[p.type] = (counts[p.type] || 0) + 1);
+    inventory.forEach(p => {
+      const key = p.type + '|' + p.kind;
+      counts[key] = (counts[key] || 0) + 1;
+    });
 
-    TIERS.forEach(tier => {
-      const count = counts[tier] || 0;
-      if (count === 0) return;
+    const sortedKeys = Object.keys(counts).sort((a,b)=>{
+        const tA = a.split('|')[0], tB = b.split('|')[0];
+        const kA = a.split('|')[1], kB = b.split('|')[1];
+        if(TIERS.indexOf(tA) !== TIERS.indexOf(tB)) return TIERS.indexOf(tA) - TIERS.indexOf(tB);
+        return kA.localeCompare(kB);
+    });
+
+    sortedKeys.forEach(key => {
+      const [tier, kind] = key.split('|');
+      const count = counts[key];
       const el = document.createElement('div');
       const col = TIER_COLORS[tier];
       el.style.cssText = `background:${col}; border:2px solid rgba(255,255,255,0.3); border-radius:8px; width:42px; height:42px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; font-size:15px; color:#000; position:relative; cursor:grab; box-shadow:0 2px 6px rgba(0,0,0,0.3);`;
-      
       if(tier === 'mythic') el.classList.add('mythic-bg');
 
-      el.innerHTML = `<span>${TIER_STATS[tier].dmg}</span><span style="position:absolute;bottom:2px;left:3px;background:rgba(0,0,0,0.65);color:#fff;border-radius:4px;padding:0 4px;font-size:11px;font-weight:600;line-height:1.6;pointer-events:none;">x${count}</span>`;
+      let iconHtml = KIND_ICONS[kind] ? `<div style="position:absolute; top:2px; right:3px; color:#fff; font-size:10px; font-weight:bold; text-shadow:0 0 2px #000; pointer-events:none;">${KIND_ICONS[kind]}</div>` : '';
+      el.innerHTML = `<span>${TIER_STATS[tier].dmg}</span>
+      ${iconHtml}
+      <span style="position:absolute;bottom:2px;left:3px;background:rgba(0,0,0,0.65);color:#fff;border-radius:4px;padding:0 4px;font-size:11px;font-weight:600;line-height:1.6;pointer-events:none;">x${count}</span>`;
       el.title = TIER_NAMES[tier];
       el.onmousedown = (e) => {
-        if(shiftPressed) { quickSwapByType(tier, 'inv'); return; }
-        startDragByType(e, tier);
+        if(shiftPressed) { quickSwapByKey(key, 'inv'); return; }
+        startDragByKey(e, key);
       };
       invFrag.appendChild(el);
     });
@@ -387,14 +445,17 @@ function quickSwap(petal, source) {
   if (source === 'inv' && dstArr.length >= 12) return;
   srcArr.splice(idx, 1); dstArr.push(petal); needsUIRender = true;
 }
-function quickSwapByType(type, source) {
+function quickSwapByKey(key, source) {
   if (source === 'inv' && equipped.length < 12) {
-    const idx = inventory.findIndex(p => p.type === type);
+    const [tier, kind] = key.split('|');
+    const idx = inventory.findIndex(p => p.type === tier && p.kind === kind);
     if (idx !== -1) { equipped.push(inventory.splice(idx, 1)[0]); needsUIRender = true; }
   }
 }
-function startDragByType(e, type) {
-  e.preventDefault(); const idx = inventory.findIndex(p => p.type === type);
+function startDragByKey(e, key) {
+  e.preventDefault(); 
+  const [tier, kind] = key.split('|');
+  const idx = inventory.findIndex(p => p.type === tier && p.kind === kind);
   if (idx === -1) return;
   dragData = { petal: inventory.splice(idx, 1)[0], source: 'inv' };
   setupDragGhost(e, dragData.petal);
@@ -413,7 +474,8 @@ function setupDragGhost(e, p) {
   if (p.type === 'mythic') ghost.classList.add('mythic-bg');
   else ghost.style.background = TIER_COLORS[p.type];
 
-  ghost.textContent = p.dmg;
+  let iconHtml = KIND_ICONS[p.kind] ? `<div style="position:absolute; top:2px; right:3px; color:#fff; font-size:11px; font-weight:bold; text-shadow:0 0 2px #000; pointer-events:none;">${KIND_ICONS[p.kind]}</div>` : '';
+  ghost.innerHTML = `${p.dmg}${iconHtml}`;
   ghost.style.display = 'flex'; ghost.style.left = e.clientX - 19 + 'px'; ghost.style.top = e.clientY - 19 + 'px';
   window.addEventListener('mousemove', onDrag); window.addEventListener('mouseup', endDrag);
   needsUIRender = true;
@@ -454,18 +516,54 @@ function loop() {
 
   const dx = mouseX - canvas.width/2, dy = mouseY - canvas.height/2;
   const mDist = Math.hypot(dx, dy);
-  const isInv = player.invincibleTimer > 0;
 
   if (!isPaused) {
     frame++;
+    if (frame % 60 === 0 && player.hp < player.maxHp) {
+      player.hp = Math.min(player.maxHp, player.hp + 1);
+      needsUIRender = true;
+    }
     
+    if (showNav) navProgress += (1 - navProgress) * 0.1;
+    else navProgress += (0 - navProgress) * 0.15;
+
+    for(let i=blastWaves.length-1; i>=0; i--) {
+        let b = blastWaves[i];
+        b.radius += (b.maxRadius - b.radius) * 0.15;
+        b.alpha -= 0.03;
+        if (b.alpha <= 0 || b.radius >= b.maxRadius - 2) blastWaves.splice(i, 1);
+    }
+
+    let speedMultiSum = equipped.reduce((sum, p) => sum + TIER_STATS[p.type].speedBonus, 0);
+    let avgSpeedBonus = equipped.length ? speedMultiSum / equipped.length : 1;
+    const rot = (0.035 + player.lvl*0.0015) * avgSpeedBonus;
+
+    let speedPetalBoost = 0;
+    equipped.forEach(p => {
+        if (p.kind === 'speed') {
+            speedPetalBoost += p.isActive ? 0.05 : 0.15; 
+        }
+    });
+
+    let targetRadiusOffset = 0;
+    let currentSpeedCap = player.baseSpeed * avgSpeedBonus * (1 + speedPetalBoost); 
+    let dmgMult = 1.0;
+    
+    if (isLeftMouseDown) { currentSpeedCap *= 1.25; targetRadiusOffset = 25; }
+    else if (isRightMouseDown) { targetRadiusOffset = -20; dmgMult *= 1.3; }
+    
+    currentRadiusOffset += (targetRadiusOffset - currentRadiusOffset) * 0.15;
+    let pRadius = Math.max(25, 45 + player.lvl * 4 + currentRadiusOffset);
+
     if(mDist > 15) { 
       const a = Math.atan2(dy, dx); 
-      player.vx+=Math.cos(a)*0.45; player.vy+=Math.sin(a)*0.45; 
+      const accel = currentSpeedCap * 0.15; 
+      player.vx+=Math.cos(a)*accel; player.vy+=Math.sin(a)*accel; 
     }
     player.vx*=0.87; player.vy*=0.87;
-    if(Math.hypot(player.vx,player.vy)>player.speed) {
-      const s = player.speed/Math.hypot(player.vx,player.vy); player.vx*=s; player.vy*=s;
+    
+    if(Math.hypot(player.vx,player.vy)>currentSpeedCap) {
+      const s = currentSpeedCap/Math.hypot(player.vx,player.vy); player.vx*=s; player.vy*=s;
     }
     player.x+=player.vx; player.y+=player.vy;
     
@@ -480,24 +578,66 @@ function loop() {
     player.invincibleTimer=Math.max(0, player.invincibleTimer-1);
     player.hurtFlashTimer=Math.max(0, player.hurtFlashTimer-1);
 
-    let speedMultiSum = equipped.reduce((sum, p) => sum + TIER_STATS[p.type].speedBonus, 0);
-    let avgSpeedBonus = equipped.length ? speedMultiSum / equipped.length : 1;
-    const rot = (0.022 + player.lvl*0.0015) * avgSpeedBonus;
-
     equipped.forEach((p,i)=>{
-      if(!p.isActive) {
-        p.cooldownTimer--;
-        if(p.cooldownTimer <= 0) { p.isActive = true; p.durability = p.maxDurability; needsUIRender = true; }
+      if (!p.isActive && p.kind !== 'missile') {
+          p.cooldownTimer--;
+          if (p.cooldownTimer <= 0) { p.isActive = true; p.durability = p.maxDurability; needsUIRender = true; }
+      } else if (!p.isActive && p.kind === 'missile') {
+          if (p.missileState === 'idle') {
+              p.cooldownTimer--;
+              if (p.cooldownTimer <= 0) { p.isActive = true; p.durability = p.maxDurability; needsUIRender = true; }
+          }
       }
+
       const base=(Math.PI*2/equipped.length)*i;
-      p.x=player.x+Math.cos(base+frame*rot)*(45+player.lvl*4);
-      p.y=player.y+Math.sin(base+frame*rot)*(45+player.lvl*4);
+      const angle = base+frame*rot;
+      const orbitX = player.x+Math.cos(angle)*pRadius;
+      const orbitY = player.y+Math.sin(angle)*pRadius;
+
+      if (p.kind === 'missile') {
+          if (p.missileState === 'idle') {
+              p.x = orbitX; p.y = orbitY;
+              if (isLeftMouseDown && p.isActive) {
+                  p.missileState = 'flying'; 
+                  p.missileTimer = 45; 
+                  const shootAngle = Math.atan2(orbitY - player.y, orbitX - player.x);
+                  p.missileVx = Math.cos(shootAngle) * 14; 
+                  p.missileVy = Math.sin(shootAngle) * 14;
+              }
+          } else if (p.missileState === 'flying') {
+              p.x += p.missileVx; p.y += p.missileVy; p.missileTimer--;
+              if (p.missileTimer <= 0 || !p.isActive) { 
+                  p.missileState = 'returning'; 
+              }
+          } else if (p.missileState === 'returning') {
+              const dx = orbitX - p.x; const dy = orbitY - p.y; const d = Math.hypot(dx, dy);
+              if (d < 25) { 
+                  p.missileState = 'idle'; 
+                  p.x = orbitX; p.y = orbitY; 
+                  p.isActive = false;
+                  p.cooldownTimer = 60;
+                  needsUIRender = true;
+              } 
+              else { 
+                  p.x += (dx/d) * 20; p.y += (dy/d) * 20; 
+              }
+          }
+      } else {
+          p.x = orbitX; p.y = orbitY;
+      }
     });
 
     for(let i=groundPetals.length-1;i>=0;i--){
       const p=groundPetals[i]; p.life--;
       const d=dist(player,p);
-      if(d<80){ p.x+=(player.x-p.x)*0.15; p.y+=(player.y-p.y)*0.15; }
+      
+      // 增强型吸附逻辑：一旦进入范围，吸附系数狂飙，绝不可能甩掉
+      if(d < 120){ 
+        p.attract = Math.min(1.0, (p.attract || 0.04) + 0.04); 
+        p.x += (player.x - p.x) * p.attract; 
+        p.y += (player.y - p.y) * p.attract; 
+      }
+      
       if(d<25 || p.life<=0){
         if(p.life>0) { inventory.push(p); spawnDamageText(p.x, p.y, "+物品", "#38bdf8"); }
         groundPetals.splice(i,1); needsUIRender = true; continue;
@@ -523,6 +663,19 @@ function loop() {
 
     for(let i=enemies.length-1;i>=0;i--){
       const e=enemies[i];
+      if (e.hp <= 0) {
+        player.xp += 2 + Math.floor(player.lvl/4);
+        if (Math.random() < 0.5) dropGroundPetal(e.x, e.y);
+        spawnParticles(e.x, e.y, e.color, 10, 1.5);
+        enemies.splice(i, 1);
+        if(player.xp >= player.xpMax) {
+          player.lvl++; player.xp=0; player.xpMax=Math.floor(player.xpMax*1.35); player.maxHp+=15;
+          spawnDamageText(player.x, player.y - 30, "LEVEL UP!", "#facc15"); screenShake = 10;
+        }
+        needsUIRender = true;
+        continue;
+      }
+
       const edx=player.x-e.x, edy=player.y-e.y, edist=Math.hypot(edx,edy)||1;
       if(!e.aggro && edist<=AGGRO) e.aggro=true;
       
@@ -546,9 +699,31 @@ function loop() {
       let died = false;
       for(let p of equipped){
         if(p.isActive && collides(p,e)){
-          e.hp -= p.dmg; e.hitFlash = 5; p.durability -= 1; 
-          spawnDamageText(e.x, e.y, p.dmg, e.hp <= 0 ? '#facc15' : '#fff');
+          let actualDmg = p.dmg * dmgMult;
+          
+          if (p.kind === 'missile' && p.missileState === 'flying') {
+              actualDmg = 999999;
+          }
+          if (p.kind === 'explosive') {
+              actualDmg *= 2.5;
+          }
+
+          e.hp -= actualDmg; e.hitFlash = 5; p.durability -= 1; 
+          spawnDamageText(e.x, e.y, Math.floor(actualDmg > 10000 ? e.maxHp : actualDmg), e.hp <= 0 ? '#facc15' : '#fff');
           spawnParticles(e.x, e.y, getPetalColor(p.type), 3);
+          
+          if (p.kind === 'explosive') {
+              blastWaves.push({x: e.x, y: e.y, radius: 10, maxRadius: 90, color: '#f97316', alpha: 0.7, type: 'normal'});
+              spawnParticles(e.x, e.y, '#f97316', 20, 4);
+              enemies.forEach(otherE => {
+                  if (otherE !== e && dist(e, otherE) < 90) {
+                      otherE.hp -= actualDmg * 1.5;
+                      otherE.hitFlash = 5;
+                      spawnDamageText(otherE.x, otherE.y, Math.floor(actualDmg * 1.5), '#f97316');
+                  }
+              });
+              p.durability = 0; 
+          }
           
           if(p.durability <= 0) { p.isActive = false; p.cooldownTimer = TIER_STATS[p.type].regen; } 
           if(e.hp <= 0) { died = true; break; }
@@ -557,39 +732,62 @@ function loop() {
 
       if(died) {
         player.xp += 2 + Math.floor(player.lvl/4);
-        if (Math.random() < 0.5){
-          dropGroundPetal(e.x, e.y);
-        }
+        if (Math.random() < 0.5) dropGroundPetal(e.x, e.y);
         spawnParticles(e.x, e.y, e.color, 10, 1.5);
         enemies.splice(i, 1);
-        
         if(player.xp >= player.xpMax) {
-          player.lvl++; player.xp=0; player.xpMax=Math.floor(player.xpMax*1.35);
-          player.maxHp+=15; player.hp=player.maxHp;
-          spawnDamageText(player.x, player.y - 30, "LEVEL UP!", "#facc15");
-          screenShake = 10;
+          player.lvl++; player.xp=0; player.xpMax=Math.floor(player.xpMax*1.35); player.maxHp+=15;
+          spawnDamageText(player.x, player.y - 30, "LEVEL UP!", "#facc15"); screenShake = 10;
         }
         needsUIRender = true;
         continue;
       }
 
-      if(!isInv && collides(player,e)){
+      if(player.invincibleTimer <= 0 && collides(player,e)){
         let dmgTaken = 8;
-        
         if (e.type === 'bomber') {
-          dmgTaken = 25;
-          spawnParticles(e.x, e.y, '#f97316', 30, 4); 
-          screenShake = 15;
-          enemies.splice(i, 1); 
+          dmgTaken = 25; spawnParticles(e.x, e.y, '#f97316', 30, 4); screenShake = 15; e.hp = 0; 
         } else {
-          e.hp -= 2; e.hitFlash = 4; e.x -= (edx/edist)*25; e.y -= (edy/edist)*25; 
-          screenShake = 5;
+          e.hp -= 2; e.hitFlash = 4; e.x -= (edx/edist)*25; e.y -= (edy/edist)*25; screenShake = 5;
         }
         
+        if (player.hp - dmgTaken <= 0) {
+            let guardianIdx = equipped.findIndex(pt => pt.kind === 'guardian' && pt.isActive);
+            if (guardianIdx !== -1) {
+                equipped.splice(guardianIdx, 1); 
+                dmgTaken = 0;
+                
+                player.hp = player.maxHp;
+                player.invincibleTimer = 120; 
+                spawnDamageText(player.x, player.y, "守护触发! 满血复活!", "#facc15");
+                
+                equipped.forEach(pt => {
+                    pt.isActive = false;
+                    pt.cooldownTimer = Math.max(60, TIER_STATS[pt.type].regen);
+                    pt.durability = 0;
+                    if(pt.kind === 'missile') pt.missileState = 'idle';
+                });
+                
+                blastWaves.push({x: player.x, y: player.y, radius: 10, maxRadius: 200, color: '#facc15', alpha: 0.8, type: 'guardian'});
+                
+                enemies.forEach(otherE => {
+                    if (dist(player, otherE) < 200) {
+                        otherE.hp -= 500; 
+                        otherE.hitFlash = 10;
+                        spawnDamageText(otherE.x, otherE.y, "500", '#ffffff');
+                    }
+                });
+                needsUIRender = true;
+                continue; 
+            }
+        }
+
         player.hp -= dmgTaken; 
-        player.invincibleTimer = 35; 
-        player.hurtFlashTimer = 8;
-        spawnDamageText(player.x, player.y, `-${dmgTaken}`, '#ef4444');
+        if (dmgTaken > 0) {
+            player.invincibleTimer = 35; 
+            player.hurtFlashTimer = 8;
+            spawnDamageText(player.x, player.y, `-${dmgTaken}`, '#ef4444');
+        }
         
         if(player.hp <= 0) gameOver();
         needsUIRender = true;
@@ -606,7 +804,7 @@ function loop() {
     }
   }
 
-  draw(isInv, mDist);
+  draw(mDist);
 }
 
 function gameOver(){
@@ -617,7 +815,7 @@ function gameOver(){
   document.getElementById('finalPos').textContent = getMapDepth();
 }
 
-function draw(isInv, mouseDist) {
+function draw(mouseDist) {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   
   ctx.save();
@@ -649,6 +847,74 @@ function draw(isInv, mouseDist) {
 
   ctx.translate(-camera.x,-camera.y);
 
+  // 渲染中心导航 (带有动态生长与流动特效)
+  if (navProgress > 0.01) {
+    ctx.save();
+    
+    ctx.strokeStyle = `rgba(167, 139, 250, ${0.6 * navProgress})`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 10]);
+    ctx.lineDashOffset = -frame * 2; // 流动动画
+    
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y);
+    const targetX = player.x + (0 - player.x) * navProgress;
+    const targetY = player.y + (0 - player.y) * navProgress;
+    ctx.lineTo(targetX, targetY);
+    ctx.stroke();
+
+    // 中心十字与发光圆环
+    ctx.globalAlpha = navProgress;
+    ctx.strokeStyle = '#a78bfa';
+    ctx.setLineDash([]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-15, 0); ctx.lineTo(15, 0);
+    ctx.moveTo(0, -15); ctx.lineTo(0, 15);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, 8, 0, Math.PI*2);
+    ctx.stroke();
+
+    // 绘制沿途直线距离文字
+    const distM = Math.floor(Math.hypot(player.x, player.y) / 100);
+    const midX = player.x + (0 - player.x) * navProgress * 0.5;
+    const midY = player.y + (0 - player.y) * navProgress * 0.5;
+    
+    ctx.translate(midX, midY);
+    let navAngle = Math.atan2(-player.y, -player.x);
+    if (navAngle > Math.PI/2 || navAngle < -Math.PI/2) navAngle += Math.PI; 
+    ctx.rotate(navAngle);
+    
+    ctx.fillStyle = `rgba(167, 139, 250, ${navProgress})`;
+    ctx.font = 'bold 16px system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 4;
+    ctx.fillText(`${distM}m`, 0, -6);
+    
+    ctx.restore();
+  }
+
+  blastWaves.forEach(b => {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, b.alpha);
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2);
+      if(b.type === 'guardian') {
+          ctx.fillStyle = b.color;
+          ctx.fill();
+      } else {
+          ctx.lineWidth = 4 + (b.alpha * 5);
+          ctx.strokeStyle = b.color;
+          ctx.fillStyle = 'rgba(249, 115, 22, 0.15)';
+          ctx.fill();
+          ctx.stroke();
+      }
+      ctx.restore();
+  });
+
   groundPetals.forEach(p=>{
     ctx.globalAlpha = p.life<100 ? p.life/100 : 0.8;
     const col = getPetalColor(p.type, p.x + p.y);
@@ -672,11 +938,17 @@ function draw(isInv, mouseDist) {
   });
 
   equipped.forEach((p, i)=>{
-    if(!p.isActive) {
+    if(!p.isActive && p.kind !== 'missile') {
       ctx.globalAlpha = 0.25; ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2; ctx.setLineDash([4,4]);
       ctx.beginPath(); ctx.ellipse(p.x,p.y,10,6,Math.atan2(p.y-player.y,p.x-player.x),0,Math.PI*2); ctx.stroke();
       ctx.setLineDash([]); ctx.globalAlpha = 1; return;
     }
+    if(!p.isActive && p.kind === 'missile' && p.missileState === 'idle') {
+      ctx.globalAlpha = 0.25; ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.ellipse(p.x,p.y,10,6,Math.atan2(p.y-player.y,p.x-player.x),0,Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1; return;
+    }
+    
     const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 10);
     grad.addColorStop(0, '#ffffff');
     grad.addColorStop(1, getPetalColor(p.type, i * 20));
@@ -699,6 +971,7 @@ function draw(isInv, mouseDist) {
 
   ctx.font = "bold 16px system-ui";
   ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
   damageTexts.forEach(dt => {
     ctx.globalAlpha = dt.life / dt.maxLife;
     ctx.fillStyle = dt.color;
