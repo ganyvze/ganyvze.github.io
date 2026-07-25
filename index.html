@@ -15,9 +15,13 @@
             --accent-glow: rgba(20, 20, 20, 0.5);
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            padding: 0;
+            padding: 30px 0;
             min-height: 100vh;
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
             background: linear-gradient(-45deg, #121212, #2c2c2c, #1a1a1a, #383838);
@@ -27,7 +31,8 @@
             justify-content: center;
             align-items: center;
             color: var(--text-main);
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             /* 预设默认不透明，防止缓存导致的闪烁 */
             opacity: 1; 
         }
@@ -63,17 +68,18 @@
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
-            padding: 50px;
-            width: 90%;
-            max-width: 1000px;
+            padding: 35px 40px;
+            width: 92%;
+            max-width: 1180px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
             text-align: center;
             position: relative;
+            margin: auto;
         }
 
         .main-title {
-            font-size: 2.5em;
-            margin: 0 0 10px 0;
+            font-size: 2.2em;
+            margin: 0 0 8px 0;
             letter-spacing: 2px;
             text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             background: linear-gradient(to right, #fff, var(--accent));
@@ -83,16 +89,16 @@
 
         .sub-title {
             color: var(--text-sub);
-            font-size: 1.1em;
-            margin-bottom: 40px;
+            font-size: 1.0em;
+            margin-bottom: 30px;
             letter-spacing: 1px;
         }
 
-        /* 游戏卡片网格 */
+        /* 游戏卡片网格 - 适应 4 列横排 */
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 20px;
         }
 
         /* 游戏卡片 */
@@ -102,26 +108,29 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 30px 20px;
+            padding: 24px 16px;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
             overflow: hidden;
             text-decoration: none;
             color: var(--text-main);
-            display: block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
         }
 
         .game-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-8px);
             background: var(--glass-hover);
             border-color: var(--accent);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-glow);
         }
 
         .game-icon {
-            font-size: 4em;
-            margin-bottom: 15px;
+            font-size: 3.2em;
+            margin-bottom: 12px;
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
             transition: transform 0.3s;
         }
@@ -131,28 +140,28 @@
         }
 
         .game-title {
-            font-size: 1.4em;
+            font-size: 1.25em;
             font-weight: bold;
-            margin: 0 0 10px 0;
+            margin: 0 0 8px 0;
         }
 
         .game-desc {
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: var(--text-sub);
-            line-height: 1.6;
+            line-height: 1.5;
             margin: 0;
         }
 
         /* 上次游玩提示标签 */
         .last-played-badge {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 12px;
+            right: 12px;
             background: linear-gradient(135deg, #00b894, #00cec9);
             color: #000;
-            font-size: 0.75em;
+            font-size: 0.7em;
             font-weight: bold;
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: 20px;
             box-shadow: 0 4px 10px rgba(0, 206, 201, 0.4);
             opacity: 0;
@@ -201,7 +210,7 @@
                 <div class="last-played-badge" id="badge-banzhuren">上次游玩</div>
                 <div class="game-icon">🏫</div>
                 <h2 class="game-title">whk班主任模拟器</h2>
-                <p class="game-desc">接手一群天才但偏科的OI退役生，合理分配资源、安抚压力，带他们冲刺2026年高考清北防线。</p>
+                <p class="game-desc">接手一群天才但偏科的OI退役生，合理分配资源、安抚压力，带他们冲刺高考清北防线。</p>
             </div>
 
             <!-- 游戏2：无限塔防 -->
@@ -209,15 +218,23 @@
                 <div class="last-played-badge" id="badge-tafang">上次游玩</div>
                 <div class="game-icon">🗼</div>
                 <h2 class="game-title">无限塔防 - 亿万富翁</h2>
-                <p class="game-desc">斥巨资构建防线，无尽升级与究极觉醒。使用黑客入侵与天基武器，抵御几何怪物的无尽狂潮。</p>
+                <p class="game-desc">斥巨资构建防线，无尽升级与究极觉醒。使用黑客入侵与天基武器，抵御几何怪物狂潮。</p>
             </div>
 
-            <!-- 游戏3：florr.oi -->
+            <!-- 游戏3：florr -->
             <div class="game-card animate-up" style="animation-delay: 0.6s;" onclick="launchGame('florr', 'florr')">
                 <div class="last-played-badge" id="badge-florr">上次游玩</div>
                 <div class="game-icon">🌸</div>
-                <h2 class="game-title">florr.oi</h2>
-                <p class="game-desc">收集花瓣，合成更高稀有度的武装，在这个充满挑战的微观生态中对抗强大的怪物并不断进化。</p>
+                <h2 class="game-title">florr</h2>
+                <p class="game-desc">收集花瓣，合成更高稀有度的武装，在这个充满挑战的微观生态中对抗怪物并不断进化。</p>
+            </div>
+
+            <!-- 游戏4：无限轨道 -->
+            <div class="game-card animate-up" style="animation-delay: 0.7s;" onclick="launchGame('ball', 'ball')">
+                <div class="last-played-badge" id="badge-ball">上次游玩</div>
+                <div class="game-icon">🔮</div>
+                <h2 class="game-title">无限轨道</h2>
+                <p class="game-desc">在三维炫彩玻璃轨道上操控滚球弹跳冲刺，精准匹配板块颜色，挑战极限速度与高分纪录。</p>
             </div>
         </div>
     </div>
@@ -230,13 +247,13 @@
             // 移除过渡效果以便立即显示，避免返回时出现奇怪的闪烁
             document.body.style.transition = 'none'; 
             
-            // 可选：每次回到主页动态刷新上次游玩的标记
+            // 每次回到主页动态刷新上次游玩的标记
             updateLastPlayedBadge();
         });
 
-        // 将之前直接在DOMContentLoaded里的高亮逻辑封装成函数，便于复用
+        // 封装高亮逻辑便于复用
         function updateLastPlayedBadge() {
-            // 清除旧的激活状态（防止缓存导致两个都亮）
+            // 清除旧的激活状态（防止缓存导致多个都亮）
             document.querySelectorAll('.last-played-badge').forEach(badge => {
                 badge.classList.remove('active');
                 badge.parentElement.style.borderColor = 'var(--glass-border)';
