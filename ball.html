@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+、<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -51,12 +51,7 @@
       color: rgba(255, 255, 255, 0.5);
       margin-bottom: 36px;
     }
-    #gameOverBtns {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-    }
-    #continueBtn {
+    #restartBtn {
       font-family: 'Segoe UI', Arial, sans-serif;
       font-size: 18px;
       font-weight: 600;
@@ -70,71 +65,12 @@
       box-shadow: 0 4px 20px rgba(255, 104, 253, 0.3);
       letter-spacing: 2px;
     }
-    #continueBtn:hover {
+    #restartBtn:hover {
       transform: scale(1.06);
       box-shadow: 0 6px 30px rgba(255, 104, 253, 0.5);
     }
-    #continueBtn:active {
+    #restartBtn:active {
       transform: scale(0.97);
-    }
-    #backBtn {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      color: rgba(180, 210, 255, 0.5);
-      background: transparent;
-      border: 1px solid rgba(100, 180, 255, 0.15);
-      padding: 14px 28px;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s, transform 0.2s;
-      letter-spacing: 2px;
-    }
-    #backBtn:hover {
-      color: rgba(180, 210, 255, 0.9);
-      border-color: rgba(100, 180, 255, 0.4);
-      transform: scale(1.04);
-    }
-    #backBtn:active {
-      transform: scale(0.97);
-    }
-
-    /* 广告弹窗 */
-    #adOverlay {
-      display: none;
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 400;
-      justify-content: center; align-items: center;
-      animation: overlayIn 0.3s ease-out;
-    }
-    #adBox {
-      position: relative;
-      width: 80%;
-      max-width: 900px;
-      border-radius: 16px;
-      overflow: hidden;
-      background: #000;
-      box-shadow: 0 0 80px rgba(100, 180, 255, 0.15);
-    }
-    #adVideo {
-      width: 100%;
-      display: block;
-    }
-    #adCountdown {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 6px 16px;
-      border-radius: 20px;
-      letter-spacing: 1px;
-      pointer-events: none;
     }
 
     /* 胜利弹窗 */
@@ -643,18 +579,7 @@
     <div id="gameOverBox">
       <h1>GAME OVER</h1>
       <p>颜色不同，球碎了...</p>
-      <div id="gameOverBtns">
-        <button id="continueBtn">继续</button>
-        <button id="backBtn">返回</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 广告弹窗 -->
-  <div id="adOverlay">
-    <div id="adBox">
-      <div id="adCountdown">10</div>
-      <video id="adVideo" muted></video>
+      <button id="restartBtn">返回选关</button>
     </div>
   </div>
 
@@ -1799,8 +1724,7 @@
 
     // GameOver 弹窗控制
     const gameOverOverlay = document.getElementById('gameOverOverlay');
-    const continueBtn = document.getElementById('continueBtn');
-    const backBtn = document.getElementById('backBtn');
+    const restartBtn = document.getElementById('restartBtn');
 
     function showGameOver() {
       gameOverOverlay.style.display = 'flex';
@@ -1809,72 +1733,7 @@
       gameOverOverlay.style.display = 'none';
     }
 
-    // ===== 广告系统 =====
-    const adOverlay  = document.getElementById('adOverlay');
-    const adVideo    = document.getElementById('adVideo');
-    const adCountdown = document.getElementById('adCountdown');
-    let adCountdownTimer = null;
-    const AD_DURATION = 10; // 广告时长（秒）
-
-    function showAd(onComplete) {
-      hideGameOver();
-      adOverlay.style.display = 'flex';
-      let remaining = AD_DURATION;
-      adCountdown.textContent = remaining;
-
-      // 设置视频源并播放
-      adVideo.src = 'WorkBuddy.mp4';
-      adVideo.currentTime = 0;
-      adVideo.play().catch(() => {});
-
-      adCountdownTimer = setInterval(() => {
-        remaining--;
-        if (remaining <= 0) {
-          remaining = 0;
-          clearInterval(adCountdownTimer);
-          adCountdownTimer = null;
-          adVideo.pause();
-          adOverlay.style.display = 'none';
-          adVideo.removeAttribute('src');
-          adVideo.load(); // 释放视频资源
-          if (onComplete) onComplete();
-        }
-        adCountdown.textContent = remaining;
-      }, 1000);
-    }
-
-    function hideAd() {
-      if (adCountdownTimer) {
-        clearInterval(adCountdownTimer);
-        adCountdownTimer = null;
-      }
-      adVideo.pause();
-      adOverlay.style.display = 'none';
-      adVideo.removeAttribute('src');
-      adVideo.load();
-    }
-
-    // 【继续】按钮：看广告后复活继续游戏
-    continueBtn.addEventListener('click', () => {
-      showAd(() => {
-        // 广告看完，复活：不清任何数据，直接继续
-        sphere.visible = true;
-        wireMesh.visible = true;
-        ring.visible = true;
-        sphere.scale.setScalar(1);
-        wireMesh.scale.setScalar(1);
-        ring.scale.setScalar(1);
-        dying = false;
-        falling = false;
-        ballY = floorContact;
-        velY = Math.sqrt(2 * Math.abs(currentGravityY) * INIT_HEIGHT);
-        // 恢复 velZ（让球继续前进）
-        recalcVelZ();
-      });
-    });
-
-    // 【返回】按钮：回到选关界面
-    backBtn.addEventListener('click', () => {
+    restartBtn.addEventListener('click', () => {
       hideGameOver();
       showLevelSelect();
     });
@@ -2307,9 +2166,8 @@
       ring.visible = true;
       // 清理碎裂资源
       cleanupDeath();
-      // 隐藏 GameOver + 广告
+      // 隐藏 GameOver
       hideGameOver();
-      hideAd();
       // 计算第一跳的正确速度
       if (groupZList.length > 1) {
         velZ = Math.abs(groupZList[1]) / BOUNCE_PERIOD;
@@ -2345,8 +2203,8 @@
       dt = Math.min(dt, 0.05); // 防止切换标签页后 dt 过大
       t += dt;
 
-      // 关卡选择 / 胜利弹窗 / GameOver 弹窗 / 广告弹窗显示期间，暂停游戏（等待用户点击）
-      if (levelSelectOverlay.style.display === 'flex' || victoryOverlay.style.display === 'flex' || gameOverOverlay.style.display === 'flex' || adOverlay.style.display === 'flex') {
+      // 关卡选择 / 胜利弹窗 / GameOver 弹窗显示期间，暂停游戏（等待用户点击）
+      if (levelSelectOverlay.style.display === 'flex' || victoryOverlay.style.display === 'flex' || gameOverOverlay.style.display === 'flex') {
         renderer.render(scene, camera);
         return;
       }
