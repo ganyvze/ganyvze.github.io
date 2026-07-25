@@ -1,9 +1,9 @@
-、<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>无限小球</title>
+  <title>无限轨道</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0a0a1a; overflow: hidden; }
@@ -72,514 +72,16 @@
     #restartBtn:active {
       transform: scale(0.97);
     }
-
-    /* 胜利弹窗 */
-    #victoryOverlay {
-      display: none;
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 200;
-      justify-content: center; align-items: center;
-      backdrop-filter: blur(8px);
-      animation: overlayIn 0.4s ease-out;
-    }
-    #victoryBox {
-      text-align: center;
-      padding: 40px 56px 36px;
-      background: linear-gradient(135deg, rgba(10, 5, 30, 0.95), rgba(5, 2, 15, 0.98));
-      border: 1px solid rgba(100, 180, 255, 0.4);
-      border-radius: 24px;
-      animation: boxIn 0.4s ease-out;
-      min-width: 340px;
-    }
-    #victoryStars {
-      margin-bottom: 16px;
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-    }
-    #victoryStars .star {
-      font-size: 42px;
-      color: rgba(255, 255, 255, 0.12);
-      transition: color 0.5s ease, text-shadow 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-      transform: scale(0.6);
-    }
-    #victoryStars .star.lit {
-      color: #ffd740;
-      text-shadow: 0 0 20px rgba(255, 215, 64, 0.6), 0 0 40px rgba(255, 215, 64, 0.3);
-      transform: scale(1);
-    }
-    #victoryStars .star.pop {
-      animation: starPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    @keyframes starPop {
-      0%   { transform: scale(0.3); opacity: 0.3; }
-      50%  { transform: scale(1.3); }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    @keyframes boxIn {
-      from { transform: scale(0.8) translateY(30px); opacity: 0; }
-      to { transform: scale(1) translateY(0); opacity: 1; }
-    }
-    #victoryBox h1 {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 48px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #64b5f6, #e040fb, #ffd740);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 16px;
-      letter-spacing: 4px;
-    }
-    #victoryBox p {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 18px;
-      color: rgba(255, 255, 255, 0.7);
-      margin-bottom: 8px;
-    }
-    #victoryStats {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 15px;
-      font-weight: 500;
-      color: rgba(180, 210, 255, 0.5);
-      margin-bottom: 28px;
-      letter-spacing: 1px;
-      line-height: 1.8;
-    }
-    #victoryBtns {
-      display: flex;
-      gap: 14px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    #victoryNextBtn {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 18px;
-      font-weight: 600;
-      color: #fff;
-      background: linear-gradient(135deg, #64b5f6, #e040fb);
-      border: none;
-      padding: 14px 48px;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 4px 20px rgba(100, 181, 246, 0.3);
-      letter-spacing: 2px;
-    }
-    #victoryNextBtn:hover {
-      transform: scale(1.06);
-      box-shadow: 0 6px 30px rgba(100, 181, 246, 0.5);
-    }
-    #victoryNextBtn:active {
-      transform: scale(0.97);
-    }
-    #victoryBackBtn {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      color: rgba(180, 210, 255, 0.5);
-      background: transparent;
-      border: 1px solid rgba(100, 180, 255, 0.15);
-      padding: 12px 28px;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s, transform 0.2s;
-      letter-spacing: 1px;
-    }
-    #victoryBackBtn:hover {
-      color: rgba(180, 210, 255, 0.9);
-      border-color: rgba(100, 180, 255, 0.4);
-      transform: scale(1.04);
-    }
-    #victoryNextBtn.hidden {
-      display: none;
-    }
-
-    /* 距离显示 */
-    #distanceUI {
-      position: fixed;
-      top: 30px;
-      right: 40px;
-      text-align: right;
-      z-index: 50;
-      pointer-events: none;
-      font-family: 'Segoe UI', Arial, sans-serif;
-    }
-    #distCurrent {
-      font-size: 52px;
-      font-weight: 900;
-      color: #fff;
-      letter-spacing: 2px;
-      line-height: 1;
-      text-shadow:
-        0 0 15px rgba(100, 180, 255, 0.6),
-        0 0 30px rgba(100, 180, 255, 0.3),
-        0 0 60px rgba(100, 180, 255, 0.15);
-    }
-    #distCurrent .unit {
-      font-size: 24px;
-      font-weight: 600;
-      color: rgba(180, 210, 255, 0.7);
-      margin-left: 4px;
-    }
-    #distTarget {
-      font-size: 16px;
-      font-weight: 500;
-      color: rgba(180, 210, 255, 0.5);
-      margin-top: 8px;
-      letter-spacing: 1px;
-      text-shadow: 0 0 10px rgba(100, 180, 255, 0.25);
-      transition: color 0.4s, text-shadow 0.4s;
-    }
-    #distTarget.revealed {
-      color: rgba(224, 64, 251, 0.8);
-      text-shadow: 0 0 12px rgba(224, 64, 251, 0.4), 0 0 24px rgba(224, 64, 251, 0.15);
-    }
-    #levelName {
-      font-size: 20px;
-      font-weight: 700;
-      color: rgba(180, 210, 255, 0.6);
-      letter-spacing: 2px;
-      margin-bottom: 4px;
-      text-shadow: 0 0 10px rgba(100, 180, 255, 0.3);
-      transition: opacity 0.5s;
-    }
-
-    /* 关卡名称闪现 */
-    #levelAnnounce {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      z-index: 60;
-      pointer-events: none;
-      opacity: 0;
-    }
-    #levelAnnounce.show {
-      animation: levelFlash 2.5s ease-out forwards;
-    }
-    @keyframes levelFlash {
-      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
-      15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
-      70%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
-    }
-    #levelAnnounce .level-num {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 22px;
-      font-weight: 600;
-      color: rgba(180, 210, 255, 0.8);
-      letter-spacing: 6px;
-      text-transform: uppercase;
-    }
-    #levelAnnounce .level-title {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 56px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #64b5f6, #e040fb, #ffd740);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: 6px;
-      margin-top: 8px;
-    }
-    #levelAnnounce .level-sub {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 16px;
-      color: rgba(255, 255, 255, 0.5);
-      margin-top: 12px;
-      letter-spacing: 2px;
-    }
-
-    /* 关卡选择界面 */
-    #levelSelectOverlay {
-      display: none;
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(ellipse at center, rgba(5, 2, 20, 0.92) 0%, rgba(2, 1, 10, 0.98) 100%);
-      z-index: 300;
-      justify-content: center; align-items: center;
-      backdrop-filter: blur(12px);
-      animation: overlayIn 0.4s ease-out;
-    }
-    #levelSelectContainer {
-      text-align: center;
-      width: 90%;
-      max-width: 750px;
-      animation: containerIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    @keyframes containerIn {
-      from { transform: scale(0.85) translateY(40px); opacity: 0; }
-      to { transform: scale(1) translateY(0); opacity: 1; }
-    }
-    #levelSelectTitle {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 42px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #64b5f6, #e040fb, #ffd740);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: 6px;
-      margin-bottom: 8px;
-    }
-    #levelSelectSub {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 14px;
-      color: rgba(180, 210, 255, 0.4);
-      letter-spacing: 3px;
-      margin-bottom: 40px;
-    }
-    #levelCards {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      margin-bottom: 36px;
-    }
-    .level-card {
-      width: 125px;
-      padding: 24px 12px 20px;
-      border-radius: 16px;
-      background: linear-gradient(145deg, rgba(20, 12, 45, 0.9), rgba(8, 4, 22, 0.95));
-      border: 1px solid rgba(100, 180, 255, 0.15);
-      cursor: pointer;
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-                  box-shadow 0.25s ease,
-                  border-color 0.25s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    .level-card::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at 30% 30%, rgba(100, 180, 255, 0.06) 0%, transparent 60%);
-      pointer-events: none;
-    }
-    .level-card:hover {
-      transform: translateY(-6px) scale(1.04);
-      box-shadow: 0 8px 32px rgba(100, 180, 255, 0.2), 0 0 60px rgba(100, 180, 255, 0.06);
-      border-color: rgba(100, 180, 255, 0.4);
-    }
-    .level-card:active {
-      transform: translateY(-2px) scale(0.98);
-    }
-    .level-card .card-num {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(100, 180, 255, 0.5);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-    .level-card .card-name {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 20px;
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: 2px;
-      margin-bottom: 6px;
-      text-shadow: 0 0 12px rgba(100, 180, 255, 0.3);
-    }
-    .level-card .card-name-en {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 11px;
-      font-weight: 500;
-      color: rgba(180, 210, 255, 0.35);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-    .level-card .card-desc {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 11px;
-      font-weight: 400;
-      color: rgba(255, 255, 255, 0.3);
-      margin-top: 10px;
-      letter-spacing: 1px;
-    }
-    .level-card.locked {
-      opacity: 0.35;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-    .level-card.locked::after {
-      content: '\f023';
-      font-family: 'Font Awesome 6 Free', 'Segoe UI', sans-serif;
-      font-size: 18px;
-      position: absolute;
-      top: 10px;
-      right: 12px;
-      color: rgba(255, 255, 255, 0.2);
-    }
-    .level-card.active {
-      border-color: rgba(100, 180, 255, 0.6);
-      box-shadow: 0 0 20px rgba(100, 180, 255, 0.15);
-    }
-    .level-card.active .card-name {
-      background: linear-gradient(135deg, #64b5f6, #e040fb);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    #backToMenuBtn {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      color: rgba(180, 210, 255, 0.5);
-      background: transparent;
-      border: 1px solid rgba(100, 180, 255, 0.15);
-      padding: 10px 32px;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s, transform 0.2s;
-      letter-spacing: 2px;
-    }
-    #backToMenuBtn:hover {
-      color: rgba(180, 210, 255, 0.9);
-      border-color: rgba(100, 180, 255, 0.4);
-      transform: scale(1.04);
-    }
-
-    /* 游戏内返回菜单按钮 */
-    #inGameMenuBtn {
-      display: none;
-      position: fixed;
-      top: 30px;
-      left: 40px;
-      z-index: 50;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      color: rgba(180, 210, 255, 0.5);
-      background: rgba(10, 5, 30, 0.6);
-      border: 1px solid rgba(100, 180, 255, 0.15);
-      padding: 8px 20px;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s;
-      letter-spacing: 2px;
-      backdrop-filter: blur(6px);
-    }
-    #inGameMenuBtn:hover {
-      color: rgba(180, 210, 255, 0.9);
-      border-color: rgba(100, 180, 255, 0.4);
-    }
-
-    /* 连击鼓励 */
-    #comboUI {
-      position: fixed;
-      top: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      z-index: 50;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease-out;
-    }
-    #comboUI.visible { opacity: 1; }
-    #comboWord {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 42px;
-      font-weight: 900;
-      color: #fff;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      transition: transform 0.15s ease-out, text-shadow 0.3s ease-out;
-      transform: scale(1);
-    }
-    #comboWord.pop {
-      animation: comboPop 0.3s ease-out;
-    }
-    @keyframes comboPop {
-      0%   { transform: scale(1); }
-      40%  { transform: scale(1.3); }
-      100% { transform: scale(1); }
-    }
-    #comboCount {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 28px;
-      font-weight: 700;
-      color: #fff;
-      margin-top: 4px;
-      letter-spacing: 2px;
-      transition: transform 0.15s ease-out;
-    }
-    #comboCount.bump {
-      animation: comboBump 0.25s ease-out;
-    }
-    @keyframes comboBump {
-      0%   { transform: scale(1); }
-      40%  { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
   </style>
 </head>
 <body>
-
-  <!-- 关卡选择界面 -->
-  <div id="levelSelectOverlay">
-    <div id="levelSelectContainer">
-      <div id="levelSelectTitle">选择关卡</div>
-      <div id="levelSelectSub">INTERSTELLAR</div>
-      <div id="levelCards"></div>
-      <button id="backToMenuBtn">返回菜单</button>
-    </div>
-  </div>
-
-  <!-- 游戏内返回菜单按钮 -->
-  <button id="inGameMenuBtn">菜单</button>
-
-  <!-- 胜利弹窗 -->
-  <div id="victoryOverlay">
-    <div id="victoryBox">
-      <div id="victoryStars">
-        <span class="star">&#9733;</span>
-        <span class="star">&#9733;</span>
-        <span class="star">&#9733;</span>
-      </div>
-      <h1 id="victoryTitle">YOU WIN!</h1>
-      <p id="victoryDesc">你成功进入了黑洞！</p>
-      <p id="victoryStats"></p>
-      <div id="victoryBtns">
-        <button id="victoryNextBtn">下一关</button>
-        <button id="victoryBackBtn">返回选关</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 关卡名称闪现 -->
-  <div id="levelAnnounce">
-    <div class="level-num" id="levelNum">LEVEL 1</div>
-    <div class="level-title" id="levelTitle">永恒号</div>
-    <div class="level-sub" id="levelSub">跳 1 次，进入黑洞</div>
-  </div>
-
-  <!-- 距离显示 -->
-  <div id="distanceUI">
-    <div id="levelName">永恒号</div>
-    <div id="distCurrent">0<span class="unit">m</span></div>
-    <div id="distTarget">目标: ??? m</div>
-  </div>
-
-  <!-- 连击鼓励 -->
-  <div id="comboUI">
-    <div id="comboWord">PERFECT</div>
-    <div id="comboCount">x1</div>
-  </div>
 
   <!-- GameOver 弹窗 -->
   <div id="gameOverOverlay">
     <div id="gameOverBox">
       <h1>GAME OVER</h1>
       <p>颜色不同，球碎了...</p>
-      <button id="restartBtn">返回选关</button>
+      <button id="restartBtn">再来一次</button>
     </div>
   </div>
 
@@ -623,161 +125,6 @@
     scene.add(new THREE.Points(starGeo,
       new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 0.7 })));
 
-    // ===== 加速背景粒子系统（螺旋隧道，跟随球颜色） =====
-    const BOOST_PARTICLE_COUNT = 8000;
-    const boostParticleGeo = new THREE.BufferGeometry();
-    const boostPosArr = new Float32Array(BOOST_PARTICLE_COUNT * 3);
-    const boostSizeArr = new Float32Array(BOOST_PARTICLE_COUNT);
-    const boostParticleData = [];
-
-    for (let i = 0; i < BOOST_PARTICLE_COUNT; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const tunnelR = 3 + Math.random() * 25;
-      const zOff = -60 + Math.random() * 120;
-      const spiralPhase = Math.random() * Math.PI * 2;
-      const spiralArm = Math.floor(Math.random() * 3);
-
-      boostPosArr[i * 3]     = tunnelR * Math.cos(angle);
-      boostPosArr[i * 3 + 1] = (Math.random() - 0.5) * 30;
-      boostPosArr[i * 3 + 2] = zOff;
-
-      const sizeRoll = Math.random();
-      if (sizeRoll < 0.7) {
-        boostSizeArr[i] = 0.06 + Math.random() * 0.12;
-      } else if (sizeRoll < 0.92) {
-        boostSizeArr[i] = 0.2 + Math.random() * 0.4;
-      } else {
-        boostSizeArr[i] = 0.6 + Math.random() * 1.0;
-      }
-
-      boostParticleData.push({
-        angle,
-        tunnelR,
-        baseTunnelR: tunnelR,
-        zOff,
-        spiralPhase,
-        spiralArm,
-        speed: 1.5 + Math.random() * 3.0,
-        zSpeed: 5 + Math.random() * 15,
-        pulsePhase: Math.random() * Math.PI * 2,
-        sizeBase: boostSizeArr[i],
-      });
-    }
-
-    boostParticleGeo.setAttribute('position', new THREE.BufferAttribute(boostPosArr, 3));
-    boostParticleGeo.setAttribute('aSize', new THREE.BufferAttribute(boostSizeArr, 1));
-
-    // 粒子颜色平滑过渡目标
-    let boostParticleColorTarget = new THREE.Color(0.4, 0.53, 1.0);  // 默认蓝色（球初始色）
-    let boostParticleColorCurrent = new THREE.Color(0.4, 0.53, 1.0);
-    const BOOST_COLOR_LERP_SPEED = 3.0;  // 颜色过渡速度
-
-    const boostParticleMat = new THREE.ShaderMaterial({
-      uniforms: {
-        uOpacity: { value: 0.0 },
-        uColor: { value: new THREE.Color(0.4, 0.53, 1.0) },
-      },
-      vertexShader: `
-        attribute float aSize;
-        varying float vDist;
-        void main() {
-          vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
-          vDist = -mvPos.z;
-          gl_PointSize = aSize * (250.0 / max(1.0, -mvPos.z));
-          gl_Position = projectionMatrix * mvPos;
-        }
-      `,
-      fragmentShader: `
-        uniform float uOpacity;
-        uniform vec3 uColor;
-        varying float vDist;
-        void main() {
-          float d = length(gl_PointCoord - 0.5) * 2.0;
-          float alpha = 1.0 - smoothstep(0.0, 1.0, d);
-          float glow = exp(-d * 3.0) * 0.7;
-          vec3 col = uColor * (1.0 + glow);
-          float fog = smoothstep(100.0, 15.0, vDist);
-          gl_FragColor = vec4(col, (alpha + glow * 0.6) * uOpacity * fog);
-        }
-      `,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const boostParticles = new THREE.Points(boostParticleGeo, boostParticleMat);
-    boostParticles.visible = false;
-    scene.add(boostParticles);
-
-    let boostParticleTime = 0;
-    let boostParticleVisible = false;
-    let boostFadeAlpha = 0;
-
-    // 设置粒子目标颜色（从球当前颜色获取）
-    function setBoostParticleColor(colorKey) {
-      if (!colorKey || !COLORS[colorKey]) return;
-      const rgb = COLORS[colorKey].rgb;
-      boostParticleColorTarget.set(rgb[0] / 255, rgb[1] / 255, rgb[2] / 255);
-    }
-
-    function updateBoostParticles(dt) {
-      const isActive = boostTimer > 0;
-      if (isActive && !boostParticleVisible) {
-        boostParticleVisible = true;
-        boostParticles.visible = true;
-        // 加速开始时同步当前球颜色
-        setBoostParticleColor(ballColorKey);
-        boostParticleColorCurrent.copy(boostParticleColorTarget);
-      }
-      if (isActive) {
-        boostFadeAlpha = Math.min(1.0, boostFadeAlpha + dt * 2.5);
-      } else {
-        boostFadeAlpha = Math.max(0.0, boostFadeAlpha - dt * 1.2);
-        if (boostFadeAlpha <= 0) {
-          boostParticleVisible = false;
-          boostParticles.visible = false;
-        }
-      }
-      boostParticleMat.uniforms.uOpacity.value = boostFadeAlpha * 0.85;
-
-      if (boostFadeAlpha <= 0) return;
-
-      // 颜色平滑过渡（加速过程中球变色时粒子也跟着变）
-      boostParticleColorCurrent.lerp(boostParticleColorTarget, 1 - Math.exp(-BOOST_COLOR_LERP_SPEED * dt));
-      boostParticleMat.uniforms.uColor.value.copy(boostParticleColorCurrent);
-
-      boostParticleTime += dt;
-      const posAttr = boostParticleGeo.getAttribute('position');
-      const sizeAttr = boostParticleGeo.getAttribute('aSize');
-
-      for (let i = 0; i < BOOST_PARTICLE_COUNT; i++) {
-        const pd = boostParticleData[i];
-        pd.angle += pd.speed * dt;
-        pd.zOff += pd.zSpeed * dt;
-        if (pd.zOff > 60) {
-          pd.zOff -= 120;
-        }
-
-        const spiralAngle = pd.angle + pd.spiralArm * (Math.PI * 2 / 3);
-        const zNorm = (pd.zOff + 60) / 120;
-        const tunnelConverge = 1.0 - Math.abs(zNorm - 0.5) * 0.6;
-        const r = pd.baseTunnelR * tunnelConverge;
-
-        const spiralX = Math.sin(pd.zOff * 0.08 + pd.spiralPhase) * r * 0.4;
-        const spiralY = Math.cos(pd.zOff * 0.08 + pd.spiralPhase) * r * 0.3;
-
-        const x = r * Math.cos(spiralAngle) + spiralX;
-        const y = r * Math.sin(spiralAngle) * 0.5 + spiralY + ballY * 0.25;
-        const z = pd.zOff;
-
-        posAttr.setXYZ(i, x, y, z);
-
-        const sizePulse = 1.0 + Math.sin(boostParticleTime * 2.0 + pd.pulsePhase) * 0.2;
-        sizeAttr.setX(i, pd.sizeBase * sizePulse);
-      }
-      posAttr.needsUpdate = true;
-      sizeAttr.needsUpdate = true;
-    }
-
     scene.add(new THREE.AmbientLight(0x223355, 1.8));
 
     const keyLight = new THREE.PointLight(0xffffff, 150, 50);
@@ -800,47 +147,18 @@
 
     const GROUND_Y      = -2.0;
     const BALL_RADIUS   = 0.5;
-    const GRAVITY_Y     = -14.7;   // 基础重力加速度（1.5倍）
+    const GRAVITY_Y     = -9.8;   // Y 方向真实重力加速度（m/s²）
     const INIT_HEIGHT   = 3.0;    // 弹跳高度（相对地面，固定不衰减）
     const VISIBLE_DEPTH = 120;    // 球前方可见距离
 
-    // 弹跳物理：h = INIT_HEIGHT，g = |gravity|
+    // 弹跳物理：h = INIT_HEIGHT，g = |GRAVITY_Y|
     const _g = Math.abs(GRAVITY_Y);
     const _t_down = Math.sqrt(2 * INIT_HEIGHT / _g);
     const BOUNCE_PERIOD = 2 * _t_down;
 
-    // ===== 加速轨道系统 =====
-    const BOOST_DURATION = 10.0;        // 加速持续秒数
-    const BOOST_GRAVITY_MULT = 3.0;     // 加速时重力倍数
-    let boostTimer = 0;                 // 加速剩余时间（0=未加速）
-    let currentGravityY = GRAVITY_Y;    // 当前重力
-    let boostCharging = false;          // 踩到加速轨道后原地蓄力中（velZ=0）
-    let boostPendingDecel = false;      // 加速到期但球还在空中，等落地再恢复重力
-
-    // 根据当前重力计算弹跳周期（重力变了，周期也变）
-    function getCurrentBouncePeriod() {
-      const g = Math.abs(currentGravityY);
-      const tDown = Math.sqrt(2 * INIT_HEIGHT / g);
-      return 2 * tDown;
-    }
-
-    // 纯粹重算 velZ（不改变球颜色），用于加速恢复 / 重力变化后同步速度
-    function recalcVelZ() {
-      let nearestAheadZ = -Infinity;
-      for (const z of groupZList) {
-        if (z < -0.5 && z > nearestAheadZ) {
-          nearestAheadZ = z;
-        }
-      }
-      if (nearestAheadZ > -Infinity) {
-        const period = getCurrentBouncePeriod();
-        velZ = Math.abs(nearestAheadZ) / period;
-      }
-    }
-
     // 轨道组间距
-    const GAP_MIN = 3.75;
-    const GAP_MAX = 7.5;
+    const GAP_MIN = 2.5;
+    const GAP_MAX = 5.0;
 
     // ===== 颜色定义 =====
     const COLORS = {
@@ -859,11 +177,11 @@
     const PLATE_HEIGHT = 0.12;
 
     // 类型1：长直轨道（一块长板）
-    const LONG_SIZE_X = 5.25;
-    const LONG_SIZE_Z = 1.2;
+    const LONG_SIZE_X = 3.5;
+    const LONG_SIZE_Z = 0.8;
     // 类型2/3：方形轨道（小方块）
-    const SQ_SIZE     = 1.05;   // 方块边长
-    const SQ_SPACING  = 1.35;   // 方块中心间距
+    const SQ_SIZE     = 0.7;   // 方块边长
+    const SQ_SPACING  = 0.9;   // 方块中心间距
     const SQ_OFFSET   = (SQ_SPACING - SQ_SIZE) / 2; // 方块中心到长板中心的 X 偏移
 
     // ===== 几何体（共享） =====
@@ -913,17 +231,6 @@
       });
     }
 
-    // 白色发光材质（加速长直轨道专用）
-    function makeBoostMat() {
-      return new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        metalness: 0.1, roughness: 0.2,
-        emissive: new THREE.Color(0.5, 0.5, 0.7),
-        transparent: true, opacity: 0.95
-      });
-    }
-
-
     // 为方块创建材质数组（6面）：顶面叠加箭头纹理
     function makeSqMats(colorKey) {
       const base = makeMat(colorKey);
@@ -942,108 +249,6 @@
       return [side1, side2, topMat, bottom, side3, side4]; // +X, -X, +Y, -Y, +Z, -Z
     }
 
-    // ===== 关卡系统 =====
-    const LEVELS = [
-      {
-        name: '永恒号', nameEn: 'Endurance',
-        maxType: 1, winHits: 1,
-        desc: '跳 1 次，进入黑洞'
-      },
-      {
-        name: '水星', nameEn: 'Miller',
-        maxType: 2, winHits: 10,
-        desc: '跳 10 次，进入黑洞'
-      },
-      {
-        name: '曼恩星球', nameEn: 'Mann',
-        maxType: 3, winHits: 20,
-        desc: '跳 20 次，进入黑洞'
-      },
-      {
-        name: '土星', nameEn: 'Saturn',
-        maxType: 3, winHits: 200,
-        desc: '跳 200 次，进入黑洞'
-      },
-      {
-        name: '卡冈图雅', nameEn: 'Gargantua',
-        maxType: 3, winHits: 2000,
-        desc: '跳 2000 次，进入黑洞'
-      }
-    ];
-    let currentLevel = 0;
-    function getLevel() { return LEVELS[currentLevel]; }
-
-    // ===== 关卡解锁系统 =====
-    const UNLOCK_KEY = 'bounceGame_maxUnlocked';
-    function getMaxUnlocked() {
-      return parseInt(localStorage.getItem(UNLOCK_KEY) || '1', 10);
-    }
-    function unlockNext() {
-      const next = Math.min(LEVELS.length, getMaxUnlocked() + 1);
-      localStorage.setItem(UNLOCK_KEY, String(next));
-    }
-
-    // ===== 关卡选择界面 =====
-    const levelSelectOverlay = document.getElementById('levelSelectOverlay');
-    const levelCardsContainer = document.getElementById('levelCards');
-    const inGameMenuBtn = document.getElementById('inGameMenuBtn');
-
-    // 动态生成关卡卡片
-    LEVELS.forEach((lv, i) => {
-      const card = document.createElement('div');
-      card.className = 'level-card';
-      card.dataset.index = i;
-      card.innerHTML = `
-        <div class="card-num">LEVEL ${i + 1}</div>
-        <div class="card-name">${lv.name}</div>
-        <div class="card-name-en">${lv.nameEn}</div>
-      `;
-      card.addEventListener('click', () => {
-        if (i + 1 > getMaxUnlocked()) return;
-        currentLevel = i;
-        startGame();
-      });
-      levelCardsContainer.appendChild(card);
-    });
-
-    function updateCardStates() {
-      const maxUnlocked = getMaxUnlocked();
-      const cards = levelCardsContainer.querySelectorAll('.level-card');
-      cards.forEach((card, i) => {
-        const locked = i + 1 > maxUnlocked;
-        card.classList.toggle('active', i === currentLevel && !locked);
-        card.classList.toggle('locked', locked);
-      });
-    }
-
-    function showLevelSelect() {
-      updateCardStates();
-      levelSelectOverlay.style.display = 'flex';
-      inGameMenuBtn.style.display = 'none';
-    }
-
-    function hideLevelSelect() {
-      levelSelectOverlay.style.display = 'none';
-    }
-
-    function startGame() {
-      hideLevelSelect();
-      inGameMenuBtn.style.display = 'block';
-      resetGame();
-    }
-
-    inGameMenuBtn.addEventListener('click', () => {
-      showLevelSelect();
-    });
-
-    // 返回菜单按钮（在关卡选择界面内，此处留空功能，因为已经在选择界面了）
-    document.getElementById('backToMenuBtn').addEventListener('click', () => {
-      // 可以扩展为返回主菜单逻辑，目前关卡选择就是主菜单
-    });
-
-    // 初始显示关卡选择界面
-    showLevelSelect();
-
     // ===== 轨道组系统 =====
     // 每个轨道组: { type, meshes[], mats[], z }
     // z = 组中心 Z 坐标（球落地时需要对齐到 Z=0 的点）
@@ -1061,9 +266,27 @@
       return { type: 1, meshes: [mesh], mats: [mat], z, colorKey };
     }
 
-    // 类型2：两块有间隔的方形轨道（二色各一，随机排列）
+    // 类型2：三块有间隔的方形轨道（三色各一）
     function createType2(z, colors) {
       const result = { type: 2, meshes: [], mats: [], z, colorKeys: [] };
+      const xPositions = [-SQ_SPACING, 0, SQ_SPACING];
+      for (let i = 0; i < 3; i++) {
+        const mats = makeSqMats(colors[i]);
+        const mesh = new THREE.Mesh(sqGeo, mats);
+        mesh.position.set(xPositions[i], GROUND_Y + PLATE_HEIGHT / 2, z);
+        mesh.receiveShadow = true;
+        mesh.castShadow = true;
+        scene.add(mesh);
+        result.meshes.push(mesh);
+        result.mats.push(...mats);
+        result.colorKeys.push(colors[i]);
+      }
+      return result;
+    }
+
+    // 类型3：两块有间隔的方形轨道（二色各一，随机排列）
+    function createType3(z, colors) {
+      const result = { type: 3, meshes: [], mats: [], z, colorKeys: [] };
       const offset = SQ_SPACING * 0.65;
       const xPositions = [-offset, offset];
       for (let i = 0; i < 2; i++) {
@@ -1080,60 +303,22 @@
       return result;
     }
 
-    // 类型3：三块有间隔的方形轨道（三色各一）
-    function createType3(z, colors) {
-      const result = { type: 3, meshes: [], mats: [], z, colorKeys: [] };
-      const xPositions = [-SQ_SPACING, 0, SQ_SPACING];
-      for (let i = 0; i < 3; i++) {
-        const mats = makeSqMats(colors[i]);
-        const mesh = new THREE.Mesh(sqGeo, mats);
-        mesh.position.set(xPositions[i], GROUND_Y + PLATE_HEIGHT / 2, z);
-        mesh.receiveShadow = true;
-        mesh.castShadow = true;
-        scene.add(mesh);
-        result.meshes.push(mesh);
-        result.mats.push(...mats);
-        result.colorKeys.push(colors[i]);
-      }
-      return result;
-    }
-
-    // 类型4：加速长直轨道（白色发光，不改变球颜色，触发3倍重力加速）
-    function createType4(z) {
-      const mat = makeBoostMat();
-      const mesh = new THREE.Mesh(longGeo, mat);
-      mesh.position.set(0, GROUND_Y + PLATE_HEIGHT / 2, z);
-      mesh.receiveShadow = true;
-      mesh.castShadow = true;
-      scene.add(mesh);
-      return { type: 4, meshes: [mesh], mats: [mat], z, colorKey: 'boost' };
-    }
-
     // 随机创建一个轨道组
     // safeColor：当前球颜色，方形轨道必须包含此颜色以保证路径连通
-    // maxType：最大轨道类型（1=仅长直, 2=长直+两方块, 3=全部）
-    function createRandomGroup(z, safeColor, maxType) {
-      maxType = maxType || 3;
-      // 15% 概率生成加速轨道（类型4）
-      if (Math.random() < 0.15) {
-        const group = createType4(z);
-        trackGroups.push(group);
-        groupZList.push(z);
-        return group;
-      }
-      const type = Math.floor(Math.random() * maxType) + 1;
+    function createRandomGroup(z, safeColor) {
+      const type = Math.floor(Math.random() * 3) + 1;
       let group;
       if (type === 1) {
         group = createType1(z, randColor());
       } else if (type === 2) {
+        // 三色各一，随机排列
+        const cols = [...COLOR_KEYS].sort(() => Math.random() - 0.5);
+        group = createType2(z, cols);
+      } else {
         // 两块方块：必须包含 safeColor
         const otherKeys = COLOR_KEYS.filter(k => k !== safeColor);
         const other = otherKeys[Math.floor(Math.random() * otherKeys.length)];
         const cols = [safeColor, other].sort(() => Math.random() - 0.5);
-        group = createType2(z, cols);
-      } else {
-        // 三块方块：三色各一
-        const cols = [...COLOR_KEYS].sort(() => Math.random() - 0.5);
         group = createType3(z, cols);
       }
       trackGroups.push(group);
@@ -1174,7 +359,7 @@
       // 继续随机生成直到填满可见区域
       while (z > -VISIBLE_DEPTH) {
         z -= randGap();
-        createRandomGroup(z, lastLongTrackColor, getLevel().maxType);
+        createRandomGroup(z, lastLongTrackColor);
         const newGroup = trackGroups[trackGroups.length - 1];
         if (newGroup.type === 1) {
           lastLongTrackColor = newGroup.colorKey;
@@ -1187,18 +372,12 @@
     const FADE_END   = 12;
 
     function updateTrack(deltaZ) {
-      totalDistance += deltaZ;
       for (let i = 0; i < trackGroups.length; i++) {
         groupZList[i] += deltaZ;
         trackGroups[i].z = groupZList[i];
         for (const m of trackGroups[i].meshes) {
           m.position.z = groupZList[i];
         }
-      }
-
-      // 黑洞也跟着轨道一起移动（向球靠近）
-      if (bhGroup) {
-        bhGroup.position.z += deltaZ;
       }
 
       // 淡出 + 销毁
@@ -1219,7 +398,7 @@
       let minZ = groupZList.length > 0 ? Math.min(...groupZList) : 0;
       while (minZ > -VISIBLE_DEPTH) {
         minZ -= randGap();
-        createRandomGroup(minZ, lastLongTrackColor, getLevel().maxType);
+        createRandomGroup(minZ, lastLongTrackColor);
         // 如果生成了长直轨道，更新安全颜色
         const newGroup = trackGroups[trackGroups.length - 1];
         if (newGroup.type === 1) {
@@ -1264,12 +443,11 @@
     let velZ        = 0;            // 轨道 Z 方向速度（正值=轨道向球靠近）
     let falling     = false;        // 是否正在坠落（没踩到轨道）
 
-    // ===== 鼠标 X 轴缓动控制 =====
-    // 鼠标累计输入 → 缓动目标 → 实际球位置
-    const MOUSE_SENSITIVITY = 0.012;      // 鼠标原始灵敏度
-    const LERP_SMOOTHNESS  = 0.12;        // 缓动系数（0~1，越小越丝滑延迟越大）
-    let mouseDeltaX = 0;                  // 每帧鼠标原始输入累计
-    let ballXTarget  = 0;                 // 缓动目标位置（鼠标直接驱动）
+    // 鼠标左右控制灵敏度（独立变量，可调）
+    const MOUSE_SENSITIVITY = 0.012;
+
+    // 鼠标 X 偏移累计
+    let mouseDeltaX = 0;
     document.addEventListener('mousemove', (e) => {
       if (e.movementX !== undefined) {
         mouseDeltaX += e.movementX;
@@ -1290,7 +468,7 @@
           const bx = mesh.position.x;
           const by = mesh.position.y;
           let hsx, hsz;
-          if (group.type === 1 || group.type === 4) {
+          if (group.type === 1) {
             hsx = LONG_SIZE_X / 2;
             hsz = LONG_SIZE_Z / 2;
           } else {
@@ -1330,10 +508,7 @@
     function triggerDeath(plateColorKey) {
       dying = true;
       deathTimer = 0;
-      deathCount++;
       velZ = 0;
-      // 隐藏连击
-      hideCombo();
 
       // 隐藏球本体 + 光环
       sphere.visible = false;
@@ -1463,18 +638,16 @@
 
       if (landingIdx >= 0) {
         const group = trackGroups[landingIdx];
-        // 长直轨道变色（类型4加速轨道不变色）
-        if (group.type === 1 && group.colorKey && group.colorKey !== 'boost') {
+        // 长直轨道变色
+        if (group.type === 1 && group.colorKey) {
           const cKey = group.colorKey;
           const rgb = COLORS[cKey].rgb;
           sphereMat.color.set(COLORS[cKey].hex);
           sphereMat.emissive.set(new THREE.Color(rgb[0]*0.3/255, rgb[1]*0.3/255, rgb[2]*0.3/255));
           ballColorKey = cKey;
-          // 粒子颜色跟随球变色
-          setBoostParticleColor(cKey);
         }
       }
-      // 找下一组，计算 Z 速度（使用当前弹跳周期，加速时周期更短）
+      // 找下一组，计算 Z 速度
       let nearestAheadZ = -Infinity;
       for (const z of groupZList) {
         if (z < -0.5 && z > nearestAheadZ) {
@@ -1482,8 +655,7 @@
         }
       }
       if (nearestAheadZ > -Infinity) {
-        const period = getCurrentBouncePeriod();
-        velZ = Math.abs(nearestAheadZ) / period;
+        velZ = Math.abs(nearestAheadZ) / BOUNCE_PERIOD;
       }
     }
 
@@ -1533,13 +705,7 @@
         type: 'press'
       });
 
-      // 加速轨道使用白色
-      let rgb;
-      if (plateColorKey === 'boost') {
-        rgb = [220, 220, 255];
-      } else {
-        rgb = COLORS[plateColorKey].rgb;
-      }
+      const rgb = COLORS[plateColorKey].rgb;
       const color = new THREE.Color(rgb[0]/255, rgb[1]/255, rgb[2]/255);
 
       // ---- 涟漪面（ShaderMaterial 羽化） ----
@@ -1670,58 +836,6 @@
       }
     }
 
-    // ===== 连击鼓励系统 =====
-    const comboUI     = document.getElementById('comboUI');
-    const comboWord   = document.getElementById('comboWord');
-    const comboCount  = document.getElementById('comboCount');
-    let comboCount_   = 0;         // 连击数
-    let comboVisible  = false;     // 当前是否可见
-    let comboTimeout  = null;      // 自动隐藏定时器
-    const COMBO_HIDE_DELAY = 2000; // 2秒无碰撞自动隐藏
-
-    function triggerCombo() {
-      comboCount_++;
-      const word = Math.random() > 0.2 ? 'PERFECT' : 'GREAT';
-
-      comboWord.textContent = word;
-      comboUI.classList.add('visible');
-      comboVisible = true;
-
-      // 每次都重新播放弹出动画
-      comboWord.classList.remove('pop');
-      void comboWord.offsetWidth;
-      comboWord.classList.add('pop');
-
-      comboCount.textContent = `x${comboCount_}`;
-      comboCount.classList.remove('bump');
-      void comboCount.offsetWidth;
-      comboCount.classList.add('bump');
-
-      // 更新发光颜色为当前球颜色
-      if (ballColorKey) {
-        const rgb = COLORS[ballColorKey].rgb;
-        const glowColor = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
-        const shadow = `0 0 20px ${glowColor}, 0 0 40px ${glowColor}, 0 0 80px rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.4)`;
-        comboWord.style.textShadow = shadow;
-        comboCount.style.textShadow = `0 0 12px ${glowColor}, 0 0 24px rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.3)`;
-      }
-
-      // 重置自动隐藏计时
-      if (comboTimeout) clearTimeout(comboTimeout);
-      comboTimeout = setTimeout(() => {
-        comboUI.classList.remove('visible');
-        comboVisible = false;
-        comboCount_ = 0;
-      }, COMBO_HIDE_DELAY);
-    }
-
-    function hideCombo() {
-      comboUI.classList.remove('visible');
-      comboVisible = false;
-      comboCount_ = 0;
-      if (comboTimeout) { clearTimeout(comboTimeout); comboTimeout = null; }
-    }
-
     // GameOver 弹窗控制
     const gameOverOverlay = document.getElementById('gameOverOverlay');
     const restartBtn = document.getElementById('restartBtn');
@@ -1734,400 +848,13 @@
     }
 
     restartBtn.addEventListener('click', () => {
-      hideGameOver();
-      showLevelSelect();
+      resetGame();
     });
 
     // 坠落后超过一定距离，重置游戏
     const FALL_RESET_Y = -30;
-    let hitCount = 0;     // 碰撞计数
-    let deathCount = 0;   // 掉落/碎裂次数
-    let totalDistance = 0; // 行进总距离
-    let blackHoleActive = false;
-    let winning = false;  // 进入黑洞后的胜利状态
-    let winTimer = 0;
-    let targetDistance = null; // 黑洞出现时的距离
-
-    // ===== 距离 UI =====
-    const distCurrent = document.getElementById('distCurrent');
-    const distTarget  = document.getElementById('distTarget');
-    const levelNameEl = document.getElementById('levelName');
-
-    function updateDistanceUI() {
-      const d = Math.floor(totalDistance);
-      distCurrent.innerHTML = `${d}<span class="unit">m</span>`;
-      if (targetDistance !== null) {
-        const td = Math.floor(targetDistance);
-        distTarget.textContent = `目标: ${td} m`;
-        if (!distTarget.classList.contains('revealed')) {
-          distTarget.classList.add('revealed');
-        }
-      }
-    }
-
-    function resetDistanceUI() {
-      totalDistance = 0;
-      targetDistance = null;
-      distTarget.textContent = '目标: ??? m';
-      distTarget.classList.remove('revealed');
-      levelNameEl.textContent = getLevel().name;
-      updateDistanceUI();
-    }
-
-    // ===== 黑洞系统 =====
-    const BH_RADIUS = 2.5;          // 黑洞可视半径
-    const BH_EVENT_HORIZON = 1.2;   // 事件视界（触发胜利的距离）
-    let bhGroup = null;             // 黑洞 Three.js 组
-    let bhParticles = null;         // 被吸引的粒子
-    let bhParticleData = [];        // 粒子运动数据
-    let bhRotation = 0;
-    let bhSpawnTimer = 0;
-    const BH_SPAWN_DURATION = 2.0; // 黑洞从小到大的渐入时长（秒）
-
-    function createBlackHole(z) {
-      bhGroup = new THREE.Group();
-      bhGroup.position.set(0, GROUND_Y, z);
-      scene.add(bhGroup);
-
-      // 1) 中心黑色球（事件视界核心）
-      const coreGeo = new THREE.SphereGeometry(0.8, 32, 32);
-      const coreMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-      const core = new THREE.Mesh(coreGeo, coreMat);
-      bhGroup.add(core);
-
-      // 2) 吸积盘（圆环，向内旋涡纹理）
-      const accGeo = new THREE.RingGeometry(1.0, BH_RADIUS, 64);
-      const accMat = new THREE.ShaderMaterial({
-        uniforms: {
-          uTime: { value: 0 },
-          uInner: { value: 1.0 },
-          uOuter: { value: BH_RADIUS },
-        },
-        vertexShader: `
-          varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: `
-          uniform float uTime;
-          uniform float uInner;
-          uniform float uOuter;
-          varying vec2 vUv;
-          void main() {
-            vec2 center = vUv - 0.5;
-            float dist = length(center);
-            float angle = atan(center.y, center.x);
-
-            // 旋涡条纹
-            float spiral = sin(angle * 3.0 - uTime * 4.0 + dist * 10.0) * 0.5 + 0.5;
-
-            // 内亮外暗
-            float radial = 1.0 - smoothstep(uInner / (uInner + uOuter), 1.0, dist * 2.0);
-
-            // 颜色：蓝紫旋涡
-            vec3 col1 = vec3(0.4, 0.2, 1.0);  // 紫色
-            vec3 col2 = vec3(0.2, 0.5, 1.0);  // 蓝色
-            vec3 col3 = vec3(1.0, 0.3, 0.8);  // 粉色
-            vec3 col = mix(col1, col2, spiral);
-            col = mix(col, col3, pow(spiral, 3.0));
-
-            float alpha = radial * (0.4 + 0.6 * spiral);
-            gl_FragColor = vec4(col, alpha * 0.8);
-          }
-        `,
-        transparent: true,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      });
-      const accDisk = new THREE.Mesh(accGeo, accMat);
-      bhGroup.add(accDisk);
-
-      // 3) 外层光晕（大一点的圆环，微弱发光）
-      const glowGeo = new THREE.RingGeometry(BH_RADIUS, BH_RADIUS + 1.5, 64);
-      const glowMat = new THREE.ShaderMaterial({
-        uniforms: {
-          uTime: { value: 0 },
-        },
-        vertexShader: `
-          varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: `
-          uniform float uTime;
-          varying vec2 vUv;
-          void main() {
-            vec2 center = vUv - 0.5;
-            float dist = length(center);
-            float angle = atan(center.y, center.x);
-            float spiral = sin(angle * 2.0 - uTime * 2.0 + dist * 8.0) * 0.5 + 0.5;
-            float fade = 1.0 - smoothstep(0.0, 1.0, dist * 2.0);
-            vec3 col = mix(vec3(0.2, 0.1, 0.6), vec3(0.1, 0.3, 0.8), spiral);
-            gl_FragColor = vec4(col, fade * 0.25 * spiral);
-          }
-        `,
-        transparent: true,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      });
-      const glow = new THREE.Mesh(glowGeo, glowMat);
-      bhGroup.add(glow);
-
-      // 4) 被吸入的粒子（围绕黑洞螺旋运动并逐渐靠近）
-      const pCount = 300;
-      const pPositions = new Float32Array(pCount * 3);
-      bhParticleData = [];
-      for (let i = 0; i < pCount; i++) {
-        bhParticleData.push({
-          angle: Math.random() * Math.PI * 2,
-          radius: BH_RADIUS * 0.5 + Math.random() * BH_RADIUS * 2,
-          speed: 1.0 + Math.random() * 2.5,
-          yOff: (Math.random() - 0.5) * 1.5,
-          ySpeed: (Math.random() - 0.5) * 0.5,
-          shrink: 0.003 + Math.random() * 0.008,
-        });
-      }
-      const pGeo = new THREE.BufferGeometry();
-      pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
-      bhParticles = new THREE.Points(pGeo, new THREE.PointsMaterial({
-        color: 0xaa88ff,
-        size: 0.06,
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      }));
-      bhGroup.add(bhParticles);
-    }
-
-    function updateBlackHole(dt) {
-      if (!bhGroup || !bhParticles) return;
-      bhRotation += dt * 0.8;
-
-      // 渐入缩放动画（从小到大）
-      if (bhSpawnTimer < BH_SPAWN_DURATION) {
-        bhSpawnTimer += dt;
-        const progress = Math.min(1, bhSpawnTimer / BH_SPAWN_DURATION);
-        // ease-out cubic
-        const eased = 1 - Math.pow(1 - progress, 3);
-        bhGroup.scale.setScalar(eased);
-      }
-
-      // 更新着色器时间
-      bhGroup.children.forEach(child => {
-        if (child.material && child.material.uniforms && child.material.uniforms.uTime) {
-          child.material.uniforms.uTime.value += dt;
-        }
-      });
-      // 整体缓慢旋转
-      bhGroup.rotation.y += dt * 0.3;
-
-      // 更新粒子（螺旋吸入）
-      const posAttr = bhParticles.geometry.getAttribute('position');
-      for (let i = 0; i < bhParticleData.length; i++) {
-        const pd = bhParticleData[i];
-        pd.angle += pd.speed * dt;
-        pd.radius -= pd.shrink;
-        pd.yOff *= 0.998;
-        // 粒子被吸入核心后重置
-        if (pd.radius < 0.3) {
-          pd.radius = BH_RADIUS * 0.8 + Math.random() * BH_RADIUS * 1.5;
-          pd.angle = Math.random() * Math.PI * 2;
-          pd.yOff = (Math.random() - 0.5) * 1.5;
-        }
-        posAttr.setXYZ(i,
-          Math.cos(pd.angle) * pd.radius,
-          pd.yOff,
-          Math.sin(pd.angle) * pd.radius
-        );
-      }
-      posAttr.needsUpdate = true;
-    }
-
-    function cleanupBlackHole() {
-      if (bhGroup) {
-        bhGroup.traverse(child => {
-          if (child.geometry) child.geometry.dispose();
-          if (child.material) {
-            if (child.material.dispose) child.material.dispose();
-          }
-        });
-        scene.remove(bhGroup);
-        bhGroup = null;
-        bhParticles = null;
-        bhParticleData = [];
-      }
-    }
-
-    // ===== 胜利弹窗控制 =====
-    const victoryOverlay = document.getElementById('victoryOverlay');
-    const victoryNextBtn = document.getElementById('victoryNextBtn');
-    const victoryBackBtn = document.getElementById('victoryBackBtn');
-    const victoryTitle = document.getElementById('victoryTitle');
-    const victoryDesc = document.getElementById('victoryDesc');
-    const victoryStats = document.getElementById('victoryStats');
-    const victoryStars = document.getElementById('victoryStars');
-
-    function showVictory() {
-      const lv = getLevel();
-      victoryTitle.textContent = 'YOU WIN!';
-      victoryDesc.textContent = `成功进入 ${lv.name} 黑洞`;
-
-      // 统计信息
-      victoryStats.textContent = `跳跃 ${hitCount} 次  |  行进 ${Math.floor(totalDistance)} m  |  失误 ${deathCount} 次`;
-
-      // 星级评价：根据失误次数，0次=3星，1~2次=2星，3+次=1星
-      const stars = victoryStars.querySelectorAll('.star');
-      let starCount = deathCount === 0 ? 3 : deathCount <= 2 ? 2 : 1;
-      stars.forEach((s, i) => {
-        s.classList.remove('lit', 'pop');
-        if (i < starCount) {
-          // 延迟点亮星星，制造依次弹出的效果
-          setTimeout(() => {
-            s.classList.add('lit', 'pop');
-          }, 300 + i * 200);
-        }
-      });
-
-      // 解锁下一关
-      unlockNext();
-
-      // 下一关按钮：有下一关才显示
-      const hasNext = currentLevel + 1 < LEVELS.length;
-      victoryNextBtn.classList.toggle('hidden', !hasNext);
-      if (hasNext) {
-        victoryNextBtn.textContent = `${LEVELS[currentLevel + 1].name}`;
-      }
-
-      victoryOverlay.style.display = 'flex';
-    }
-    function hideVictory() {
-      victoryOverlay.style.display = 'none';
-    }
-
-    // 下一关
-    victoryNextBtn.addEventListener('click', () => {
-      if (currentLevel + 1 < LEVELS.length) {
-        currentLevel++;
-        hideVictory();
-        startGame();
-      }
-    });
-    // 返回选关
-    victoryBackBtn.addEventListener('click', () => {
-      hideVictory();
-      showLevelSelect();
-    });
-
-    // ===== 关卡名称闪现 =====
-    const levelAnnounce = document.getElementById('levelAnnounce');
-    const levelNumEl = document.getElementById('levelNum');
-    const levelTitleEl = document.getElementById('levelTitle');
-    const levelSubEl = document.getElementById('levelSub');
-    let levelAnnounceTimer = null;
-
-    function showLevelAnnounce() {
-      const lv = getLevel();
-      levelNumEl.textContent = `LEVEL ${currentLevel + 1}`;
-      levelTitleEl.textContent = lv.name;
-      levelSubEl.textContent = `进入黑洞 — ${lv.nameEn}`;
-      // 移除再添加 class 重置动画
-      levelAnnounce.classList.remove('show');
-      void levelAnnounce.offsetWidth;
-      levelAnnounce.classList.add('show');
-      if (levelAnnounceTimer) clearTimeout(levelAnnounceTimer);
-      levelAnnounceTimer = setTimeout(() => {
-        levelAnnounce.classList.remove('show');
-      }, 2600);
-    }
-
-    function spawnBlackHole() {
-      blackHoleActive = true;
-      bhSpawnTimer = 0; // 开始缩放动画
-      // 在前方远处生成黑洞，y 与轨道对齐
-      const z = -VISIBLE_DEPTH / 5 * 3 - 5;
-      createBlackHole(z);
-      // 初始缩放为 0（从小到大）
-      bhGroup.scale.setScalar(0);
-      // 目标距离 = 当前距离 + 黑洞到球的距离
-      targetDistance = totalDistance + Math.abs(z);
-    }
-
-    function checkBlackHoleCollision() {
-      if (!bhGroup || winning || dying || falling) return;
-      const bhPos = bhGroup.position;
-      const dx = ballX - bhPos.x;
-      const dy = ballY - bhPos.y;
-      const dz = 0 - bhPos.z;
-      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (dist < BH_EVENT_HORIZON) {
-        // 进入黑洞！触发胜利
-        winning = true;
-        winTimer = 0;
-        velZ = 0;
-        falling = false;
-        hideCombo();
-        // 锁定目标距离 = 当前距离（两个数字显示一样）
-        targetDistance = totalDistance;
-      }
-    }
-
-    function updateWin(dt) {
-      if (!winning) return;
-      winTimer += dt;
-      // 球被吸入黑洞
-      if (bhGroup && sphere.visible) {
-        const bhPos = bhGroup.position;
-        const speed = 3 + winTimer * 5;
-        ballX += (bhPos.x - ballX) * dt * speed;
-        ballY += (bhPos.y - ballY) * dt * speed;
-        // 球缩小
-        const scale = Math.max(0.01, 1 - winTimer * 1.5);
-        sphere.scale.setScalar(scale);
-        wireMesh.scale.setScalar(scale);
-        ring.scale.setScalar(scale);
-        if (scale <= 0.05) {
-          sphere.visible = false;
-          wireMesh.visible = false;
-          ring.visible = false;
-        }
-      }
-      updateBlackHole(dt);
-      // 1.5秒后弹出胜利窗口
-      if (winTimer > 1.5) {
-        winning = false;
-        showVictory();
-      }
-    }
 
     function resetGame() {
-      // 隐藏连击
-      hideCombo();
-      // 隐藏胜利
-      hideVictory();
-      // 显示关卡名称闪现
-      showLevelAnnounce();
-      // 重置距离
-      resetDistanceUI();
-      // 重置黑洞和碰撞计数
-      cleanupBlackHole();
-      hitCount = 0;
-      deathCount = 0;
-      blackHoleActive = false;
-      winning = false;
-      winTimer = 0;
-      // 重置加速状态
-      boostTimer = 0;
-      currentGravityY = GRAVITY_Y;
-      boostCharging = false;
-      boostPendingDecel = false;
-      boostParticleVisible = false;
-      boostParticles.visible = false;
-      boostFadeAlpha = 0;
       // 清除所有轨道
       while (trackGroups.length > 0) {
         removeGroup(0);
@@ -2136,16 +863,11 @@
       generateInitialGroups();
       // 重置球
       ballX = 0;
-      ballXTarget = 0;
       ballY = floorContact;
       velY = Math.sqrt(2 * _g * INIT_HEIGHT);
       falling = false;
       dying = false;
       ballColorKey = null;
-      // 恢复球缩放（可能被胜利吸入缩小了）
-      sphere.scale.setScalar(1);
-      wireMesh.scale.setScalar(1);
-      ring.scale.setScalar(1);
       // 球颜色与第一块轨道相同
       if (trackGroups.length > 0 && trackGroups[0].type === 1 && trackGroups[0].colorKey) {
         const cKey = trackGroups[0].colorKey;
@@ -2153,12 +875,10 @@
         sphereMat.color.set(COLORS[cKey].hex);
         sphereMat.emissive.set(new THREE.Color(rgb[0]*0.3/255, rgb[1]*0.3/255, rgb[2]*0.3/255));
         ballColorKey = cKey;
-        setBoostParticleColor(cKey);
       } else {
         sphereMat.color.set(0x4488ff);
         sphereMat.emissive.set(0x112244);
         ballColorKey = null;
-        setBoostParticleColor(null);
       }
       // 恢复球可见
       sphere.visible = true;
@@ -2189,7 +909,6 @@
       sphereMat.color.set(COLORS[initColor].hex);
       sphereMat.emissive.set(new THREE.Color(initRgb[0]*0.3/255, initRgb[1]*0.3/255, initRgb[2]*0.3/255));
       ballColorKey = initColor;
-      setBoostParticleColor(initColor);
     }
 
     let lastTime = performance.now() / 1000;
@@ -2203,39 +922,17 @@
       dt = Math.min(dt, 0.05); // 防止切换标签页后 dt 过大
       t += dt;
 
-      // 关卡选择 / 胜利弹窗 / GameOver 弹窗显示期间，暂停游戏（等待用户点击）
-      if (levelSelectOverlay.style.display === 'flex' || victoryOverlay.style.display === 'flex' || gameOverOverlay.style.display === 'flex') {
-        renderer.render(scene, camera);
-        return;
-      }
-
-      // ===== X 轴鼠标控制（缓动补间）=====
+      // ===== X 轴鼠标控制（仅在非死亡状态响应）=====
       if (!dying) {
-        ballXTarget += mouseDeltaX * MOUSE_SENSITIVITY;
-        // 限制目标范围防止飞出太远
-        ballXTarget = Math.max(-15, Math.min(15, ballXTarget));
-        // 指数平滑（lerp），帧率无关
-        const factor = 1 - Math.pow(1 - LERP_SMOOTHNESS, dt * 60);
-        ballX += (ballXTarget - ballX) * factor;
+        ballX += mouseDeltaX * MOUSE_SENSITIVITY;
       }
       mouseDeltaX = 0;
 
       // ===== Y 轴弹跳 / 坠落 =====
       if (!dying) {
-        velY += currentGravityY * dt;
+        velY += GRAVITY_Y * dt;
         ballY += velY * dt;
       }
-
-    // ===== 加速计时器更新 =====
-    if (boostTimer > 0) {
-      boostTimer -= dt;
-      if (boostTimer <= 0) {
-        boostTimer = 0;
-        // 不立即恢复重力，设置标志等落地再处理
-        //（空中突然改重力会导致 velZ 与新弹跳周期不匹配，球飞过头/掉下去）
-        boostPendingDecel = true;
-      }
-    }
 
       if (!falling && !dying) {
         // 正常弹跳模式
@@ -2244,69 +941,20 @@
           const hit = findCollisionWithAnyGroup();
           if (hit) {
             const { group, colorKey } = hit;
-            // 类型4（加速长直轨道）：触发加速，不改变颜色，不致死
-            if (group.type === 4) {
-              ballY = floorContact;
-              // 如果之前有等待减速的标志（又踩到了加速轨道），取消减速
-              boostPendingDecel = false;
-              // 根据当前重力计算正确的上抛速度
-              velY = Math.sqrt(2 * Math.abs(currentGravityY) * INIT_HEIGHT);
-              // 瞬间切换到3倍重力
-              currentGravityY = GRAVITY_Y * BOOST_GRAVITY_MULT;
-              boostTimer = BOOST_DURATION;
-
-              if (!boostCharging) {
-                // 第一次踩到：原地蓄力弹跳，不前进
-                boostCharging = true;
-                velZ = 0;
-              } else {
-                // 原地弹回来后：开始前进
-                boostCharging = false;
-                onLandUpdateVelZ();
-              }
-              // 触发着陆特效（白色）
-              if (hit.mesh) {
-                triggerLandEffect(hit.mesh, 'boost', hit.group, LONG_SIZE_X, LONG_SIZE_Z);
-              }
-              triggerCombo();
-              hitCount++;
-              if (hitCount >= getLevel().winHits && !blackHoleActive) {
-                spawnBlackHole();
-              }
-            } else if (group.type !== 1 && ballColorKey && colorKey && ballColorKey !== colorKey) {
-              // 方形轨道（type2/3）异色检测 → 碎裂
+            // 方形轨道（type2/3）异色检测：球有颜色且碰到不同颜色 → 碎裂
+            // 长直轨道（type1）只变色，不致死
+            if (group.type !== 1 && ballColorKey && colorKey && ballColorKey !== colorKey) {
               triggerDeath(colorKey);
             } else {
-              // 正常反弹（type1 / type2/3 同色）
+              // 正常反弹
               ballY = floorContact;
-
-              // ===== 加速到期恢复处理 =====
-              if (boostPendingDecel) {
-                // 第一次落地：恢复重力，原地蓄力跳一次
-                boostPendingDecel = false;
-                currentGravityY = GRAVITY_Y;
-                // 用新重力计算上抛速度
-                velY = Math.sqrt(2 * Math.abs(currentGravityY) * INIT_HEIGHT);
-                boostCharging = true;
-                velZ = 0;
-              } else if (boostCharging) {
-                // 原地跳回来后：开始前进
-                boostCharging = false;
-                velY = Math.abs(velY);
-                onLandUpdateVelZ();
-              } else {
-                velY = Math.abs(velY);
-                onLandUpdateVelZ();
-              }
+              velY = Math.abs(velY);
+              onLandUpdateVelZ();
+              // 触发着陆特效
               if (hit.mesh && hit.colorKey) {
                 const pw = hit.group.type === 1 ? LONG_SIZE_X : SQ_SIZE;
                 const pd = hit.group.type === 1 ? LONG_SIZE_Z : SQ_SIZE;
                 triggerLandEffect(hit.mesh, hit.colorKey, hit.group, pw, pd);
-              }
-              triggerCombo();
-              hitCount++;
-              if (hitCount >= getLevel().winHits && !blackHoleActive) {
-                spawnBlackHole();
               }
             }
           } else {
@@ -2314,15 +962,10 @@
             velY = -Math.abs(velY);
             falling = true;
             velZ = 0;
-            // 坠落时如果加速已到期，立即恢复重力（避免坠落速度异常）
-            if (boostPendingDecel) {
-              boostPendingDecel = false;
-              currentGravityY = GRAVITY_Y;
-            }
           }
         }
-        // 最高点修正（使用当前重力，加速时弹跳周期更短）
-        if (velY <= 0 && (velY - currentGravityY * dt) > 0) {
+        // 最高点修正
+        if (velY <= 0 && (velY - GRAVITY_Y * dt) > 0) {
           if (ballY - floorContact < INIT_HEIGHT * 0.99) {
             ballY = floorContact + INIT_HEIGHT;
             velY  = 0;
@@ -2331,32 +974,11 @@
       } else if (falling) {
         // 坠落模式：一直往下掉
         if (ballY < FALL_RESET_Y) {
-          deathCount++;
           resetGame();
         }
       } else if (dying) {
         // 碎裂动画模式
         updateDeath(dt);
-      }
-
-      // 胜利吸入动画（优先级最高）
-      if (winning) {
-        updateWin(dt);
-      } else {
-        // 正常更新黑洞（如果已激活）
-        if (blackHoleActive) {
-          updateBlackHole(dt);
-          checkBlackHoleCollision();
-          // 容错：行进距离超过目标距离，强制判定胜利
-          if (!winning && targetDistance !== null && totalDistance >= targetDistance) {
-            winning = true;
-            winTimer = 0;
-            velZ = 0;
-            falling = false;
-            hideCombo();
-            targetDistance = totalDistance;
-          }
-        }
       }
 
       // 每帧根据 Z 速度移动轨道（正值=轨道向 Z 正方向移动=向球靠近）
@@ -2392,8 +1014,6 @@
 
       controls.update();
       updateLandEffects(dt);
-      updateBoostParticles(dt);
-      updateDistanceUI();
       renderer.render(scene, camera);
     }
     animate();
