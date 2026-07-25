@@ -72,15 +72,60 @@
     #restartBtn:active {
       transform: scale(0.97);
     }
+
+    /* 分数显示 */
+    #scorePanel {
+      position: fixed;
+      top: 24px;
+      right: 32px;
+      z-index: 50;
+      text-align: right;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      pointer-events: none;
+      user-select: none;
+    }
+    #scoreValue {
+      font-size: 44px;
+      font-weight: 800;
+      color: #4488ff;
+      text-shadow: 0 0 16px currentColor, 0 0 32px currentColor;
+      letter-spacing: 1px;
+      transition: color 0.25s ease, text-shadow 0.25s ease;
+      line-height: 1;
+    }
+    #scoreValue.bump {
+      animation: scoreBump 0.28s ease-out;
+    }
+    @keyframes scoreBump {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.35); }
+      100% { transform: scale(1); }
+    }
+    #bestScore {
+      margin-top: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: 1px;
+    }
+    #bestScore span {
+      color: rgba(255, 255, 255, 0.85);
+    }
   </style>
 </head>
 <body>
+
+  <!-- 分数显示 -->
+  <div id="scorePanel">
+    <div id="scoreValue">0</div>
+    <div id="bestScore">最高分 <span id="bestScoreValue">0</span></div>
+  </div>
 
   <!-- GameOver 弹窗 -->
   <div id="gameOverOverlay">
     <div id="gameOverBox">
       <h1>GAME OVER</h1>
-      <p>颜色不同，球碎了...</p>
+      <p id="gameOverMsg">颜色不同，球碎了...</p>
       <button id="restartBtn">再来一次</button>
     </div>
   </div>
@@ -254,6 +299,7 @@
     // z = 组中心 Z 坐标（球落地时需要对齐到 Z=0 的点）
     const trackGroups = [];
     const groupZList  = [];
+    let groupIdCounter = 0; // 轨道组唯一 id，用于落地判重计分
 
     // 类型1：长直轨道（单块长板，一种颜色）
     function createType1(z, colorKey) {
@@ -263,12 +309,12 @@
       mesh.receiveShadow = true;
       mesh.castShadow = true;
       scene.add(mesh);
-      return { type: 1, meshes: [mesh], mats: [mat], z, colorKey };
+      return { type: 1, meshes: [mesh], mats: [mat], z, colorKey, id: groupIdCounter++ };
     }
 
     // 类型2：三块有间隔的方形轨道（三色各一）
     function createType2(z, colors) {
-      const result = { type: 2, meshes: [], mats: [], z, colorKeys: [] };
+      const result = { type: 2, meshes: [], mats: [], z, colorKeys: [], id: groupIdCounter++ };
       const xPositions = [-SQ_SPACING, 0, SQ_SPACING];
       for (let i = 0; i < 3; i++) {
         const mats = makeSqMats(colors[i]);
@@ -286,7 +332,7 @@
 
     // 类型3：两块有间隔的方形轨道（二色各一，随机排列）
     function createType3(z, colors) {
-      const result = { type: 3, meshes: [], mats: [], z, colorKeys: [] };
+      const result = { type: 3, meshes: [], mats: [], z, colorKeys: [], id: groupIdCounter++ };
       const offset = SQ_SPACING * 0.65;
       const xPositions = [-offset, offset];
       for (let i = 0; i < 2; i++) {
@@ -443,16 +489,34 @@
     let velZ        = 0;            // 轨道 Z 方向速度（正值=轨道向球靠近）
     let falling     = false;        // 是否正在坠落（没踩到轨道）
 
-    // 鼠标左右控制灵敏度（独立变量，可调）
-    const MOUSE_SENSITIVITY = 0.012;
+    // 鼠标控制：小球始终与鼠标所在的屏幕列同步（绝对位置映射，而非相对位移累加）
+    // 用 Raycaster 把鼠标屏幕坐标投射到球所在的 Z=0 平面，取交点 X 作为目标列
+    const raycaster = new THREE.Raycaster();
+    const mouseNDC  = new THREE.Vector2(0, 0); // 鼠标归一化设备坐标
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0); // Z=0 平面，法线沿 Z 轴
+    const raycastTarget = new THREE.Vector3();
+    let targetBallX = 0; // 鼠标映射出的目标 X 位置
+    let hasMouseInput = false; // 鼠标是否已经移动过（避免加载时球跳到默认位置）
 
-    // 鼠标 X 偏移累计
-    let mouseDeltaX = 0;
-    document.addEventListener('mousemove', (e) => {
-      if (e.movementX !== undefined) {
-        mouseDeltaX += e.movementX;
+    function updateTargetBallXFromEvent(clientX, clientY) {
+      mouseNDC.x = (clientX / window.innerWidth) * 2 - 1;
+      mouseNDC.y = -(clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouseNDC, camera);
+      if (raycaster.ray.intersectPlane(groundPlane, raycastTarget)) {
+        targetBallX = raycastTarget.x;
+        hasMouseInput = true;
       }
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      updateTargetBallXFromEvent(e.clientX, e.clientY);
     });
+    // 移动端触摸支持：手指位置同样映射到球的列
+    document.addEventListener('touchmove', (e) => {
+      if (e.touches && e.touches.length > 0) {
+        updateTargetBallXFromEvent(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
 
     // 球（圆）与方块（AABB）的碰撞检测
     // 返回 { group, colorKey, mesh } 或 null
@@ -496,6 +560,59 @@
 
     // 当前球的颜色 key（初始为 null）
     let ballColorKey = null;
+
+    // ===== 分数系统 =====
+    function setCookie(name, value, days) {
+      const maxAge = days * 24 * 60 * 60;
+      document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+    }
+    function getCookie(name) {
+      const target = name + '=';
+      const parts = document.cookie.split(';');
+      for (let c of parts) {
+        c = c.trim();
+        if (c.indexOf(target) === 0) {
+          return decodeURIComponent(c.substring(target.length));
+        }
+      }
+      return null;
+    }
+
+    const scoreValueEl     = document.getElementById('scoreValue');
+    const bestScoreValueEl = document.getElementById('bestScoreValue');
+
+    let score = 0;
+    let bestScore = parseInt(getCookie('infiniteTrack_bestScore'), 10) || 0;
+    bestScoreValueEl.textContent = bestScore;
+
+    // 根据当前球颜色，把分数文字颜色同步过去
+    function syncScoreColor() {
+      const cKey = ballColorKey || 'blue';
+      const hex = COLORS[cKey] ? COLORS[cKey].hex : 0x4488ff;
+      scoreValueEl.style.color = '#' + hex.toString(16).padStart(6, '0');
+    }
+
+    // 每跳过一个格子（成功落地）调用
+    function addScore(n = 1) {
+      score += n;
+      scoreValueEl.textContent = score;
+      // 触发弹跳动画
+      scoreValueEl.classList.remove('bump');
+      void scoreValueEl.offsetWidth; // 强制重排以重启动画
+      scoreValueEl.classList.add('bump');
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestScoreValueEl.textContent = bestScore;
+        setCookie('infiniteTrack_bestScore', bestScore, 365);
+      }
+    }
+
+    function resetScore() {
+      score = 0;
+      scoreValueEl.textContent = score;
+      scoreValueEl.classList.remove('bump');
+    }
 
     // 碎裂系统
     const DEATH_DURATION = 1.0; // 碎裂动画时长（秒）
@@ -576,7 +693,7 @@
 
       // 1 秒后弹出 GameOver
       setTimeout(() => {
-        showGameOver();
+        showGameOver('颜色不同，球碎了...');
       }, DEATH_DURATION * 1000);
     }
 
@@ -624,6 +741,9 @@
       deathParticles.length = 0;
     }
 
+    // 上一次成功落地的轨道组 id（用于计分判重，避免连续贴地判定重复加分）
+    let lastLandedGroupId = -1;
+
     // 每次落地时：更新球颜色和 Z 速度
     function onLandUpdateVelZ() {
       // 找当前脚下的组（Z 最接近 0）
@@ -645,6 +765,12 @@
           sphereMat.color.set(COLORS[cKey].hex);
           sphereMat.emissive.set(new THREE.Color(rgb[0]*0.3/255, rgb[1]*0.3/255, rgb[2]*0.3/255));
           ballColorKey = cKey;
+        }
+        syncScoreColor();
+        // 每成功跳过一个格子 +1 分（用轨道组唯一 id 判重，避免同一格重复计分）
+        if (group.id !== lastLandedGroupId) {
+          addScore(1);
+          lastLandedGroupId = group.id;
         }
       }
       // 找下一组，计算 Z 速度
@@ -838,9 +964,11 @@
 
     // GameOver 弹窗控制
     const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const gameOverMsgEl   = document.getElementById('gameOverMsg');
     const restartBtn = document.getElementById('restartBtn');
 
-    function showGameOver() {
+    function showGameOver(message) {
+      if (message) gameOverMsgEl.textContent = message;
       gameOverOverlay.style.display = 'flex';
     }
     function hideGameOver() {
@@ -851,8 +979,9 @@
       resetGame();
     });
 
-    // 坠落后超过一定距离，重置游戏
+    // 坠落超过一定距离视为掉入虚空，判定 GameOver
     const FALL_RESET_Y = -30;
+    let voidGameOverTriggered = false; // 防止坠落期间重复触发弹窗
 
     function resetGame() {
       // 清除所有轨道
@@ -863,6 +992,7 @@
       generateInitialGroups();
       // 重置球
       ballX = 0;
+      targetBallX = 0;
       ballY = floorContact;
       velY = Math.sqrt(2 * _g * INIT_HEIGHT);
       falling = false;
@@ -888,6 +1018,12 @@
       cleanupDeath();
       // 隐藏 GameOver
       hideGameOver();
+      // 重置分数与落地记录
+      resetScore();
+      syncScoreColor();
+      lastLandedGroupId = -1;
+      // 重置坠落判定标志
+      voidGameOverTriggered = false;
       // 计算第一跳的正确速度
       if (groupZList.length > 1) {
         velZ = Math.abs(groupZList[1]) / BOUNCE_PERIOD;
@@ -910,6 +1046,8 @@
       sphereMat.emissive.set(new THREE.Color(initRgb[0]*0.3/255, initRgb[1]*0.3/255, initRgb[2]*0.3/255));
       ballColorKey = initColor;
     }
+    // 初始化分数文字颜色
+    syncScoreColor();
 
     let lastTime = performance.now() / 1000;
     let t = 0;
@@ -922,14 +1060,14 @@
       dt = Math.min(dt, 0.05); // 防止切换标签页后 dt 过大
       t += dt;
 
-      // ===== X 轴鼠标控制（仅在非死亡状态响应）=====
-      if (!dying) {
-        ballX += mouseDeltaX * MOUSE_SENSITIVITY;
+      // ===== X 轴鼠标控制（仅在非死亡/非结算状态响应）=====
+      // 小球始终与鼠标所在纵列同步（绝对映射，非相对位移）
+      if (!dying && !voidGameOverTriggered && hasMouseInput) {
+        ballX = targetBallX;
       }
-      mouseDeltaX = 0;
 
       // ===== Y 轴弹跳 / 坠落 =====
-      if (!dying) {
+      if (!dying && !voidGameOverTriggered) {
         velY += GRAVITY_Y * dt;
         ballY += velY * dt;
       }
@@ -972,9 +1110,11 @@
           }
         }
       } else if (falling) {
-        // 坠落模式：一直往下掉
-        if (ballY < FALL_RESET_Y) {
-          resetGame();
+        // 坠落模式：一直往下掉，超过阈值视为掉入虚空，判定 GameOver（冻结画面）
+        if (ballY < FALL_RESET_Y && !voidGameOverTriggered) {
+          voidGameOverTriggered = true;
+          velZ = 0;
+          showGameOver('掉入虚空了...');
         }
       } else if (dying) {
         // 碎裂动画模式
