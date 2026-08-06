@@ -1371,6 +1371,46 @@ body::before {
     cursor: not-allowed;
 }
 
+#confirm-btn.is-evaluating,
+#confirm-btn.is-evaluating:disabled {
+    background: linear-gradient(135deg, #34413a, #26332c) !important;
+    color: #b7c1b9;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: none !important;
+    opacity: 1;
+}
+
+.function-expression-error {
+    position: fixed;
+    z-index: 10000;
+    top: 18%;
+    left: 50%;
+    max-width: min(420px, calc(100vw - 32px));
+    padding: 14px 20px;
+    border: 1px solid rgba(252, 165, 165, 0.72);
+    border-radius: 12px;
+    background: rgba(92, 20, 26, 0.96);
+    color: #fff1f2;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.38), 0 0 24px rgba(239, 68, 68, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -20px) scale(0.94);
+}
+
+.function-expression-error.show {
+    animation: function-expression-error-in 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes function-expression-error-in {
+    0% { opacity: 0; transform: translate(-50%, -20px) scale(0.94); }
+    12% { opacity: 1; transform: translate(-50%, 0) scale(1.03); }
+    20% { transform: translate(-50%, 0) scale(1); }
+    82% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -12px) scale(0.97); }
+}
+
 .hidden-cell {
     opacity: 0.2;
 }
@@ -1646,76 +1686,6 @@ body::before {
 .lock-icon {
     font-size: 12px;
     filter: grayscale(100%) brightness(1.5);
-}
-
-/* ========== 启动界面（仅首次进入时显示） ========== */
-#splash-screen {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    z-index: 99999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-}
-
-.splash-content {
-    text-align: center;
-    animation: splashContentFadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.splash-title {
-    font-size: clamp(42px, 8vw, 72px);
-    font-weight: 900;
-    color: #fff;
-    letter-spacing: 0.15em;
-    text-shadow:
-        0 0 20px rgba(255, 255, 255, 0.5),
-        0 0 60px rgba(99, 102, 241, 0.35),
-        0 0 120px rgba(59, 130, 246, 0.2);
-    margin-bottom: 48px;
-}
-
-.splash-hint {
-    font-size: clamp(14px, 2.4vw, 18px);
-    color: rgba(255, 255, 255, 0.55);
-    letter-spacing: 0.3em;
-    animation: splashHintPulse 2.4s ease-in-out infinite alternate;
-}
-
-@keyframes splashContentFadeIn {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes splashHintPulse {
-    from { opacity: 0.35; text-shadow: 0 0 8px rgba(255,255,255,0.08); }
-    to   { opacity: 0.85; text-shadow: 0 0 20px rgba(255,255,255,0.25); }
-}
-
-/* ── 转场动画：旋转 + 放大 + 虚化 → 纯白吞没 ── */
-#splash-screen.splash-exit {
-    animation: splashTransition 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-    pointer-events: none;
-}
-#splash-screen.splash-exit .splash-content {
-    animation: splashContentExit 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-}
-
-@keyframes splashTransition {
-    0%   { background: #000; }
-    40%  { background: #000; }           /* 前段保持黑色，内容先飞走 */
-    70%  { background: #111; }
-    100% { background: #fff; filter: brightness(1.3); } /* 末端白闪 */
-}
-
-@keyframes splashContentExit {
-    0%   { opacity: 1; transform: scale(1) rotate(0deg); filter: blur(0); }
-    30%  { opacity: 1; transform: scale(1.6) rotate(12deg); filter: blur(2px); }
-    60%  { opacity: 0.4; transform: scale(2.8) rotate(24deg); filter: blur(12px); }
-    100% { opacity: 0; transform: scale(4) rotate(36deg); filter: blur(30px); display:none; }
 }
 
 /* 模态框 */

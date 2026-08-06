@@ -24,6 +24,11 @@ class FunctionRenderer {
         // 动画绘制控制
         this.animationFrameId = null;
         this.isDrawing = false;
+
+        // 输入预览独立于正式绘制动画，避免频繁输入时打断结算动画。
+        this.previewFrameId = null;
+        this.previewSegments = null;
+        this.previewBaseRenderer = null;
     }
 
     cancelDrawing() {
@@ -32,6 +37,26 @@ class FunctionRenderer {
             this.animationFrameId = null;
         }
         this.isDrawing = false;
+    }
+
+    cancelPreview() {
+        if (this.previewFrameId) {
+            cancelAnimationFrame(this.previewFrameId);
+            this.previewFrameId = null;
+        }
+        this.previewSegments = null;
+    }
+
+    setPreviewBaseRenderer(renderBase) {
+        this.previewBaseRenderer = typeof renderBase === 'function' ? renderBase : null;
+    }
+
+    renderPreviewBase() {
+        if (this.previewBaseRenderer) {
+            this.previewBaseRenderer();
+            return;
+        }
+        this.gridSystem.draw();
     }
 
     clearRenderCache() {
@@ -912,8 +937,52 @@ class FunctionRenderer {
      * 预览函数（快速绘制，用于输入时预览）
      */
     previewFunction(expression) {
-        this.gridSystem.draw();
-        this._drawViaGeoGebra(expression, null);
+        let targetSegments;
+        try {
+            const range = this.gridSystem.getRange();
+            targetSegments = expression ? this._sampleToSegments(expression, range.min, range.max) : [];
+        } catch (error) {
+            // 输入尚未构成完整函数时保留上一帧，避免曲线在每次半成品输入时闪烁。
+            return;
+        }
+
+        if (this.previewFrameId) {
+            cancelAnimationFrame(this.previewFrameId);
+            this.previewFrameId = null;
+        }
+
+        const previousSegments = this.previewSegments || [];
+        const startTime = performance.now();
+        const duration = 140;
+        const drawPreviewSegments = (segments, alpha) => {
+            if (!segments.length || alpha <= 0) return;
+            const ctx = this.gridSystem.ctx;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = this.colors.function;
+            ctx.lineWidth = this.getAdaptiveLineWidth();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.shadowColor = this.getAdaptiveGlowColor();
+            ctx.shadowBlur = this.getAdaptiveGlowSize();
+            this._drawSegmentsImmediate(segments, ctx);
+            ctx.restore();
+        };
+        const render = (now) => {
+            const progress = Math.min(1, (now - startTime) / duration);
+            // ease-out 让新曲线快速跟手、末尾平滑落定。
+            const eased = 1 - Math.pow(1 - progress, 3);
+            this.renderPreviewBase();
+            drawPreviewSegments(previousSegments, 1 - eased);
+            drawPreviewSegments(targetSegments, eased);
+            if (progress < 1) {
+                this.previewFrameId = requestAnimationFrame(render);
+                return;
+            }
+            this.previewFrameId = null;
+            this.previewSegments = targetSegments;
+        };
+        this.previewFrameId = requestAnimationFrame(render);
     }
 
     /**

@@ -8,14 +8,6 @@
     <link rel="stylesheet" href="files/css/shaihai-theme.css">
 </head>
 <body>
-    <!-- 启动界面（仅首次加载时显示） -->
-    <div id="splash-screen">
-        <div class="splash-content">
-            <div class="splash-title">函数棋</div>
-            <div class="splash-hint">点击屏幕进入游戏</div>
-        </div>
-    </div>
-
     <div id="summa-container"></div>
 
     <!-- 顶部信息栏 -->
@@ -185,11 +177,6 @@
                         <small id="mode-hint" style="display: block; margin-top: 5px; opacity: 0.7;">本地对战：两位玩家轮流操作</small>
                     </div>
 
-                    <div class="start-action-area">
-                        <button class="start-image-btn" id="start-btn" type="button" aria-label="开始游戏">
-                            <img src="files/images/StartButton.png" alt="开始游戏">
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -204,7 +191,6 @@
                 </select>
                 <small id="campaign-progress" style="display:block; margin-top:6px; opacity:0.7;"></small>
             </div>
-            <a class="about-us-link" href="https://space.bilibili.com/3690976753223882" target="_blank" rel="noopener noreferrer">关于我们</a>
         </div>
     </div>
 
@@ -474,25 +460,8 @@
             window.gameController = gameController;
             window.uiController = uiController;
 
-            // ── 启动界面：点击后酷炫转场到主界面 ──
-            const splash = document.getElementById('splash-screen');
-            if (splash) {
-                splash.addEventListener('click', function _onSplashClick() {
-                    splash.removeEventListener('click', _onSplashClick);
-                    // 触发转场动画（旋转 + 放大 + 虚化）
-                    splash.classList.add('splash-exit');
-
-                    // 动画结束后移除启动界面，显示主界面，启动BGM
-                    setTimeout(() => {
-                        splash.style.display = 'none';
-                        uiController.showModal(document.getElementById('start-modal'));
-                        if (window.audioManager) window.audioManager.startBgm();
-                    }, 900);
-                });
-                // start-modal 由启动界面接管显示时机，此处不主动 show
-            } else {
-                uiController.showModal(document.getElementById('start-modal'));
-            }
+            // 直接显示模式选择，不再要求先点击启动遮罩。
+            uiController.showModal(document.getElementById('start-modal'));
 
             console.log('函数棋游戏已加载完成！');
             console.log('游戏模块:', {

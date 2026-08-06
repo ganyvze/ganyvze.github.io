@@ -122,7 +122,6 @@ class UIController {
         
         // 开始界面
         this.startModal = document.getElementById('start-modal');
-        this.startBtn = document.getElementById('start-btn');
         this.roundSelect = document.getElementById('round-select');
         this.difficultySelect = document.getElementById('difficulty-select');
         this.roundStepper = document.getElementById('round-stepper');
@@ -188,8 +187,6 @@ class UIController {
         this.campaignCurrentLevelId = null;
         this.campaignCurrentLevelBestRecord = null;
         this.battleUiHidden = false;
-        this.campaignDrawDelayOptions = [0, 1000, 5000];
-        this.campaignDrawDelay = this.getCampaignDrawDelaySetting();
 
         this.raceLevels = this.getRaceLevels();
         this.raceCurrentLevelId = null;
@@ -218,11 +215,11 @@ class UIController {
         
         // 绑定模式切换按钮
         if (this.modeLocalBtn && this.modeAiBtn && this.modeCampaignBtn && this.modeRaceBtn && this.modeTestBtn) {
-            this.modeLocalBtn.addEventListener('click', () => this.selectMode('local'));
-            this.modeAiBtn.addEventListener('click', () => this.selectMode('ai'));
-            this.modeCampaignBtn.addEventListener('click', () => this.selectMode('campaign'));
-            this.modeRaceBtn.addEventListener('click', () => this.selectMode('race'));
-            this.modeTestBtn.addEventListener('click', () => this.selectMode('test'));
+            this.modeLocalBtn.addEventListener('click', () => this.startSelectedMode('local'));
+            this.modeAiBtn.addEventListener('click', () => this.startSelectedMode('ai'));
+            this.modeCampaignBtn.addEventListener('click', () => this.startSelectedMode('campaign'));
+            this.modeRaceBtn.addEventListener('click', () => this.startSelectedMode('race'));
+            this.modeTestBtn.addEventListener('click', () => this.startSelectedMode('test'));
         }
         // 更多模式下拉菜单
         if (this.modeMoreBtn && this.modeMoreSubmenu) {
@@ -278,15 +275,9 @@ class UIController {
         bind('campaign-diff-expert', () => this.playUIButtonSound(() => this.openCampaignLevels('expert')));
         bind('campaign-diff-unsolvable', () => this.playUIButtonSound(() => this.openCampaignLevels('unsolvable')));
         this.refreshUnsovableDifficultyVisibility();
-        this.addCampaignDrawDelayToggle();
-        this.updateCampaignDrawDelayToggleVisibility();
         this.bindBackgroundMusicControls();
         this.initBackgroundMusic();
 
-        // 开始按钮点击处理
-        if (this.startBtn) {
-            this.startBtn.addEventListener('click', () => this.handleStartButtonClick());
-        }
     }
     
     // ─────────────────────────────────────────────────────────
@@ -734,7 +725,6 @@ class UIController {
         }
         this.syncStartSelectionState();
         this.refreshStartSelectorDisplay();
-        this.updateCampaignDrawDelayToggleVisibility();
 
         if (mode === 'local') {
             this.modeLocalBtn.classList.add('active');
@@ -816,6 +806,14 @@ class UIController {
             this.setStartSelectorsEnabled(false);
             return;
         }
+    }
+
+    /**
+     * 模式按钮即为开始入口。闯关和竞速模式会进入各自的关卡选择界面。
+     */
+    startSelectedMode(mode) {
+        this.selectMode(mode);
+        return this.handleStart();
     }
 
     /**
@@ -1248,35 +1246,6 @@ class UIController {
     }
 
     /**
-     * 处理开始按钮点击
-     */
-    handleStartButtonClick() {
-        const mode = this.selectedMode;
-        switch (mode) {
-            case 'editor':
-                // 激活关卡编辑器
-                this.activateLevelEditor();
-                break;
-            case 'p2p':
-                // P2P模式已经在selectMode()中显示了房间模态框
-                this.showMessage('请先创建或加入房间');
-                break;
-            case 'campaign':
-                // 闯关模式：显示闯关难度选择
-                this.showCampaignDifficulty();
-                break;
-            case 'race':
-                // 竞速模式：显示等级选择
-                this.showRaceLevelList();
-                break;
-            default:
-                // 本地、AI、测试模式：直接开始游戏
-                this.startNormalGame();
-                break;
-        }
-    }
-
-    /**
      * 激活关卡编辑器
      */
     activateLevelEditor() {
@@ -1632,7 +1601,6 @@ class UIController {
 
         this.gameController.on('campaignLevelLoaded', (data) => {
             try {
-                this.updateCampaignDrawDelayToggleVisibility();
                 // 闯关：隐藏计时器与回合数显示
                 if (this.timerElement && this.timerElement.parentElement) {
                     this.timerElement.parentElement.style.display = 'none';
@@ -1679,7 +1647,6 @@ class UIController {
 
         this.gameController.on('raceLevelLoaded', (data) => {
             try {
-                this.updateCampaignDrawDelayToggleVisibility();
                 this.roundElement.textContent = data.levelId;
                 this.totalRoundsElement.textContent = data.totalLevels || 30;
                 this.updateRaceBattleUI(data.levelId, data.elapsed || 0);
@@ -1955,8 +1922,6 @@ class UIController {
         this.clearBtn.addEventListener('click', () => this.handleClear());
         this.exitBtn.addEventListener('click', () => this.handleExitClick());
         this.restartBtn.addEventListener('click', () => this.handleRestart());
-        this.startBtn.addEventListener('click', () => this.handleStart());
-        this.bindStartKeyboardSupport();
         if (this.viewReportBtn) {
             this.viewReportBtn.addEventListener('click', () => this.showGameReport());
         }
@@ -2830,6 +2795,7 @@ class UIController {
             cursorSpan.textContent = '|';
             this.expressionDisplay.appendChild(cursorSpan);
             this.cursorIndex = 0;
+            this.scheduleExpressionPreview();
             return;
         }
         
@@ -2862,6 +2828,38 @@ class UIController {
             cursorSpan.textContent = '|';
             this.expressionDisplay.appendChild(cursorSpan);
         }
+        this.scheduleExpressionPreview();
+    }
+
+    /** 将连续键入合并到下一帧，实时预览不会阻塞输入。 */
+    scheduleExpressionPreview() {
+        if (!this.renderer || !this.gameController || this.gameController.currentPhase !== 'input_function') return;
+        if (this.gameController.gameMode === 'ai' && this.gameController.getGameState().currentPlayer === 'B') return;
+
+        if (this.gameController.isTestMode()) {
+            this.renderer.setPreviewBaseRenderer(() => {
+                this.gridSystem.draw();
+                for (const func of this.gameController.getTestModeFunctions()) {
+                    this.renderer.drawFunction(func.expression, false, func.color);
+                }
+            });
+        } else {
+            this.renderer.setPreviewBaseRenderer(null);
+        }
+
+        if (this._expressionPreviewFrame) cancelAnimationFrame(this._expressionPreviewFrame);
+        const expression = this.currentExpression;
+        this._expressionPreviewFrame = requestAnimationFrame(() => {
+            this._expressionPreviewFrame = null;
+            if (!expression) {
+                this.renderer.cancelPreview();
+                this.renderer.renderPreviewBase();
+                return;
+            }
+            if (this.parser.validateSyntax(expression).valid) {
+                this.renderer.previewFunction(expression);
+            }
+        });
     }
     
     /**
@@ -3137,7 +3135,7 @@ class UIController {
      */
     submitFunction() {
         if (this.expressionElements.length === 0) {
-            this.showMessage('请输入函数表达式', 'error');
+            this.showFunctionExpressionError('请输入函数表达式');
             return;
         }
         
@@ -3146,7 +3144,7 @@ class UIController {
         // 验证语法
         const validation = this.parser.validateSyntax(expression);
         if (!validation.valid) {
-            this.showMessage(validation.error, 'error');
+            this.showFunctionExpressionError(validation.error);
             return;
         }
         
@@ -3162,12 +3160,45 @@ class UIController {
             this.showMessage(`表达式包含被锁定的元素: ${lockCheck.lockedElement}`, 'error');
             return;
         }
-        
+
         // 提交函数
+        this.setFunctionEvaluating();
         this.gameController.submitFunction(expression);
         
         // 绘制函数并检测碰撞
         this.renderAndEvaluate(expression);
+    }
+
+    setFunctionEvaluating() {
+        if (!this.confirmBtn) return;
+        this.confirmBtn.textContent = '正在评估';
+        this.confirmBtn.disabled = true;
+        this.confirmBtn.classList.add('is-evaluating');
+    }
+
+    showFunctionExpressionError(detail = '') {
+        this.showErrorPopup(detail ? `函数表达式错误：${detail}` : '函数表达式错误');
+    }
+
+    showExpressionRequirementError(detail) {
+        this.showErrorPopup(`函数条件不满足：${detail}`);
+    }
+
+    showErrorPopup(message) {
+        let popup = document.getElementById('function-expression-error');
+        if (!popup) {
+            popup = document.createElement('div');
+            popup.id = 'function-expression-error';
+            popup.className = 'function-expression-error';
+            popup.setAttribute('role', 'alert');
+            document.body.appendChild(popup);
+        }
+        if (this.functionExpressionErrorTimer) clearTimeout(this.functionExpressionErrorTimer);
+        popup.textContent = message;
+        popup.classList.remove('show');
+        void popup.offsetWidth;
+        popup.classList.add('show');
+        this.functionExpressionErrorTimer = setTimeout(() => popup.classList.remove('show'), 2200);
     }
 
     /**
@@ -3220,7 +3251,7 @@ class UIController {
 
             // 绘制函数（使用不同颜色，测试模式无光晕）
             const color = this.getTestModeColor();
-            const points = await this.renderer.drawFunction(expression, true, color, true);
+            const points = await this.renderer.drawFunction(expression, false, color, true);
 
             if (points && points.length > 0) {
                 // 保存函数
@@ -3264,6 +3295,11 @@ class UIController {
      * 绘制函数并评估结果
      */
     async prepareRenderCanvas() {
+        if (this._expressionPreviewFrame) {
+            cancelAnimationFrame(this._expressionPreviewFrame);
+            this._expressionPreviewFrame = null;
+        }
+        this.renderer.cancelPreview();
         // 只清理浏览器内存中的临时引用，不删除本地存档/AI模型/关卡数据等持久化数据
         this._renderTempState = null;
         // 只重绘当前棋盘显示，不能清掉 target / forbidden / usedCells
@@ -3278,83 +3314,6 @@ class UIController {
             // 仅等待下一帧，让浏览器完成本次绘制提交；不要再次清空画布，否则会把函数擦掉
             resolve();
         }));
-    }
-
-    getCampaignDrawDelaySetting() {
-        try {
-            const raw = localStorage.getItem('function_chess_campaign_draw_delay');
-            const value = Number(raw);
-            return this.campaignDrawDelayOptions.includes(value) ? value : 0;
-        } catch (e) {
-            return 0;
-        }
-    }
-
-    setCampaignDrawDelaySetting(value) {
-        const next = this.campaignDrawDelayOptions.includes(Number(value)) ? Number(value) : 0;
-        this.campaignDrawDelay = next;
-        try {
-            localStorage.setItem('function_chess_campaign_draw_delay', String(next));
-        } catch (e) { }
-        this.updateCampaignDrawDelayToggle();
-    }
-
-    addCampaignDrawDelayToggle() {
-        if (document.getElementById('campaign-draw-delay-toggle')) return;
-        const host = this.confirmBtn?.parentElement;
-        if (!host) return;
-        const wrap = document.createElement('div');
-        wrap.id = 'campaign-draw-delay-toggle';
-        wrap.style.display = 'none';
-        wrap.style.alignItems = 'center';
-        wrap.style.gap = '4px';
-        wrap.style.marginLeft = '8px';
-        wrap.style.padding = '2px 4px';
-        wrap.style.borderRadius = '999px';
-        wrap.style.background = 'rgba(255,255,255,0.08)';
-        wrap.style.border = '1px solid rgba(255,255,255,0.12)';
-        wrap.style.userSelect = 'none';
-        wrap.innerHTML = `
-            <span style="font-size:11px;color:#e5e7eb;opacity:.85;">延迟</span>
-            <button class="campaign-delay-btn" data-delay="0">0s</button>
-            <button class="campaign-delay-btn" data-delay="1000">1s</button>
-            <button class="campaign-delay-btn" data-delay="5000">5s</button>
-        `;
-        const styleBtn = (btn) => {
-            btn.style.minWidth = '30px';
-            btn.style.height = '22px';
-            btn.style.padding = '0 6px';
-            btn.style.borderRadius = '999px';
-            btn.style.border = 'none';
-            btn.style.fontSize = '11px';
-            btn.style.cursor = 'pointer';
-        };
-        wrap.querySelectorAll('.campaign-delay-btn').forEach(btn => {
-            styleBtn(btn);
-            btn.addEventListener('click', () => {
-                if (window.audioManager) window.audioManager.playClick();
-                this.setCampaignDrawDelaySetting(btn.dataset.delay);
-            });
-        });
-        host.appendChild(wrap);
-        this.updateCampaignDrawDelayToggle();
-    }
-
-    updateCampaignDrawDelayToggleVisibility() {
-        const wrap = document.getElementById('campaign-draw-delay-toggle');
-        if (!wrap) return;
-        wrap.style.display = (this.gameController?.gameMode === 'campaign') ? 'inline-flex' : 'none';
-    }
-
-    updateCampaignDrawDelayToggle() {
-        const wrap = document.getElementById('campaign-draw-delay-toggle');
-        if (!wrap) return;
-        wrap.querySelectorAll('.campaign-delay-btn').forEach(btn => {
-            const active = Number(btn.dataset.delay) === this.campaignDrawDelay;
-            btn.style.background = active ? '#4d8c5e' : 'rgba(255,255,255,0.12)';
-            btn.style.color = active ? '#fff' : '#e5e7eb';
-            btn.style.boxShadow = active ? '0 0 0 1px rgba(255,255,255,0.18) inset' : 'none';
-        });
     }
 
     bindBackgroundMusicControls() {
@@ -3414,18 +3373,12 @@ class UIController {
     }
 
     async renderAndEvaluate(expression) {
+        // 给“正在评估”状态一次绘制机会；函数本身不播放绘制动画。
+        await new Promise(resolve => requestAnimationFrame(resolve));
         await this.prepareRenderCanvas();
 
-        // 1. 渲染用采样（标准精度）- 等待绘制完成
-        await this.renderer.drawFunction(expression, true);
-
-        // 闯关模式：图像绘制完成后额外延迟一小段时间再进行后续判定与反馈
-        if (this.gameController && this.gameController.gameMode === 'campaign' && this.campaignDrawDelay > 0) {
-            await new Promise(resolve => setTimeout(resolve, this.campaignDrawDelay));
-        }
-
-        // 渲染后再刷新一次画布显示，避免首次绘图时调试层/函数层未稳定
-        await this.postRenderRefresh();
+        // 1. 立即绘制函数，不播放描线动画。
+        await this.renderer.drawFunction(expression, false);
         
         // 2. 碰撞检测用采样（高精度）
         const range = this.gridSystem.getRange();
@@ -3476,6 +3429,7 @@ class UIController {
         
         if (data.hitForbidden) {
             message = `❌ ${playerDisplay}的函数进入禁止区！扣1分`;
+            this.showExpressionRequirementError('函数图像触碰到红色禁止格');
             this.flashGrid('forbidden');
             this.showScorePopup(constructorPlayer, -1);
         } else if (data.hitTarget) {
@@ -3494,6 +3448,7 @@ class UIController {
             } else {
                 message = `❌ ${playerDisplay}未命中目标！扣1分`;
             }
+            this.showExpressionRequirementError('函数图像没有穿过所有绿色目标格');
             this.showScorePopup(constructorPlayer, -1);
         }
         
@@ -3793,19 +3748,6 @@ class UIController {
         this.refreshStartSelectorDisplay();
     }
     
-    bindStartKeyboardSupport() {
-        if (this._startKeyBound) return;
-        this._startKeyBound = true;
-        document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Enter') return;
-            if (!this.startModal || this.startModal.style.display === 'none') return;
-            const targetTag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
-            if (['input', 'textarea', 'select'].includes(targetTag)) return;
-            e.preventDefault();
-            this.handleStart();
-        });
-    }
-
     /**
      * 处理开始游戏
      */
@@ -3824,7 +3766,7 @@ class UIController {
             return;
         }
 
-        // 竞速模式：与闯关逻辑一致，先等开始按钮/Enter 再进入等级界面
+        // 竞速模式：直接进入等级选择界面。
         if (this.selectedMode === 'race') {
             this.openRaceUI();
             return;
@@ -4172,7 +4114,6 @@ class UIController {
         this.campaignCurrentLevelBestRecord = null;
         if (this.campaignModal) this.showModal(this.campaignModal);
         this.showCampaignDifficulty();
-        this.updateCampaignDrawDelayToggleVisibility();
         this.restoreBattleUI();
         const badge = document.getElementById('campaign-level-badge');
         if (badge) badge.style.display = 'none';
@@ -4184,7 +4125,6 @@ class UIController {
         });
         this.showCampaignDifficulty();
         this.hideBattleUI();
-        this.updateCampaignDrawDelayToggleVisibility();
         // 尝试静默加载一次（服务器环境可直接成功）
         this.loadCampaignPack().then(() => this.updateCampaignGlobalProgressText());
     }
@@ -4199,7 +4139,6 @@ class UIController {
             this.showModal(this.raceModal);
         });
         this.hideBattleUI();
-        this.updateCampaignDrawDelayToggleVisibility();
         setTimeout(() => this.showRaceLevelList(), 0);
     }
 
@@ -4411,7 +4350,6 @@ class UIController {
         const roundDisplay = document.getElementById('round-display');
         if (roundDisplay) roundDisplay.style.display = 'none';
         if (this.raceLivePanel) this.raceLivePanel.style.display = 'block';
-        this.updateCampaignDrawDelayToggleVisibility();
         this.updateRaceBattleUI(data?.currentRound || this.raceCurrentLevelId || 1, 0);
         if (this._raceElapsedTimer) clearInterval(this._raceElapsedTimer);
         this._raceElapsedTimer = null;
@@ -4849,7 +4787,6 @@ class UIController {
 
     restoreBattleUI() {
         this.battleUiHidden = false;
-        this.updateCampaignDrawDelayToggleVisibility();
         if (this.header) {
             this.header.classList.remove('campaign-mode');
         }
@@ -5572,6 +5509,8 @@ class UIController {
         
         let hint = '';
         let confirmText = '确认';
+        let confirmDisabled = false;
+        this.confirmBtn.classList.remove('is-evaluating');
         
         switch (phase) {
             case 'select_target':
@@ -5581,7 +5520,7 @@ class UIController {
                     hint = '请点击棋盘选择目标网格';
                 }
                 confirmText = '确认目标';
-                this.confirmBtn.disabled = state.roundState.targetCells.length < state.targetCount;
+                confirmDisabled = state.roundState.targetCells.length < state.targetCount;
                 break;
             case 'set_forbidden':
                 hint = `设置禁止区 (${state.roundState.forbiddenCells.length}/${state.maxForbidden})`;
@@ -5604,7 +5543,9 @@ class UIController {
             case 'evaluate':
             case 'init':
                 hint = '正在评估...';
-                this.confirmBtn.disabled = true;
+                confirmText = '正在评估';
+                confirmDisabled = true;
+                this.confirmBtn.classList.add('is-evaluating');
                 break;
             case 'switch_player':
                 hint = '回合切换中...';
@@ -5613,7 +5554,7 @@ class UIController {
         
         this.phaseHintElement.textContent = hint;
         this.confirmBtn.textContent = confirmText;
-        this.confirmBtn.disabled = false;
+        this.confirmBtn.disabled = confirmDisabled;
         
         // 更新棋盘范围
         const rangeChanged = this.gridSystem.updateRange(state.currentRound);
