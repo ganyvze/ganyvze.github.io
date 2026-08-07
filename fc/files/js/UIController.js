@@ -72,15 +72,6 @@ class UIController {
         this.expressionDisplay = document.getElementById('expression-display');
         this.messageElement = document.getElementById('message');
         this.messagePanel = document.getElementById('message-panel');
-        this.bgmEnabledCheckbox = document.getElementById('bgm-enabled');
-        this.bgmVolumeSlider = document.getElementById('bgm-volume');
-        this.bgmVolumeValue = document.getElementById('bgm-volume-value');
-        this.sfxVolumeSlider = document.getElementById('sfx-volume');
-        this.sfxVolumeValue = document.getElementById('sfx-volume-value');
-        this.bgmOpenBtn = document.getElementById('bgm-open-btn');
-        this.startBgmOpenBtn = document.getElementById('start-bgm-open-btn');
-        this.bgmModal = document.getElementById('bgm-modal');
-        this.bgmCloseBtn = document.getElementById('bgm-close-btn');
         
         // 按钮
         this.confirmBtn = document.getElementById('confirm-btn');
@@ -275,8 +266,6 @@ class UIController {
         bind('campaign-diff-expert', () => this.playUIButtonSound(() => this.openCampaignLevels('expert')));
         bind('campaign-diff-unsolvable', () => this.playUIButtonSound(() => this.openCampaignLevels('unsolvable')));
         this.refreshUnsovableDifficultyVisibility();
-        this.bindBackgroundMusicControls();
-        this.initBackgroundMusic();
 
     }
     
@@ -815,6 +804,8 @@ class UIController {
         this.selectMode(mode);
         return this.handleStart();
     }
+
+
 
     /**
      * 显示P2P联机房间模态框
@@ -1969,6 +1960,10 @@ class UIController {
         if (!this.startModal || this.startModal.style.display === 'none') return false;
         const targetTag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
         if (targetTag === 'input' || targetTag === 'textarea') return false;
+        // 开始界面之上如果叠加了其它弹窗（训练确认框、BGM设置、闯关/竞速选关等），
+        // 键盘操作应交给那些弹窗，此处不处理。
+        if (this.isStartModalObscured()) return false;
+
         if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             e.preventDefault();
             const active = document.activeElement;
@@ -1984,7 +1979,41 @@ class UIController {
             this.stepDifficulty(e.key === 'ArrowRight' ? 1 : -1);
             return true;
         }
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.stepStartMode(e.key === 'ArrowUp' ? -1 : 1);
+            return true;
+        }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            this.handleStart();
+            return true;
+        }
         return false;
+    }
+
+    /**
+     * 开始界面是否被其它弹窗（训练确认框 / BGM设置 / 闯关选关 / 竞速选关 / P2P房间）遮挡
+     */
+    isStartModalObscured() {
+        const overlays = [this.summaDialog, this.campaignModal, this.raceModal];
+        for (const overlay of overlays) {
+            if (overlay && overlay.style.display !== 'none') return true;
+        }
+        const p2pModal = document.getElementById('p2p-room-modal');
+        if (p2pModal && p2pModal.style.display !== 'none') return true;
+        return false;
+    }
+
+    /**
+     * 主页模式按钮的上下键切换：在各模式间循环高亮，不立即开始（需按 Enter 确认）
+     */
+    stepStartMode(direction) {
+        const order = ['local', 'ai', 'campaign', 'race', 'test'];
+        const currentIndex = order.indexOf(this.selectedMode);
+        const baseIndex = currentIndex === -1 ? 0 : currentIndex;
+        const nextIndex = (baseIndex + direction + order.length) % order.length;
+        this.selectMode(order[nextIndex]);
     }
 
     /**
@@ -3314,62 +3343,6 @@ class UIController {
             // 仅等待下一帧，让浏览器完成本次绘制提交；不要再次清空画布，否则会把函数擦掉
             resolve();
         }));
-    }
-
-    bindBackgroundMusicControls() {
-        if (this.bgmEnabledCheckbox) {
-            this.bgmEnabledCheckbox.addEventListener('change', () => {
-                if (window.audioManager) window.audioManager.setBgmEnabled(this.bgmEnabledCheckbox.checked);
-            });
-        }
-        if (this.bgmVolumeSlider) {
-            this.bgmVolumeSlider.addEventListener('input', () => {
-                const volume = Number(this.bgmVolumeSlider.value) / 100;
-                if (this.bgmVolumeValue) this.bgmVolumeValue.textContent = `${this.bgmVolumeSlider.value}%`;
-                if (window.audioManager) window.audioManager.setBgmVolume(volume);
-            });
-        }
-        if (this.sfxVolumeSlider) {
-            this.sfxVolumeSlider.addEventListener('input', () => {
-                const volume = Number(this.sfxVolumeSlider.value) / 100;
-                if (this.sfxVolumeValue) this.sfxVolumeValue.textContent = `${this.sfxVolumeSlider.value}%`;
-                if (window.audioManager) window.audioManager.setSfxVolume(volume);
-            });
-        }
-        if (this.bgmOpenBtn) {
-            this.bgmOpenBtn.addEventListener('click', () => {
-                if (this.bgmModal) this.showModal(this.bgmModal);
-            });
-        }
-        if (this.startBgmOpenBtn) {
-            this.startBgmOpenBtn.addEventListener('click', () => {
-                if (this.bgmModal) this.showModal(this.bgmModal);
-            });
-        }
-        if (this.bgmCloseBtn) {
-            this.bgmCloseBtn.addEventListener('click', () => {
-                if (window.audioManager) window.audioManager.playClick();
-                if (this.bgmModal) this.hideModal(this.bgmModal);
-            });
-        }
-    }
-
-    initBackgroundMusic() {
-        if (!window.audioManager) return;
-        if (this.bgmEnabledCheckbox) this.bgmEnabledCheckbox.checked = window.audioManager.bgmEnabled;
-        if (this.bgmVolumeSlider) {
-            this.bgmVolumeSlider.value = String(Math.round(window.audioManager.bgmVolume * 100));
-        }
-        if (this.bgmVolumeValue && this.bgmVolumeSlider) {
-            this.bgmVolumeValue.textContent = `${this.bgmVolumeSlider.value}%`;
-        }
-        if (this.sfxVolumeSlider) {
-            this.sfxVolumeSlider.value = String(Math.round((window.audioManager.sfxVolume ?? 1) * 100));
-        }
-        if (this.sfxVolumeValue && this.sfxVolumeSlider) {
-            this.sfxVolumeValue.textContent = `${this.sfxVolumeSlider.value}%`;
-        }
-        window.audioManager.startBgm();
     }
 
     async renderAndEvaluate(expression) {

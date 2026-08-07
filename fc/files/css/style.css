@@ -204,86 +204,6 @@ body::before {
     z-index: 100;
 }
 
-.bgm-float-btn {
-    margin-left: 12px;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.16);
-    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.22), rgba(255,255,255,0.08));
-    color: #fff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.22);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-
-.start-top-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 10px;
-}
-
-.start-bgm-btn {
-    margin-left: auto;
-}
-
-.bgm-float-btn:hover {
-    transform: translateY(-1px) scale(1.05);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.28);
-}
-
-.bgm-float-icon-img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-    display: block;
-    image-rendering: pixelated;
-}
-
-.bgm-modal-content {
-    max-width: 480px;
-}
-
-.bgm-modal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 6px 0 18px;
-}
-
-.bgm-volume-row {
-    display: grid;
-    grid-template-columns: 52px 1fr 52px;
-    gap: 10px;
-    align-items: center;
-}
-
-.music-toggle-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: center;
-    font-size: 15px;
-}
-
-.music-toggle-row input {
-    width: 18px;
-    height: 18px;
-}
-
-.music-volume-row input[type="range"] {
-    width: 100%;
-}
-
-.bgm-hint {
-    text-align: center;
-    color: rgba(229,231,235,0.8);
-    font-size: 13px;
-}
-
 .about-us-link {
     position: absolute;
     left: 24px;
@@ -1846,6 +1766,72 @@ body::before {
     box-sizing: border-box;
 }
 
+/* 键盘操作提示徽标（右上角） */
+.keyboard-hint-badge {
+    position: absolute;
+    top: 22px;
+    right: 40px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+    pointer-events: none;
+    user-select: none;
+    animation: keyboardHintBreathe 3s ease-in-out infinite;
+}
+
+.keyboard-hint-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.keyboard-hint-keys {
+    display: inline-flex;
+    gap: 3px;
+}
+
+.keyboard-hint-badge kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    box-shadow: 0 2px 0 rgba(255, 255, 255, 0.08) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    color: #dbeafe;
+    line-height: 1;
+}
+
+.keyboard-hint-text {
+    font-size: 13px;
+    color: rgba(229, 231, 235, 0.85);
+    letter-spacing: 0.3px;
+}
+
+@keyframes keyboardHintBreathe {
+    0%, 100% { opacity: 0.75; }
+    50% { opacity: 1; }
+}
+
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+    .keyboard-hint-badge {
+        display: none;
+    }
+}
+
 .start-modal-title-image {
     display: block;
     width: 100%;
@@ -2803,11 +2789,6 @@ body::before {
     animation: popIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* BGM 设置弹窗 */
-#bgm-modal.modal-entering > * {
-    animation: slideUpIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
 /* 游戏报告弹窗 */
 #report-modal.modal-entering > * {
     animation: slideUpIn 0.30s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -3208,7 +3189,6 @@ body::before {
 
     #campaign-modal .modal-content,
     #report-modal .modal-content,
-    #bgm-modal .modal-content,
     #game-over-modal .modal-content,
     #campaign-victory-modal .modal-content {
         max-height: 85vh;
@@ -3462,11 +3442,6 @@ body.device-mobile {
         overflow-y: auto;
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
-    }
-
-    /* BGM 弹窗 */
-    #bgm-modal .modal-content {
-        max-width: 88vw;
     }
 
     /* 闯关胜利弹窗 */

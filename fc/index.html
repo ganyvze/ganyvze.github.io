@@ -34,10 +34,6 @@
         <div class="campaign-level-badge" id="campaign-level-badge" style="display:none;">
             <span class="campaign-level-value" id="campaign-level-value">Lv. 1</span>
         </div>
-
-        <button class="bgm-float-btn" id="bgm-open-btn" type="button" aria-label="背景音乐设置" title="背景音乐设置">
-            <img src="files/images/VolumeButton.png" alt="背景音乐设置" class="bgm-float-icon-img">
-        </button>
     </header>
     
     <!-- 主容器 -->
@@ -126,6 +122,20 @@
     <div class="modal" id="start-modal" style="display:none;">
         <div class="modal-content">
             <div class="start-settings-layout">
+                <!-- 右上角：键盘操作提示 -->
+                <div class="keyboard-hint-badge" id="keyboard-hint-badge">
+                    <div class="keyboard-hint-row">
+                        <span class="keyboard-hint-keys">
+                            <kbd>&uarr;</kbd><kbd>&darr;</kbd>
+                        </span>
+                        <span class="keyboard-hint-text">键选择模式</span>
+                    </div>
+                    <div class="keyboard-hint-row">
+                        <span class="keyboard-hint-keys"><kbd>Enter</kbd></span>
+                        <span class="keyboard-hint-text">键确认</span>
+                    </div>
+                </div>
+
                 <!-- 左侧：标题图片 + 难度/回合选择 -->
                 <div class="start-left-column">
                     <img class="start-modal-title-image" src="files/images/MainTitle.png" alt="函数棋">
@@ -160,12 +170,6 @@
 
                 <!-- 右侧：模式按钮 + 开始按钮 -->
                 <div class="start-right-column">
-                    <div class="start-top-actions">
-                        <button class="bgm-float-btn start-bgm-btn" id="start-bgm-open-btn" type="button" aria-label="背景音乐设置" title="背景音乐设置">
-                            <img src="files/images/VolumeButton.png" alt="背景音乐设置" class="bgm-float-icon-img">
-                        </button>
-                    </div>
-
                     <div class="mode-select start-modes-right">
                         <div class="mode-toggle mode-toggle-vertical">
                             <button class="mode-btn active" id="mode-local" data-mode="local">本地对战</button>
@@ -290,31 +294,6 @@
 
     <input id="campaign-file-input" type="file" accept=".txt,application/json,text/plain" style="display:none;">
     
-    <!-- 背景音乐设置弹窗 -->
-    <div class="modal" id="bgm-modal" style="display:none;">
-        <div class="modal-content bgm-modal-content">
-            <h2>背景音乐</h2>
-            <div class="bgm-modal-body">
-                <label class="music-toggle-row" style="justify-content:center;">
-                    <input type="checkbox" id="bgm-enabled" checked>
-                    <span>启用背景音乐</span>
-                </label>
-                <div class="music-volume-row bgm-volume-row">
-                    <span>BGM</span>
-                    <input type="range" id="bgm-volume" min="0" max="100" value="33">
-                    <span id="bgm-volume-value">33%</span>
-                </div>
-                <div class="music-volume-row bgm-volume-row">
-                    <span>音效</span>
-                    <input type="range" id="sfx-volume" min="0" max="100" value="100">
-                    <span id="sfx-volume-value">100%</span>
-                </div>
-                <div class="bgm-hint">BGM 会在每首结束后随机切换到下一首</div>
-            </div>
-            <button class="btn btn-primary" id="bgm-close-btn" style="width:100%;">关闭</button>
-        </div>
-    </div>
-
     <!-- 游戏结束模态框 -->
     <div class="modal" id="game-over-modal" style="display: none;">
         <div class="modal-content">
@@ -409,7 +388,6 @@
     <script src="files/js/ResponsiveLayout.js"></script>
     <script src="files/js/GridSystem.js"></script>
     <script src="files/js/CollisionDetector.js"></script>
-    <script src="files/js/函数复杂度运算/function-complexity-analyzer.js"></script>
     <script src="files/js/FunctionParser.js"></script>
     <!-- geogebra-lite 核心引擎（采样+裁剪） -->
     <script src="files/geogebra-lite/plot/Gap.js"></script>

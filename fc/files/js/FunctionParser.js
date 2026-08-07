@@ -25,11 +25,6 @@ class FunctionParser {
             operators: ['.', '^', '!', '(', ')'],
             functions: ['sin', 'cos', 'tan', 'abs', 'ln', 'sqrt']
         };
-
-        // 初始化函数复杂度分析器
-        if (typeof FunctionComplexityAnalyzer !== 'undefined') {
-            this.complexityAnalyzer = new FunctionComplexityAnalyzer();
-        }
     }
 
     // ========== 复数运算体系（与 geogebra-lite 同步） ==========
