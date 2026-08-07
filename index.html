@@ -94,11 +94,23 @@
             letter-spacing: 1px;
         }
 
-        /* 游戏卡片网格 - 适应 4 列横排 */
+        /* 游戏卡片网格 - 2x3 布局 */
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
+        }
+
+        @media (max-width: 868px) {
+            .game-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 550px) {
+            .game-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* 游戏卡片 */
@@ -236,11 +248,19 @@
                 <h2 class="game-title">无限轨道</h2>
                 <p class="game-desc">在三维炫彩玻璃轨道上操控滚球弹跳冲刺，精准匹配板块颜色，挑战极限速度与高分纪录。</p>
             </div>
+
+            <!-- 游戏5：函数棋 -->
+            <div class="game-card animate-up" style="animation-delay: 0.8s;" onclick="launchGame('fc', 'fc')">
+                <div class="last-played-badge" id="badge-fc">上次游玩</div>
+                <div class="game-icon">📈</div>
+                <h2 class="game-title">函数棋</h2>
+                <p class="game-desc">融合数学函数与策略对战的益智游戏。构造函数表达式穿过目标格、避开禁止区，考验极致数学逻辑。</p>
+            </div>
         </div>
     </div>
 
     <script>
-        // 修复：当页面从浏览器的缓存中恢复时（如点击后退按钮），重置页面的透明度
+        // 当页面从浏览器的缓存中恢复时（如点击后退按钮），重置页面的透明度
         window.addEventListener('pageshow', (event) => {
             // event.persisted 为 true 表示页面是从浏览器的缓存(BFCache)中读取的
             document.body.style.opacity = '1';

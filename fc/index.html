@@ -6,6 +6,51 @@
     <title>函数棋 - Function Chess</title>
     <link rel="stylesheet" href="files/css/style.css">
     <link rel="stylesheet" href="files/css/shaihai-theme.css">
+    <style>
+        /* 设置与确认弹窗高优先级层级与样式 */
+        #settings-modal, #import-confirm-modal, #clear-confirm-modal {
+            z-index: 1000;
+        }
+        .settings-action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .diff-stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 15px 0;
+            font-size: 14px;
+            line-height: 2;
+        }
+        .diff-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .diff-old {
+            color: #9ca3af;
+            text-decoration: line-through;
+            margin-right: 6px;
+        }
+        .diff-new {
+            color: #34d399;
+            font-weight: bold;
+        }
+        .warning-box {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.12);
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            margin-bottom: 15px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+    </style>
 </head>
 <body>
     <div id="summa-container"></div>
@@ -171,6 +216,8 @@
                 <!-- 右侧：模式按钮 + 开始按钮 -->
                 <div class="start-right-column">
                     <div class="mode-select start-modes-right">
+                        <!-- 在本地对战上方新增：⚙ 游戏设置 按钮 -->
+                        <button class="mode-btn" id="btn-open-settings" style="margin-bottom: 8px; background: rgba(167, 139, 250, 0.18); border: 1px solid rgba(167, 139, 250, 0.5); color: #c4b5fd;">⚙ 游戏设置</button>
                         <div class="mode-toggle mode-toggle-vertical">
                             <button class="mode-btn active" id="mode-local" data-mode="local">本地对战</button>
                             <button class="mode-btn" id="mode-ai" data-mode="ai">人机对战</button>
@@ -194,6 +241,67 @@
                     <option value="1">关卡 1</option>
                 </select>
                 <small id="campaign-progress" style="display:block; margin-top:6px; opacity:0.7;"></small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏设置模态框 -->
+    <div class="modal" id="settings-modal" style="display:none;">
+        <div class="modal-content" style="max-width: 420px; padding: 24px;">
+            <h2 style="margin-top: 0; text-align: center;">⚙ 游戏设置</h2>
+            <div class="settings-action-group">
+                <button class="btn btn-primary" id="btn-export-save" style="background: rgba(37, 99, 235, 0.8); border-color: #3b82f6;">📥 导出战绩</button>
+                <button class="btn btn-primary" id="btn-import-save-trigger" style="background: rgba(5, 150, 105, 0.8); border-color: #10b981;">📤 导入战绩</button>
+                <input type="file" id="settings-import-file" accept=".html,.txt,.json" style="display:none;">
+                <button class="btn btn-exit" id="btn-clear-data-trigger" style="background: rgba(220, 38, 38, 0.8); border-color: #ef4444; margin-top: 10px;">🗑️ 清除所有数据</button>
+            </div>
+            <button class="btn btn-secondary" id="close-settings-btn" style="width: 100%;">关闭</button>
+        </div>
+    </div>
+
+    <!-- 导入战绩确认模态框 -->
+    <div class="modal" id="import-confirm-modal" style="display:none;">
+        <div class="modal-content" style="max-width: 480px; padding: 24px;">
+            <h2 id="import-modal-title" style="margin-top: 0; color: #f59e0b;">导入战绩确认</h2>
+            <p id="import-modal-desc" style="font-size: 14px; opacity: 0.9;">检测到可导入的战绩数据，请确认是否覆盖当前游戏进度：</p>
+            
+            <div class="diff-stat-box">
+                <div class="diff-item">
+                    <span>闯关最高关卡：</span>
+                    <div><span class="diff-old" id="diff-level-old">1</span> ➔ <span class="diff-new" id="diff-level-new">1</span></div>
+                </div>
+                <div class="diff-item">
+                    <span>闯关星星总数：</span>
+                    <div><span class="diff-old" id="diff-stars-old">0</span> ➔ <span class="diff-new" id="diff-stars-new">0</span></div>
+                </div>
+                <div class="diff-item">
+                    <span>竞速模式关卡数：</span>
+                    <div><span class="diff-old" id="diff-race-old">0</span> ➔ <span class="diff-new" id="diff-race-new">0</span></div>
+                </div>
+            </div>
+
+            <div class="warning-box" id="import-warning-box" style="display:none;">
+                ⚠️ <b>警告：二次确认</b><br>
+                导入的数据在某些指标（最高关卡/星星数/竞速记录）上低于当前本地数据！覆盖后将导致部分进度后退，是否仍要强制覆盖？
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button class="btn btn-secondary" id="import-cancel-btn">取消</button>
+                <button class="btn btn-primary" id="import-confirm-btn" style="background: #f59e0b; border-color: #fbbf24;">确认覆盖</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 清除所有数据确认模态框 -->
+    <div class="modal" id="clear-confirm-modal" style="display:none;">
+        <div class="modal-content" style="max-width: 420px; padding: 24px; text-align: center;">
+            <h2 id="clear-modal-title" style="margin-top: 0; color: #ef4444;">清除所有数据</h2>
+            <p id="clear-modal-msg" style="margin: 16px 0; font-size: 14px; line-height: 1.6; opacity: 0.9;">
+                确定要清除所有本地游戏数据吗？包括所有关卡进度、星星数和竞速最佳记录。此操作不可逆！
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="btn btn-secondary" id="clear-cancel-btn" style="flex:1;">取消</button>
+                <button class="btn btn-exit" id="clear-next-btn" style="flex:1; background: #dc2626;">确定清除</button>
             </div>
         </div>
     </div>
@@ -327,21 +435,21 @@
         </div>
     </div>
 
-    <!-- 竞速胜利模态框 -->
-    <div class="modal" id="race-victory-modal" style="display: none;">
+    <!-- 竞速胜利模态框 (重复定义备用) -->
+    <div class="modal" id="race-victory-modal-alt" style="display: none;">
         <div class="modal-content campaign-victory-content">
             <h2>等级完成</h2>
-            <div class="campaign-victory-text" id="race-victory-text">恭喜完成！</div>
+            <div class="campaign-victory-text" id="race-victory-text-alt">恭喜完成！</div>
             <div class="campaign-victory-actions">
-                <button class="btn btn-primary icon-btn" id="race-victory-level-select-btn" title="等级选择">
+                <button class="btn btn-primary icon-btn" id="race-victory-level-select-btn-alt" title="等级选择">
                     <span class="icon">⌂</span>
                     <span>等级选择</span>
                 </button>
-                <button class="btn btn-primary icon-btn" id="race-victory-retry-btn" title="再来一次">
+                <button class="btn btn-primary icon-btn" id="race-victory-retry-btn-alt" title="再来一次">
                     <span class="icon">↻</span>
                     <span>再来一次</span>
                 </button>
-                <button class="btn btn-primary icon-btn" id="race-victory-next-btn" title="下一级">
+                <button class="btn btn-primary icon-btn" id="race-victory-next-btn-alt" title="下一级">
                     <span>下一级</span>
                     <span class="icon">→</span>
                 </button>
@@ -384,12 +492,11 @@
     </div>
     
     <!-- 加载 JavaScript 模块 -->
-    <!-- 响应式布局管理器（优先加载） -->
     <script src="files/js/ResponsiveLayout.js"></script>
     <script src="files/js/GridSystem.js"></script>
     <script src="files/js/CollisionDetector.js"></script>
     <script src="files/js/FunctionParser.js"></script>
-    <!-- geogebra-lite 核心引擎（采样+裁剪） -->
+    <!-- geogebra-lite 核心引擎 -->
     <script src="files/geogebra-lite/plot/Gap.js"></script>
     <script src="files/geogebra-lite/plot/PathPlotter.js"></script>
     <script src="files/geogebra-lite/plot/CurveSegmentInfo.js"></script>
@@ -405,7 +512,6 @@
     <script src="files/js/FunctionRenderer.js"></script>
     <!-- 全局音频管理器和角色管理器 -->
     <script src="files/js/AudioManager.js"></script>
-    <!-- SummaAnimator 必须在 SummaCharacter 之前加载 -->
     <script src="files/Summa形象处理/SummaAnimator.js"></script>
     <script src="files/Summa形象处理/SummaCharacter.js"></script>
     
@@ -421,42 +527,313 @@
     <script>
         // 初始化游戏
         document.addEventListener('DOMContentLoaded', () => {
-            // 创建核心组件
             const gridSystem = new GridSystem('game-canvas');
             const gameController = new GameController();
 
-            // 创建UI控制器
             const uiController = new UIController(gridSystem, gameController);
             uiController.raceModeManager = new RaceModeManager();
             uiController.raceModeController = new RaceModeController(gridSystem);
 
-            // 创建Summa训练器
             const summaTrainer = new SummaTrainer(gameController, gridSystem);
 
-            // 将训练器暴露到全局，方便控制台调用
             window.summaTrainer = summaTrainer;
             window.gameController = gameController;
             window.uiController = uiController;
 
-            // 直接显示模式选择，不再要求先点击启动遮罩。
             uiController.showModal(document.getElementById('start-modal'));
 
             console.log('函数棋游戏已加载完成！');
-            console.log('游戏模块:', {
-                gridSystem: !!gridSystem,
-                gameController: !!gameController,
-                uiController: !!uiController,
-                summaTrainer: !!summaTrainer
-            });
-
-            console.log('\n=== Summa训练器已就绪 ===');
-            console.log('使用方法：');
-            console.log('1. 开始训练: summaTrainer.startTraining({totalGames: 1000, difficulty: "hard"})');
-            console.log('2. 停止训练: summaTrainer.stopTraining()');
-            console.log('3. 查看统计: summaTrainer.getTrainingStats()');
-            console.log('4. 加载数据: summaTrainer.loadTrainingData()');
-            console.log('========================\n');
         });
+    </script>
+
+    <!-- 游戏设置与导入/导出/清除数据 逻辑脚本 -->
+    <script>
+        (function initGameSettings() {
+            // UI 元素引用
+            const btnOpenSettings = document.getElementById('btn-open-settings');
+            const settingsModal = document.getElementById('settings-modal');
+            const closeSettingsBtn = document.getElementById('close-settings-btn');
+            
+            const btnExportSave = document.getElementById('btn-export-save');
+            const btnImportTrigger = document.getElementById('btn-import-save-trigger');
+            const fileInput = document.getElementById('settings-import-file');
+            
+            const btnClearTrigger = document.getElementById('btn-clear-data-trigger');
+
+            const importConfirmModal = document.getElementById('import-confirm-modal');
+            const importWarningBox = document.getElementById('import-warning-box');
+            const importConfirmBtn = document.getElementById('import-confirm-btn');
+            const importCancelBtn = document.getElementById('import-cancel-btn');
+
+            const clearConfirmModal = document.getElementById('clear-confirm-modal');
+            const clearNextBtn = document.getElementById('clear-next-btn');
+            const clearCancelBtn = document.getElementById('clear-cancel-btn');
+            const clearModalTitle = document.getElementById('clear-modal-title');
+            const clearModalMsg = document.getElementById('clear-modal-msg');
+
+            let pendingImportData = null;
+            let importStep = 1;
+            let clearStep = 1;
+
+            // 打开/关闭 设置弹窗
+            if (btnOpenSettings) {
+                btnOpenSettings.addEventListener('click', () => {
+                    settingsModal.style.display = 'flex';
+                });
+            }
+            if (closeSettingsBtn) {
+                closeSettingsBtn.addEventListener('click', () => {
+                    settingsModal.style.display = 'none';
+                });
+            }
+
+            // 统计摘要解析计算函数
+            function getStatsSummary(storageObj) {
+                let campaignLevel = 1;
+                let campaignStars = 0;
+                let raceLevels = 0;
+
+                try {
+                    for (let key in storageObj) {
+                        const val = storageObj[key];
+                        if (!val) continue;
+
+                        // 解析闯关模式进度
+                        if (key.includes('campaign')) {
+                            try {
+                                const parsed = JSON.parse(val);
+                                if (typeof parsed === 'object' && parsed !== null) {
+                                    if (parsed.maxUnlockedLevel) campaignLevel = Math.max(campaignLevel, Number(parsed.maxUnlockedLevel) || 1);
+                                    if (parsed.unlockedLevel) campaignLevel = Math.max(campaignLevel, Number(parsed.unlockedLevel) || 1);
+                                    if (parsed.stars) {
+                                        if (typeof parsed.stars === 'number') campaignStars += parsed.stars;
+                                        else if (typeof parsed.stars === 'object') {
+                                            Object.values(parsed.stars).forEach(s => campaignStars += (Number(s) || 0));
+                                        }
+                                    }
+                                }
+                            } catch (e) {}
+                        }
+
+                        // 解析竞速模式进度
+                        if (key.includes('race')) {
+                            try {
+                                const parsed = JSON.parse(val);
+                                if (typeof parsed === 'object' && parsed !== null) {
+                                    if (Array.isArray(parsed)) raceLevels = Math.max(raceLevels, parsed.length);
+                                    else if (parsed.records) raceLevels = Math.max(raceLevels, Object.keys(parsed.records).length);
+                                    else raceLevels = Math.max(raceLevels, Object.keys(parsed).length);
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                } catch (e) {}
+
+                return { campaignLevel, campaignStars, raceLevels };
+            }
+
+            // 1. 📥 导出战绩
+            if (btnExportSave) {
+                btnExportSave.addEventListener('click', () => {
+                    const localData = {};
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        localData[key] = localStorage.getItem(key);
+                    }
+
+                    const saveData = {
+                        version: "1.0",
+                        exportTime: new Date().toLocaleString(),
+                        localStorage: localData
+                    };
+
+                    const stats = getStatsSummary(localData);
+                    const jsonStr = JSON.stringify(saveData);
+                    const encodedData = btoa(encodeURIComponent(jsonStr + '|||FNCHESS_SECURE_V1'));
+
+                    const htmlTemplate = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>函数棋 - 战绩证明</title>
+<style>
+body { background:#0b0c10; color:#66fcf1; text-align:center; font-family:'Segoe UI',sans-serif; padding:50px; }
+.card { background:rgba(31,40,51,0.85); border:1px solid #45a29e; border-radius:15px; padding:40px; max-width:500px; margin:0 auto; box-shadow:0 0 25px rgba(102,252,241,0.2); }
+h1 { color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5); }
+.stat { font-size:18px; margin:16px 0; display:flex; justify-content:space-between; border-bottom:1px solid #333; padding-bottom:8px; }
+.stat-val { font-weight:bold; color:#fff; }
+</style>
+</head>
+<body>
+<div class="card">
+<h1>♟️ 函数棋 战绩证明</h1>
+<div class="stat"><span>导出时间：</span><span class="stat-val">${saveData.exportTime}</span></div>
+<div class="stat"><span>闯关最高解锁关卡：</span><span class="stat-val">第 ${stats.campaignLevel} 关</span></div>
+<div class="stat"><span>闯关星星总数：</span><span class="stat-val">${stats.campaignStars} ⭐</span></div>
+<div class="stat"><span>竞速已完成等级：</span><span class="stat-val">${stats.raceLevels} 级</span></div>
+<p style="color:#aaa; font-size:13px; margin-top:30px;">此文件包含完整的函数棋数据，可在游戏设置中导入恢复。</p>
+<div id="secure-save-data" style="display:none;">${encodedData}</div>
+</div></body></html>`;
+
+                    const blob = new Blob([htmlTemplate], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `FnChess_Save_${new Date().toISOString().slice(0, 10)}.html`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            }
+
+            // 2. 📤 导入战绩
+            if (btnImportTrigger && fileInput) {
+                btnImportTrigger.addEventListener('click', () => fileInput.click());
+
+                fileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const content = event.target.result;
+                        let jsonPayload = null;
+
+                        // 先尝试提取 HTML 内部的 #secure-save-data
+                        const match = content.match(/<div id="secure-save-data" style="display:none;">(.*?)<\/div>/s);
+                        if (match && match[1]) {
+                            try {
+                                const decoded = decodeURIComponent(atob(match[1].trim()));
+                                const parts = decoded.split('|||');
+                                if (parts[1] === 'FNCHESS_SECURE_V1') {
+                                    jsonPayload = JSON.parse(parts[0]);
+                                }
+                            } catch (err) {}
+                        }
+
+                        // 如果不是 HTML 格式，尝试直接当作 JSON 解析
+                        if (!jsonPayload) {
+                            try {
+                                jsonPayload = JSON.parse(content);
+                            } catch (err) {}
+                        }
+
+                        if (!jsonPayload || !jsonPayload.localStorage) {
+                            alert('无效的战绩存档文件！');
+                            fileInput.value = '';
+                            return;
+                        }
+
+                        // 开始准备导入对比
+                        pendingImportData = jsonPayload.localStorage;
+                        showImportConfirmModal();
+                        fileInput.value = '';
+                    };
+                    reader.readAsText(file);
+                });
+            }
+
+            function showImportConfirmModal() {
+                const currentData = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    currentData[k] = localStorage.getItem(k);
+                }
+
+                const currentStats = getStatsSummary(currentData);
+                const importedStats = getStatsSummary(pendingImportData);
+
+                // 更新 DOM 对比
+                document.getElementById('diff-level-old').innerText = currentStats.campaignLevel;
+                document.getElementById('diff-level-new').innerText = importedStats.campaignLevel;
+                document.getElementById('diff-stars-old').innerText = currentStats.campaignStars;
+                document.getElementById('diff-stars-new').innerText = importedStats.campaignStars;
+                document.getElementById('diff-race-old').innerText = currentStats.raceLevels;
+                document.getElementById('diff-race-new').innerText = importedStats.raceLevels;
+
+                // 判断导入的数据是否在任何方面低于当前战绩
+                const isLower = (importedStats.campaignLevel < currentStats.campaignLevel) ||
+                                (importedStats.campaignStars < currentStats.campaignStars) ||
+                                (importedStats.raceLevels < currentStats.raceLevels);
+
+                importStep = 1;
+                importWarningBox.style.display = 'none';
+                importConfirmBtn.innerText = '确认覆盖';
+                importConfirmBtn.style.background = '#f59e0b';
+
+                importConfirmModal.setAttribute('data-is-lower', isLower ? 'true' : 'false');
+                importConfirmModal.style.display = 'flex';
+            }
+
+            if (importCancelBtn) {
+                importCancelBtn.addEventListener('click', () => {
+                    importConfirmModal.style.display = 'none';
+                    pendingImportData = null;
+                });
+            }
+
+            if (importConfirmBtn) {
+                importConfirmBtn.addEventListener('click', () => {
+                    const isLower = importConfirmModal.getAttribute('data-is-lower') === 'true';
+
+                    if (importStep === 1) {
+                        if (isLower) {
+                            // 需要第 2 次确认
+                            importStep = 2;
+                            importWarningBox.style.display = 'block';
+                            importConfirmBtn.innerText = '仍要强制覆盖';
+                            importConfirmBtn.style.background = '#dc2626';
+                            return;
+                        }
+                    }
+
+                    // 执行覆盖数据
+                    if (pendingImportData) {
+                        localStorage.clear();
+                        for (let k in pendingImportData) {
+                            localStorage.setItem(k, pendingImportData[k]);
+                        }
+                        location.reload();
+                    }
+                });
+            }
+
+            // 3. 🗑️ 清除所有数据
+            if (btnClearTrigger) {
+                btnClearTrigger.addEventListener('click', () => {
+                    clearStep = 1;
+                    clearModalTitle.innerText = '清除所有数据';
+                    clearModalTitle.style.color = '#ef4444';
+                    clearModalMsg.innerText = '确定要清除所有本地游戏数据吗？包括所有关卡进度、星星数和竞速最佳记录。此操作不可逆！';
+                    clearNextBtn.innerText = '下一步';
+                    clearConfirmModal.style.display = 'flex';
+                });
+            }
+
+            if (clearCancelBtn) {
+                clearCancelBtn.addEventListener('click', () => {
+                    clearConfirmModal.style.display = 'none';
+                });
+            }
+
+            if (clearNextBtn) {
+                clearNextBtn.addEventListener('click', () => {
+                    if (clearStep === 1) {
+                        // 触发第 2 次确认
+                        clearStep = 2;
+                        clearModalTitle.innerText = '最终确认清除';
+                        clearModalMsg.innerHTML = '<b style="color:#ef4444;">再次警告：</b>彻底清除后所有本地记录将永久丢失！<br>请再次点击按钮以彻底抹除数据。';
+                        clearNextBtn.innerText = '彻底清除所有数据';
+                        return;
+                    }
+
+                    if (clearStep === 2) {
+                        localStorage.clear();
+                        location.reload();
+                    }
+                });
+            }
+        })();
     </script>
 
     <!-- <<< 按钮交互增强：涟漪 + 磁性吸附 + 光晕跟随 + 箭头注入 >>> -->
@@ -464,7 +841,6 @@
         (function initButtonEnhancements() {
             var btns = document.querySelectorAll('.btn, .btn-exit, .mode-btn, .btn-small, .summa-dialog-option-btn, .summa-dialog-skip-btn, .summa-dialog-exit-btn, .campaign-difficulty-grid .btn, .campaign-level-cell, .summa-dialog-input-buttons .btn');
 
-            // ── 箭头注入 ──
             btns.forEach(function(el) {
                 if (el.hasAttribute('data-arrow') && !el.querySelector('.btn-arrow')) {
                     var arrow = document.createElement('span');
@@ -475,7 +851,6 @@
             });
 
             btns.forEach(function(el) {
-                // ── 涟漪 ──
                 el.addEventListener('click', function(e) {
                     var rect = el.getBoundingClientRect();
                     var ripple = document.createElement('span');
@@ -488,21 +863,17 @@
                     setTimeout(function() { ripple.remove(); }, 650);
                 });
 
-                // ── 磁性吸附 + 光晕跟随（仅桌面，有鼠标时） ──
                 el.addEventListener('mousemove', function(e) {
                     if (this.disabled) return;
                     var rect = this.getBoundingClientRect();
-                    // 光晕坐标（百分比）
                     var gx = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
                     var gy = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
                     this.style.setProperty('--gx', gx + '%');
                     this.style.setProperty('--gy', gy + '%');
-                    // 磁性偏移
                     var mx = ((e.clientX - rect.left - rect.width / 2) / rect.width  * 6).toFixed(1);
                     var my = ((e.clientY - rect.top  - rect.height / 2) / rect.height * 6).toFixed(1);
                     this.style.setProperty('--mx', mx + 'px');
                     this.style.setProperty('--my', my + 'px');
-                    // 不覆盖 CSS hover 的 translateY(-3px)，用 transform 叠加
                 });
                 el.addEventListener('mouseleave', function() {
                     this.style.removeProperty('--gx');
