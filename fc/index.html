@@ -4,6 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>函数棋 - Function Chess</title>
+    
+    <!-- 全屏加载动画样式 -->
+    <style>
+        #page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        #page-loader.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .google-spinner {
+            width: 54px;
+            height: 54px;
+            animation: google-rotate 2s linear infinite;
+        }
+        .google-spinner .path {
+            stroke: #4285F4; /* 谷歌蓝 */
+            stroke-linecap: round;
+            animation: google-dash 1.5s ease-in-out infinite;
+        }
+        @keyframes google-rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        @keyframes google-dash {
+            0% {
+                stroke-dasharray: 1, 150;
+                stroke-dashoffset: 0;
+            }
+            50% {
+                stroke-dasharray: 90, 150;
+                stroke-dashoffset: -35;
+            }
+            100% {
+                stroke-dasharray: 90, 150;
+                stroke-dashoffset: -124;
+            }
+        }
+    </style>
+
     <link rel="stylesheet" href="files/css/style.css">
     <link rel="stylesheet" href="files/css/shaihai-theme.css">
     <style>
@@ -53,6 +105,13 @@
     </style>
 </head>
 <body>
+    <!-- 黑色底板 + 谷歌蓝毛毛虫加载动画组件 -->
+    <div id="page-loader">
+        <svg class="google-spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="8"></circle>
+        </svg>
+    </div>
+
     <div id="summa-container"></div>
 
     <!-- 顶部信息栏 -->
@@ -525,8 +584,19 @@
     <script src="files/js/SummaTrainer.js"></script>
     
     <script>
-        // 初始化游戏
+        // DOM加载完成控制：淡出并移除全屏加载动画
         document.addEventListener('DOMContentLoaded', () => {
+            const pageLoader = document.getElementById('page-loader');
+            if (pageLoader) {
+                pageLoader.classList.add('fade-out');
+                setTimeout(() => {
+                    if (pageLoader.parentNode) {
+                        pageLoader.parentNode.removeChild(pageLoader);
+                    }
+                }, 400);
+            }
+
+            // 初始化游戏
             const gridSystem = new GridSystem('game-canvas');
             const gameController = new GameController();
 
