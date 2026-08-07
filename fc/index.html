@@ -590,44 +590,163 @@
             // 统计摘要解析计算函数
             function getStatsSummary(storageObj) {
                 let campaignLevel = 1;
-                let campaignStars = 0;
+                let explicitTotalStars = 0;
+                const levelStarsMap = {};
                 let raceLevels = 0;
+
+                if (!storageObj || typeof storageObj !== 'object') {
+                    return { campaignLevel, campaignStars: 0, raceLevels };
+                }
 
                 try {
                     for (let key in storageObj) {
                         const val = storageObj[key];
-                        if (!val) continue;
+                        if (val === null || val === undefined || val === '') continue;
 
-                        // 解析闯关模式进度
-                        if (key.includes('campaign')) {
+                        const lowerKey = key.toLowerCase();
+
+                        // 尝试解析 JSON 或转换为数值/对象
+                        let parsed = val;
+                        if (typeof val === 'string') {
                             try {
-                                const parsed = JSON.parse(val);
-                                if (typeof parsed === 'object' && parsed !== null) {
-                                    if (parsed.maxUnlockedLevel) campaignLevel = Math.max(campaignLevel, Number(parsed.maxUnlockedLevel) || 1);
-                                    if (parsed.unlockedLevel) campaignLevel = Math.max(campaignLevel, Number(parsed.unlockedLevel) || 1);
-                                    if (parsed.stars) {
-                                        if (typeof parsed.stars === 'number') campaignStars += parsed.stars;
-                                        else if (typeof parsed.stars === 'object') {
-                                            Object.values(parsed.stars).forEach(s => campaignStars += (Number(s) || 0));
+                                parsed = JSON.parse(val);
+                            } catch (e) {
+                                const num = Number(val);
+                                if (!isNaN(num)) {
+                                    parsed = num;
+                                }
+                            }
+                        }
+
+                        // ==================== 1. 解析 闯关模式 (Campaign) ====================
+                        const isCampaignKey = lowerKey.includes('campaign') || lowerKey.includes('level') || lowerKey.includes('star') || lowerKey.includes('chuangguan');
+
+                        if (isCampaignKey) {
+                            if (typeof parsed === 'number') {
+                                if (lowerKey.includes('star')) {
+                                    explicitTotalStars = Math.max(explicitTotalStars, parsed);
+                                } else {
+                                    campaignLevel = Math.max(campaignLevel, parsed);
+                                }
+                            } else if (typeof parsed === 'object' && parsed !== null) {
+                                // 检查显式解锁关卡字段
+                                const unlockedVal = parsed.maxUnlockedLevel || parsed.unlockedLevel || parsed.unlocked || parsed.maxLevel || parsed.level || parsed.currentLevel || parsed.highestLevel;
+                                if (typeof unlockedVal === 'number' || (typeof unlockedVal === 'string' && !isNaN(Number(unlockedVal)))) {
+                                    campaignLevel = Math.max(campaignLevel, Number(unlockedVal));
+                                }
+
+                                // 检查显式总星星字段
+                                const totalStarVal = parsed.totalStars || parsed.starCount || parsed.starsTotal || parsed.total_stars;
+                                if (typeof totalStarVal === 'number') {
+                                    explicitTotalStars = Math.max(explicitTotalStars, totalStarVal);
+                                }
+
+                                const processLevelEntry = (lvlKey, lvlVal) => {
+                                    const lvlNum = parseInt(lvlKey, 10);
+                                    if (!isNaN(lvlNum) && lvlNum > 0) {
+                                        let starsForLvl = 0;
+                                        if (typeof lvlVal === 'number') {
+                                            starsForLvl = lvlVal;
+                                        } else if (typeof lvlVal === 'string' && !isNaN(Number(lvlVal))) {
+                                            starsForLvl = Number(lvlVal);
+                                        } else if (typeof lvlVal === 'object' && lvlVal !== null) {
+                                            starsForLvl = Number(lvlVal.stars || lvlVal.star || lvlVal.score) || 0;
+                                            if (lvlVal.unlocked || lvlVal.cleared || lvlVal.passed || starsForLvl > 0) {
+                                                campaignLevel = Math.max(campaignLevel, lvlNum);
+                                            }
+                                        }
+                                        if (starsForLvl > 0) {
+                                            levelStarsMap[lvlNum] = Math.max(levelStarsMap[lvlNum] || 0, starsForLvl);
+                                            campaignLevel = Math.max(campaignLevel, lvlNum);
                                         }
                                     }
+                                };
+
+                                const starsObj = parsed.stars || parsed.levelStars || parsed.starsMap || parsed.levels || parsed.level_stars;
+
+                                if (starsObj) {
+                                    if (typeof starsObj === 'number') {
+                                        explicitTotalStars = Math.max(explicitTotalStars, starsObj);
+                                    } else if (Array.isArray(starsObj)) {
+                                        starsObj.forEach((item, index) => {
+                                            processLevelEntry(index + 1, item);
+                                        });
+                                    } else if (typeof starsObj === 'object') {
+                                        Object.keys(starsObj).forEach(k => {
+                                            processLevelEntry(k, starsObj[k]);
+                                        });
+                                    }
                                 }
-                            } catch (e) {}
+
+                                if (Array.isArray(parsed)) {
+                                    parsed.forEach((item, index) => {
+                                        processLevelEntry(index + 1, item);
+                                    });
+                                } else {
+                                    Object.keys(parsed).forEach(k => {
+                                        if (!['maxUnlockedLevel', 'unlockedLevel', 'unlocked', 'maxLevel', 'level', 'currentLevel', 'highestLevel', 'stars', 'levelStars', 'starsMap', 'levels', 'totalStars', 'starCount', 'version', 'updatedAt'].includes(k)) {
+                                            processLevelEntry(k, parsed[k]);
+                                        }
+                                    });
+                                }
+                            }
                         }
 
-                        // 解析竞速模式进度
-                        if (key.includes('race')) {
-                            try {
-                                const parsed = JSON.parse(val);
-                                if (typeof parsed === 'object' && parsed !== null) {
-                                    if (Array.isArray(parsed)) raceLevels = Math.max(raceLevels, parsed.length);
-                                    else if (parsed.records) raceLevels = Math.max(raceLevels, Object.keys(parsed.records).length);
-                                    else raceLevels = Math.max(raceLevels, Object.keys(parsed).length);
+                        // ==================== 2. 解析 竞速模式 (Race) ====================
+                        const isRaceKey = lowerKey.includes('race') || lowerKey.includes('speed') || lowerKey.includes('tt') || lowerKey.includes('jinsu') || lowerKey.includes('lap');
+
+                        if (isRaceKey) {
+                            if (typeof parsed === 'number') {
+                                raceLevels = Math.max(raceLevels, parsed);
+                            } else if (typeof parsed === 'object' && parsed !== null) {
+                                const raceUnlockedVal = parsed.maxLevel || parsed.unlockedLevel || parsed.completedCount || parsed.passedCount || parsed.levelCount || parsed.count;
+                                if (typeof raceUnlockedVal === 'number') {
+                                    raceLevels = Math.max(raceLevels, raceUnlockedVal);
                                 }
-                            } catch (e) {}
+
+                                const recordsObj = parsed.records || parsed.levels || parsed.bestTimes || parsed.times || parsed.recordsMap;
+
+                                const countValidRaceEntries = (obj) => {
+                                    if (!obj) return 0;
+                                    if (Array.isArray(obj)) {
+                                        return obj.filter(item => item !== null && item !== undefined && item !== false && item !== 0).length;
+                                    }
+                                    if (typeof obj === 'object') {
+                                        let validCount = 0;
+                                        Object.keys(obj).forEach(k => {
+                                            const item = obj[k];
+                                            if (item !== null && item !== undefined && item !== false && item !== 0) {
+                                                if (!['version', 'updatedAt', 'lastSelected', 'unlockedLevel', 'maxLevel'].includes(k)) {
+                                                    validCount++;
+                                                    const lvlNum = parseInt(k, 10);
+                                                    if (!isNaN(lvlNum)) {
+                                                        raceLevels = Math.max(raceLevels, lvlNum);
+                                                    }
+                                                }
+                                            }
+                                        });
+                                        return validCount;
+                                    }
+                                    return 0;
+                                };
+
+                                if (recordsObj) {
+                                    raceLevels = Math.max(raceLevels, countValidRaceEntries(recordsObj));
+                                } else {
+                                    raceLevels = Math.max(raceLevels, countValidRaceEntries(parsed));
+                                }
+                            }
                         }
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error("解析战绩统计数据出错:", e);
+                }
+
+                let calculatedStars = 0;
+                Object.values(levelStarsMap).forEach(s => {
+                    calculatedStars += Number(s) || 0;
+                });
+                const campaignStars = Math.max(calculatedStars, explicitTotalStars);
 
                 return { campaignLevel, campaignStars, raceLevels };
             }
@@ -718,14 +837,16 @@ h1 { color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5); }
                             } catch (err) {}
                         }
 
-                        if (!jsonPayload || !jsonPayload.localStorage) {
+                        const targetStorage = jsonPayload ? (jsonPayload.localStorage || (jsonPayload.version ? null : jsonPayload)) : null;
+
+                        if (!targetStorage || typeof targetStorage !== 'object') {
                             alert('无效的战绩存档文件！');
                             fileInput.value = '';
                             return;
                         }
 
                         // 开始准备导入对比
-                        pendingImportData = jsonPayload.localStorage;
+                        pendingImportData = targetStorage;
                         showImportConfirmModal();
                         fileInput.value = '';
                     };
@@ -791,7 +912,10 @@ h1 { color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5); }
                     if (pendingImportData) {
                         localStorage.clear();
                         for (let k in pendingImportData) {
-                            localStorage.setItem(k, pendingImportData[k]);
+                            if (pendingImportData[k] !== null && pendingImportData[k] !== undefined) {
+                                const val = typeof pendingImportData[k] === 'object' ? JSON.stringify(pendingImportData[k]) : String(pendingImportData[k]);
+                                localStorage.setItem(k, val);
+                            }
                         }
                         location.reload();
                     }
