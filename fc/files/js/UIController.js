@@ -1423,6 +1423,8 @@ class UIController {
                 this.phaseHintElement.textContent = `请点击棋盘选择 ${state.targetCount} 个目标网格 (${this.gameController.roundState.targetCells.length}/${state.targetCount})`;
             }
 
+            this.updateButtonStates();
+
             // 发送P2P动作
             if (this.isP2PMode && this.p2pController && this.p2pController.isConnected) {
                 this.p2pController.sendGameAction('target_selected', { cell: data.cell });
@@ -1441,6 +1443,8 @@ class UIController {
                 this.phaseHintElement.textContent = `请点击棋盘选择 ${state.targetCount} 个目标网格 (${this.gameController.roundState.targetCells.length}/${state.targetCount})`;
             }
 
+            this.updateButtonStates();
+
             // 发送P2P动作
             if (this.isP2PMode && this.p2pController && this.p2pController.isConnected) {
                 this.p2pController.sendGameAction('target_removed', { cell: data.cell });
@@ -1454,6 +1458,8 @@ class UIController {
             // 更新阶段提示中的计数
             const state = this.gameController.getGameState();
             this.phaseHintElement.textContent = `设置禁止区 (${state.roundState.forbiddenCells.length}/${state.maxForbidden}) - 点击棋盘选择，选好后点击确认`;
+
+            this.updateButtonStates();
 
             // 发送P2P动作
             if (this.isP2PMode && this.p2pController && this.p2pController.isConnected) {
@@ -1469,6 +1475,8 @@ class UIController {
             const state = this.gameController.getGameState();
             this.phaseHintElement.textContent = `设置禁止区 (${state.roundState.forbiddenCells.length}/${state.maxForbidden}) - 点击棋盘选择，选好后点击确认`;
 
+            this.updateButtonStates();
+            
             // 发送P2P动作
             if (this.isP2PMode && this.p2pController && this.p2pController.isConnected) {
                 this.p2pController.sendGameAction('forbidden_removed', { cell: data.cell });
@@ -5469,6 +5477,8 @@ class UIController {
             this.currentPlayerElement.textContent = '测试模式';
             this.phaseHintElement.textContent = '构造函数并点击确认，函数将持续显示在画布上';
             this.confirmBtn.textContent = '绘制函数';
+            this.confirmBtn.disabled = false; // 确保测试模式可用
+            this.clearBtn.disabled = false;
             this.initDraggableElements();
             return;
         }
@@ -5482,8 +5492,9 @@ class UIController {
         
         let hint = '';
         let confirmText = '确认';
-        let confirmDisabled = false;
         this.confirmBtn.classList.remove('is-evaluating');
+        
+        // --- 删除了原有的 let confirmDisabled = false; ---
         
         switch (phase) {
             case 'select_target':
@@ -5493,7 +5504,7 @@ class UIController {
                     hint = '请点击棋盘选择目标网格';
                 }
                 confirmText = '确认目标';
-                confirmDisabled = state.roundState.targetCells.length < state.targetCount;
+                // --- 删除了原有的 confirmDisabled 赋值 ---
                 break;
             case 'set_forbidden':
                 hint = `设置禁止区 (${state.roundState.forbiddenCells.length}/${state.maxForbidden})`;
@@ -5517,7 +5528,6 @@ class UIController {
             case 'init':
                 hint = '正在评估...';
                 confirmText = '正在评估';
-                confirmDisabled = true;
                 this.confirmBtn.classList.add('is-evaluating');
                 break;
             case 'switch_player':
@@ -5527,18 +5537,51 @@ class UIController {
         
         this.phaseHintElement.textContent = hint;
         this.confirmBtn.textContent = confirmText;
-        this.confirmBtn.disabled = confirmDisabled;
+        
+        // ★ 调用统一的按钮状态更新方法（替代了原来的 this.confirmBtn.disabled = confirmDisabled;）
+        this.updateButtonStates();
         
         // 更新棋盘范围
         const rangeChanged = this.gridSystem.updateRange(state.currentRound);
-        // 如果 range 发生了扩大，立即重新采样所有历史函数（只做一次，不在每帧 draw 里做）
+        // 如果 range 发生了扩大，立即重新采样所有历史函数
         if (rangeChanged) {
             this.refreshHistoryFunctionPoints();
-            // 采样完成后立即重绘，确保历史图像在回合开始时就可见，而不是等待下一次点击
             this.gridSystem.draw();
         }
     }
     
+    /**
+     * 动态更新按钮状态
+     */
+    updateButtonStates() {
+        const state = this.gameController.getGameState();
+        const phase = this.gameController.currentPhase;
+        
+        // 明确判断：只有当前是人机模式，且当前操作玩家是 AI (玩家B)，或者正在评估计算时，才锁死 UI
+        const isAITurn = state.gameMode === 'ai' && state.currentPlayer === 'B';
+        const isEvaluating = phase === 'evaluate' || phase === 'init' || this.confirmBtn.classList.contains('is-evaluating');
+
+        if (isAITurn || isEvaluating) {
+            this.confirmBtn.disabled = true;
+            this.clearBtn.disabled = true;
+        } else {
+            this.clearBtn.disabled = false;
+            
+            if (phase === 'select_target') {
+                // 需要选择足够的目标格才能确认
+                this.confirmBtn.disabled = state.roundState.targetCells.length < state.targetCount;
+            } else if (phase === 'set_forbidden') {
+                this.confirmBtn.disabled = false; // 禁区可以为 0，随时可确认
+            } else if (phase === 'set_locks') {
+                this.confirmBtn.disabled = false; // 随时可确认
+            } else if (phase === 'input_function') {
+                this.confirmBtn.disabled = false; // 随时可提交（提交时会有表达式验证）
+            } else {
+                this.confirmBtn.disabled = true;
+            }
+        }
+    }
+
     /**
      * 更新计时器显示
      */
