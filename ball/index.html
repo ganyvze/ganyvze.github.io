@@ -973,29 +973,12 @@
       }
     }
 
-    // ===== 数据存储（使用 localStorage，向下兼容 Cookie） =====
-    function getCookie(name) {
-      const target = name + '=';
-      const parts = document.cookie.split(';');
-      for (let c of parts) {
-        c = c.trim();
-        if (c.indexOf(target) === 0) return decodeURIComponent(c.substring(target.length));
-      }
-      return null;
-    }
-
+    // ===== 数据存储（使用 localStorage） =====
     function getBestScore() {
       try {
         const val = localStorage.getItem('infiniteTrack_bestScore');
         if (val !== null) return parseInt(val, 10) || 0;
       } catch (e) {}
-      // 向下兼容：尝试读取原 Cookie 存储
-      const cookieVal = getCookie('infiniteTrack_bestScore');
-      if (cookieVal !== null) {
-        const parsed = parseInt(cookieVal, 10) || 0;
-        setBestScore(parsed);
-        return parsed;
-      }
       return 0;
     }
 
@@ -1578,9 +1561,8 @@ h1{color:#ff4060;}
                 bestScore = parseInt(parsed.bestScore, 10) || 0;
                 bestScoreValueEl.textContent = bestScore;
                 setBestScore(bestScore);
-                alert(`成功导入最高分：${bestScore} 分！`);
               }
-            } else { alert('存档验证失败！文件可能已被修改。'); }
+            } else { alert('存档验证失败！'); }
           } catch { alert('存档解析失败！'); }
         } else { alert('无效的战绩证明文件！'); }
       };
@@ -1606,9 +1588,6 @@ h1{color:#ff4060;}
         bestScoreValueEl.textContent = 0;
         setBestScore(0);
         closeClearConfirm();
-        alert('最高分数据已成功清除！');
-      } else {
-        alert('输入的数值与当前最高分不符，取消删除！');
       }
     };
 

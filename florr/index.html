@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>floor.oi - 生态深渊</title>
+    <title>florr - 生态深渊</title>
     <style>
         * {
             margin: 0;
@@ -167,6 +167,8 @@
             flex-direction: column;
             gap: 10px;
             align-items: center;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
@@ -207,6 +209,276 @@
             border-color: #facc15;
             box-shadow: 0 0 25px rgba(234, 179, 8, 0.2);
             z-index: 55;
+        }
+
+        #dev-warn-modal {
+            min-width: 360px;
+            max-width: 420px;
+            padding: 16px;
+            border-color: #ef4444;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);
+            z-index: 65;
+        }
+
+        #codex-modal {
+            min-width: 480px;
+            max-width: 650px;
+            padding: 16px;
+            z-index: 55;
+            border-color: #38bdf8;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.2);
+        }
+
+        #settings-modal {
+            min-width: 380px;
+            max-width: 440px;
+            padding: 16px;
+            z-index: 55;
+            border-color: #a78bfa;
+            box-shadow: 0 0 25px rgba(167, 139, 250, 0.2);
+        }
+
+        .settings-section {
+            width: 100%;
+        }
+
+        .settings-section h3 {
+            font-size: 13px;
+            color: #a78bfa;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .settings-action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .settings-danger-zone {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed #334155;
+            width: 100%;
+        }
+
+        #import-confirm-modal,
+        #clear-confirm-modal {
+            min-width: 340px;
+            max-width: 420px;
+            padding: 16px;
+            z-index: 65;
+        }
+
+        #import-confirm-modal {
+            border-color: #facc15;
+            box-shadow: 0 0 25px rgba(250, 204, 21, 0.25);
+        }
+
+        #clear-confirm-modal {
+            border-color: #ef4444;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .import-diff-box {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #cbd5e1;
+            width: 100%;
+        }
+
+        .import-diff-box div {
+            margin: 4px 0;
+        }
+
+        .import-mode-group {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        /* 顶部中心非暂停式升级加点条样式 */
+        #levelup-modal {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid #facc15;
+            box-shadow: 0 4px 25px rgba(234, 179, 8, 0.35);
+            border-radius: 10px;
+            padding: 10px 16px;
+            pointer-events: auto;
+            min-width: 520px;
+            max-width: 680px;
+            backdrop-filter: blur(8px);
+        }
+
+        .buff-container {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .buff-card {
+            flex: 1;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid #475569;
+            border-radius: 6px;
+            padding: 8px 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .buff-card:hover {
+            background: rgba(51, 65, 85, 0.95);
+            border-color: #facc15;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.25);
+        }
+
+        .buff-key-hint {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            font-size: 10px;
+            font-weight: bold;
+            background: #334155;
+            color: #38bdf8;
+            padding: 1px 5px;
+            border-radius: 3px;
+            border: 1px solid #475569;
+        }
+
+        .buff-icon {
+            font-size: 22px;
+            margin-top: 4px;
+        }
+
+        .buff-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #facc15;
+        }
+
+        .buff-desc {
+            font-size: 11px;
+            color: #cbd5e1;
+            line-height: 1.3;
+        }
+
+        .active-tab {
+            background: #334155 !important;
+            color: #38bdf8 !important;
+            border-color: #38bdf8 !important;
+        }
+
+        .codex-view {
+            opacity: 0;
+            transform: translateY(10px) scale(0.98);
+            transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%;
+        }
+
+        .codex-view.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .codex-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            width: 100%;
+        }
+
+        .codex-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 11px;
+            color: #cbd5e1;
+        }
+
+        .codex-card.locked {
+            opacity: 0.4;
+            border-style: dashed;
+        }
+
+        .codex-card-title {
+            font-weight: bold;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #tooltip-card {
+            position: fixed;
+            z-index: 1000;
+            pointer-events: none;
+            display: none;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #e2e8f0;
+            font-size: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            max-width: 260px;
+            line-height: 1.5;
+        }
+
+        #tooltip-card .tt-title {
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 4px;
+        }
+
+        #tooltip-card .tt-stat {
+            color: #94a3b8;
+            margin: 3px 0;
+        }
+
+        #tooltip-card .tt-stat b {
+            color: #38bdf8;
+        }
+
+        #tooltip-card .tt-desc {
+            color: #facc15;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 11px;
+            line-height: 1.4;
         }
 
         .btn-blue {
@@ -326,6 +598,17 @@
 
         .craft-btn span {
             color: #facc15;
+        }
+
+        .craft-btn-all {
+            border-color: #38bdf8 !important;
+            color: #38bdf8 !important;
+            font-weight: bold;
+        }
+
+        .craft-btn-all:hover:not(:disabled) {
+            background: rgba(56, 189, 248, 0.15) !important;
+            color: #7dd3fc !important;
         }
 
         #drag-ghost {
@@ -521,16 +804,17 @@
     </div>
     <div id="ui-layer">
         <div id="stats" class="panel">
-            <div id="game-title">floor.oi - 生态深渊</div>
+            <div id="game-title">florr - 生态深渊</div>
             🌼 等级: <span id="lvl">1</span> | ❤️ HP: <span id="hp">100</span>/<span id="maxHp">100</span><br>
             ⭐ 经验: <span id="xp">0</span>/<span id="xpMax">20</span> | 🌸 最高阶: <span id="maxTier">普通</span><br>
             🧭 探索深度: <span id="depth" style="color:#a78bfa;">0</span>m
         </div>
-        <div id="inv-hint">按 <b>F12</b> 进入开发者模式<br>按 <b>空格</b> 暂停<br>按 <b>Z</b> 打开背包<br><b>Shift + 点击</b> 快速整理物品</div>
+        <div id="inv-hint">按 <b>空格</b> 暂停<br>按 <b>Z</b> 打开背包<br><b>Shift + 点击</b> 快速整理物品</div>
         <div id="instructions">🎮 <b>左键长按</b>：提速、扩圈、发射飞刀<br>
             🖱️ <b>右键长按</b>：聚拢防身、全面增加伤害<br>
             🧭 <b> ` 键</b>：显示 / 隐藏中心导航<br>
-            <!-- 💡 <b> Esc 键</b>：查看花瓣 / 怪物图鉴（未完成） -->
+            📖 <b>Esc 键</b>：查看花瓣/异兽图鉴<br>
+            ⚙️ <b>S 键</b>：打开设置
         </div>
         <div id="equip-bar" class="panel">
             <div id="equip-header" onclick="toggleEquipBar()"><span>🎒 已装备</span>
@@ -540,6 +824,12 @@
                 <div id="equip-grid"></div>
             </div>
         </div>
+
+        <!-- 屏幕正上方非暂停式升级加点条 -->
+        <div id="levelup-modal" class="panel">
+            <div id="levelup-options" class="buff-container"></div>
+        </div>
+
         <div id="inventory-modal" class="panel modal-base">
             <div class="modal-header">
                 📦 背包 (不同类型同阶花瓣可任意混合合成)
@@ -547,6 +837,20 @@
             </div>
             <div id="inv-grid"></div>
             <div id="craft-panel"></div>
+        </div>
+        <div id="codex-modal" class="panel modal-base">
+            <div class="modal-header" style="color: #38bdf8;">
+                📖 花瓣/异兽图鉴
+                <span class="close-btn" onclick="toggleCodex()">✕</span>
+            </div>
+            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 8px;">
+                <button id="codex-tab-petals" class="craft-btn active-tab" style="flex:1; font-weight:bold;" onclick="switchCodexTab('petals')">🌸 花瓣图鉴</button>
+                <button id="codex-tab-monsters" class="craft-btn" style="flex:1; font-weight:bold;" onclick="switchCodexTab('monsters')">👾 异兽图鉴</button>
+            </div>
+            <div id="codex-body" style="width:100%; max-height:360px; overflow-y:auto; overflow-x:hidden; padding-right:4px; position:relative; transition: height 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+                <div id="codex-petals-view" class="codex-view"></div>
+                <div id="codex-monsters-view" class="codex-view" style="display:none;"></div>
+            </div>
         </div>
         <div id="dev-modal" class="panel modal-base">
             <div class="modal-header" style="color: #facc15;">
@@ -591,8 +895,80 @@
                     class="craft-btn btn-blue" style="flex: 1;" onclick="applyDevSettings()">应用并保存</button>
             </div>
         </div>
+
+        <!-- 开发者模式开启二次验证警告弹窗 -->
+        <div id="dev-warn-modal" class="panel modal-base">
+            <div class="modal-header" style="color: #ef4444;">
+                ⚠️ 开发者模式警告
+                <span class="close-btn" onclick="closeDevWarn()">✕</span>
+            </div>
+            <div style="font-size: 13px; margin: 8px 0; color: #f87171; text-align: center; line-height: 1.5; font-weight: bold;">
+                开启开发者模式会使游戏失去乐趣，请谨慎开启！
+            </div>
+            <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 8px; text-align: center;">
+                请输入指定文本以确认开启：<br><b style="color:#facc15; font-size:13px; user-select: text;">我知道我在做什么</b>
+            </div>
+            <input type="text" id="dev-warn-input" style="width:100%; padding:6px; border-radius:4px; border:1px solid #475569; background:#0f172a; color:#fff; text-align:center; margin-bottom:12px; outline:none;" placeholder="我知道我在做什么">
+            <button class="craft-btn btn-red" style="width:100%; font-weight:bold; font-size:13px;" onclick="confirmDevWarn()">确认开启开发者模式</button>
+        </div>
+
+        <!-- 设置面板 -->
+        <div id="settings-modal" class="panel modal-base">
+            <div class="modal-header" style="color: #a78bfa;">
+                ⚙️ 设置
+                <span class="close-btn" onclick="toggleSettings()">✕</span>
+            </div>
+            <div class="settings-section">
+                <h3>📖 图鉴数据管理</h3>
+                <div class="settings-action-group">
+                    <button class="craft-btn" style="border-color:#38bdf8; color:#38bdf8; font-weight:bold;" onclick="exportCodexSave()">📥 导出图鉴记录</button>
+                    <button class="craft-btn" style="border-color:#facc15; color:#facc15; font-weight:bold;" onclick="document.getElementById('codex-import-file').click()">📤 导入图鉴记录</button>
+                    <input type="file" id="codex-import-file" accept=".html" style="display:none;" onchange="handleCodexImport(event)">
+                </div>
+                <div class="settings-danger-zone">
+                    <h3 style="color:#ef4444;">⚠️ 危险区域</h3>
+                    <button class="craft-btn btn-red" style="width:100%; font-weight:bold;" onclick="showClearCodexConfirm()">🗑️ 清除所有数据</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 导入图鉴记录：合并或覆盖选择 -->
+        <div id="import-confirm-modal" class="panel modal-base">
+            <div class="modal-header" style="color: #facc15;">
+                ⚠️ 导入图鉴记录
+            </div>
+            <p style="font-size:12px; color:#cbd5e1;">检测到有效的图鉴存档文件，请选择导入方式：</p>
+            <div class="import-diff-box">
+                <div>🌸 花瓣图鉴：<b id="diff-petals-old" style="color:#94a3b8;">0</b> → <b id="diff-petals-new" style="color:#facc15;">0</b></div>
+                <div>👾 异兽图鉴：<b id="diff-monsters-old" style="color:#94a3b8;">0</b> → <b id="diff-monsters-new" style="color:#facc15;">0</b></div>
+                <div>⚔️ 总击杀数：<b id="diff-kills-old" style="color:#94a3b8;">0</b> → <b id="diff-kills-new" style="color:#facc15;">0</b></div>
+            </div>
+            <p style="font-size:11px; color:#94a3b8;"><b style="color:#38bdf8;">合并记录</b>：保留双方已解锁的图鉴，击杀数取较大值。<br><b style="color:#ef4444;">覆盖记录</b>：完全用导入文件替换当前记录。</p>
+            <div class="import-mode-group">
+                <button class="craft-btn" style="flex:1;" onclick="closeImportConfirm()">取消</button>
+                <button class="craft-btn btn-blue" style="flex:1;" onclick="executeCodexImport('merge')">🔗 合并记录</button>
+                <button class="craft-btn btn-red" style="flex:1;" onclick="executeCodexImport('overwrite')">♻️ 覆盖记录</button>
+            </div>
+        </div>
+
+        <!-- 清除数据二次确认 -->
+        <div id="clear-confirm-modal" class="panel modal-base">
+            <div class="modal-header" style="color: #ef4444;">
+                ⚠️ 危险操作警告
+            </div>
+            <p style="font-size:12px; color:#f87171; font-weight:bold; text-align:center;">此操作不可逆，将会清除全部图鉴记录！</p>
+            <div class="import-diff-box" style="text-align:center;">
+                <p style="color:#cbd5e1; margin-bottom:8px;">请输入 <b style="color:#ef4444;">删除</b> 以确认清除</p>
+                <input type="text" id="clear-confirm-input" placeholder="请输入&quot;删除&quot;" style="box-sizing:border-box; width:100%; padding:8px; border-radius:4px; border:1px solid #ef4444; background:#0f172a; color:#fff; text-align:center; outline:none;">
+            </div>
+            <div class="import-mode-group">
+                <button class="craft-btn" style="flex:1;" onclick="closeClearCodexConfirm()">取消</button>
+                <button class="craft-btn btn-red" style="flex:1;" onclick="confirmClearCodexData()">确认删除</button>
+            </div>
+        </div>
     </div>
     <div id="drag-ghost"></div>
+    <div id="tooltip-card"></div>
     <div id="gameOver">
         <div id="gameOver-content">
             <h1>💀 花朵凋零</h1>
@@ -615,6 +991,17 @@
         let isPausedBySpace = false;
         let showInventory = false;
         let showDevMode = false;
+        let showCodex = false;
+        let showDevWarnModal = false;
+        let showSettings = false;
+        let showImportConfirmModal = false;
+        let showClearConfirmModal = false;
+        let pendingCodexImport = null;
+        let showLevelUpModal = false;
+        let pendingLevelUps = 0;
+        let currentChoices = [];
+        let devUnlocked = localStorage.getItem('floor_oi_dev_unlocked') === 'true';
+        let activeCodexTab = 'petals';
         let equipCollapsed = false; let showNav = false;
         let navProgress = 0;
         let needsUIRender = true;
@@ -628,6 +1015,110 @@
         let sessionSpeedMult = 1.0;
         let sessionDmgMult = 1.0; let sessionXpMult = 1.0;
         let sessionHpRegen = 1;
+
+        const playerBuffs = {
+            rotSpeed: 1.0,
+            pickupRadius: 1.0,
+            cdReduction: 1.0,
+            critRate: 0.0,
+            dmgMult: 1.0,
+            moveSpeed: 1.0,
+            hpRegen: 0
+        };
+
+        const ALL_BUFFS = [
+            {
+                id: 'rotSpeed',
+                title: '旋转风暴',
+                icon: '🌀',
+                desc: '花瓣旋转速度 +10%',
+                apply: () => { playerBuffs.rotSpeed *= 1.10; }
+            },
+            {
+                id: 'pickupRadius',
+                title: '万有引力',
+                icon: '🧲',
+                desc: '物品吸附范围 +20%',
+                apply: () => { playerBuffs.pickupRadius *= 1.20; }
+            },
+            {
+                id: 'cdReduction',
+                title: '急速重生',
+                icon: '⏱️',
+                desc: '花瓣损坏冷却 -8%',
+                apply: () => { playerBuffs.cdReduction *= 0.92; }
+            },
+            {
+                id: 'critRate',
+                title: '致命一击',
+                icon: '🎯',
+                desc: '暴击概率 +7% (双倍伤害)',
+                apply: () => { playerBuffs.critRate += 0.07; }
+            },
+            {
+                id: 'dmgMult',
+                title: '猛烈强袭',
+                icon: '⚔️',
+                desc: '全局伤害 +10%',
+                apply: () => { playerBuffs.dmgMult *= 1.10; }
+            },
+            {
+                id: 'moveSpeed',
+                title: '疾风迅捷',
+                icon: '👟',
+                desc: '移动速度 +8%',
+                apply: () => { playerBuffs.moveSpeed *= 1.08; }
+            },
+            {
+                id: 'maxHp',
+                title: '强健体魄',
+                icon: '💖',
+                desc: '最大血量 +20 并回复 30',
+                apply: () => {
+                    player.maxHp += 20;
+                    player.hp = Math.min(player.maxHp, player.hp + 30);
+                }
+            },
+            {
+                id: 'hpRegen',
+                title: '自然愈合',
+                icon: '🩹',
+                desc: '每秒回复血量 +1',
+                apply: () => { playerBuffs.hpRegen += 1; }
+            }
+        ];
+
+        const discoveredPetals = {};
+        const monsterKills = { basic: 0, dasher: 0, bomber: 0, ranged: 0, summoner: 0, splitter: 0 };
+        const monsterDiscovered = { basic: false, dasher: false, bomber: false, ranged: false, summoner: false, splitter: false };
+
+        const CODEX_KEY = 'floor_oi_codex_save';
+        function saveCodexData() {
+            try {
+                localStorage.setItem(CODEX_KEY, JSON.stringify({
+                    discoveredPetals,
+                    monsterKills,
+                    monsterDiscovered
+                }));
+            } catch (e) {
+                console.error('保存图鉴数据失败:', e);
+            }
+        }
+        function loadCodexData() {
+            try {
+                const raw = localStorage.getItem(CODEX_KEY);
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    if (data.discoveredPetals) Object.assign(discoveredPetals, data.discoveredPetals);
+                    if (data.monsterKills) Object.assign(monsterKills, data.monsterKills);
+                    if (data.monsterDiscovered) Object.assign(monsterDiscovered, data.monsterDiscovered);
+                }
+            } catch (e) {
+                console.error('读取图鉴数据失败:', e);
+            }
+        }
+        loadCodexData();
+
         window.addEventListener('mousedown', e => {
             if (e.button === 0) isLeftMouseDown = true;
             if (e.button === 2) isRightMouseDown = true;
@@ -639,24 +1130,66 @@
         window.addEventListener('contextmenu', e => e.preventDefault());
         window.addEventListener('keydown', e => {
             if (!running) return;
-            if (e.key === 'Shift') shiftPressed = true; if (e.key.toLowerCase() === 'z') {
+
+            // 1. 如果光标正在输入框中打字（包括中文输入法按空格选字），直接返回，不干扰打字！
+            if (e.target && e.target.tagName === 'INPUT') return;
+
+            // 2. 升级选择键盘快捷键 1, 2, 3 支持
+            if (showLevelUpModal) {
+                if (e.key === '1' || e.code === 'Digit1' || e.code === 'Numpad1') {
+                    if (currentChoices[0]) { chooseBuff(currentChoices[0]); return; }
+                }
+                if (e.key === '2' || e.code === 'Digit2' || e.code === 'Numpad2') {
+                    if (currentChoices[1]) { chooseBuff(currentChoices[1]); return; }
+                }
+                if (e.key === '3' || e.code === 'Digit3' || e.code === 'Numpad3') {
+                    if (currentChoices[2]) { chooseBuff(currentChoices[2]); return; }
+                }
+            }
+
+            if (e.key === 'Shift') shiftPressed = true;
+            if (e.key.toLowerCase() === 'z') {
                 if (e.repeat) return;
+                if (importConfirmVisible() || clearConfirmVisible()) return;
                 if (showDevMode) toggleDevMode();
+                if (showCodex) toggleCodex();
+                if (showSettings) toggleSettings();
                 toggleInventory();
             }
             if (e.key === 'F12') {
                 e.preventDefault();
-                if (e.repeat) return; if (showInventory) toggleInventory();
+                if (e.repeat) return;
+                if (importConfirmVisible() || clearConfirmVisible()) return;
+                if (showInventory) toggleInventory();
+                if (showCodex) toggleCodex();
+                if (showSettings) toggleSettings();
                 toggleDevMode();
+            }
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                if (e.repeat) return;
+                if (showDevWarnModal) closeDevWarn(); // 支持按 Esc 键关闭警告弹窗
+                else if (importConfirmVisible() || clearConfirmVisible()) { /* 二次确认弹窗中 Esc 不处理，避免误操作 */ }
+                else if (showSettings) toggleSettings();
+                else if (showDevMode) toggleDevMode();
+                else if (showInventory) toggleInventory();
+                else toggleCodex();
             }
             if (e.key === ' ' || e.code === 'Space') {
                 if (e.repeat) return;
-                if (showDevMode) toggleDevMode();
+                if (showDevWarnModal) closeDevWarn(); // 👈 只有非打字状态下按空格，才会关闭警告弹窗并恢复游戏
+                else if (showSettings) toggleSettings();
+                else if (showDevMode) toggleDevMode();
                 else if (showInventory) toggleInventory();
+                else if (showCodex) toggleCodex();
                 else togglePause();
             }
             if (e.key === '`' || e.code === 'Backquote') {
                 showNav = !showNav;
+            }
+            if (e.key.toLowerCase() === 's') {
+                if (e.repeat) return;
+                if (importConfirmVisible() || clearConfirmVisible()) return; // 二次确认弹窗中不响应 S
+                toggleSettings();
             }
         });
         window.addEventListener('keyup', e => { if (e.key === 'Shift') shiftPressed = false; });
@@ -671,17 +1204,68 @@
                 wrapper.classList.remove('collapsed'); toggleBtn.textContent = '▼';
             }
         }
+        function expandEquipBar() {
+            if (equipCollapsed) {
+                equipCollapsed = false;
+                const wrapper = document.getElementById('equip-wrapper');
+                const toggleBtn = document.getElementById('equip-toggle');
+                wrapper.classList.remove('collapsed');
+                toggleBtn.textContent = '▼';
+            }
+        }
         function toggleInventory() {
             showInventory = !showInventory;
-            if (showInventory) isPausedBySpace = false;
+            if (showInventory) {
+                isPausedBySpace = false;
+                if (showDevMode) toggleDevMode();
+                if (showCodex) toggleCodex();
+                if (showSettings) toggleSettings();
+            }
             const modal = document.getElementById('inventory-modal');
             modal.style.display = showInventory ? 'flex' : 'none';
             if (showInventory) needsUIRender = true;
+            hideTooltip();
             updatePauseState();
         }
+
+        // 开发者模式开启与警告弹窗逻辑
+        function showDevWarn() {
+            showDevWarnModal = true;
+            document.getElementById('dev-warn-modal').style.display = 'flex';
+            document.getElementById('dev-warn-input').value = '';
+            hideTooltip();
+            updatePauseState();
+        }
+        function closeDevWarn() {
+            showDevWarnModal = false;
+            document.getElementById('dev-warn-modal').style.display = 'none';
+            updatePauseState();
+        }
+        function confirmDevWarn() {
+            const inputVal = document.getElementById('dev-warn-input').value.trim();
+            if (inputVal === '我知道我在做什么') {
+                devUnlocked = true;
+                try { localStorage.setItem('floor_oi_dev_unlocked', 'true'); } catch(e) {}
+                closeDevWarn();
+                toggleDevMode();
+            } else {
+                closeDevWarn();
+            }
+        }
+
         function toggleDevMode() {
+            if (!showDevMode && !devUnlocked) {
+                showDevWarn();
+                return;
+            }
+
             showDevMode = !showDevMode;
-            if (showDevMode) isPausedBySpace = false;
+            if (showDevMode) {
+                isPausedBySpace = false;
+                if (showInventory) toggleInventory();
+                if (showCodex) toggleCodex();
+                if (showSettings) toggleSettings();
+            }
             const modal = document.getElementById('dev-modal');
             modal.style.display = showDevMode ? 'flex' : 'none';
             if (showDevMode) {
@@ -694,12 +1278,419 @@
                 document.getElementById('dev-regen').value = sessionHpRegen;
                 document.getElementById('dev-xp').value = sessionXpMult.toFixed(2);
             }
+            hideTooltip();
             updatePauseState();
+        }
+
+        function toggleCodex() {
+            showCodex = !showCodex;
+            if (showCodex) {
+                isPausedBySpace = false;
+                if (showInventory) toggleInventory();
+                if (showDevMode) toggleDevMode();
+                if (showSettings) toggleSettings();
+            }
+            const modal = document.getElementById('codex-modal');
+            modal.style.display = showCodex ? 'flex' : 'none';
+            if (showCodex) {
+                document.getElementById('codex-body').style.height = '';
+
+                renderCodexView('petals');
+                renderCodexView('monsters');
+                const pView = document.getElementById('codex-petals-view');
+                const mView = document.getElementById('codex-monsters-view');
+                if (activeCodexTab === 'petals') {
+                    pView.style.display = 'block';
+                    mView.style.display = 'none';
+                    mView.classList.remove('visible');
+                    setTimeout(() => pView.classList.add('visible'), 20);
+                } else {
+                    mView.style.display = 'block';
+                    pView.style.display = 'none';
+                    pView.classList.remove('visible');
+                    setTimeout(() => mView.classList.add('visible'), 20);
+                }
+            }
+            hideTooltip();
+            updatePauseState();
+        }
+
+        // ==================== 设置面板 ====================
+        function toggleSettings() {
+            if (importConfirmVisible() || clearConfirmVisible()) return; // 二次确认弹窗打开时不允许切换设置面板
+            showSettings = !showSettings;
+            if (showSettings) {
+                isPausedBySpace = false;
+                if (showInventory) toggleInventory();
+                if (showDevMode) toggleDevMode();
+                if (showCodex) toggleCodex();
+            }
+            const modal = document.getElementById('settings-modal');
+            modal.style.display = showSettings ? 'flex' : 'none';
+            hideTooltip();
+            updatePauseState();
+        }
+        function importConfirmVisible() { return showImportConfirmModal; }
+        function clearConfirmVisible() { return showClearConfirmModal; }
+
+        // ---- 导出图鉴记录 ----
+        const CODEX_SAVE_SALT = 'FLOOR_OI_CODEX_V1';
+        function exportCodexSave() {
+            const payload = { discoveredPetals, monsterKills, monsterDiscovered };
+            const dataStr = btoa(encodeURIComponent(JSON.stringify(payload) + '|||' + CODEX_SAVE_SALT));
+            const petalTotal = TIERS.length * Object.keys(KIND_NAMES).length;
+            const petalUnlocked = Object.keys(discoveredPetals).length;
+            const monsterUnlocked = Object.values(monsterDiscovered).filter(Boolean).length;
+            const totalKills = Object.values(monsterKills).reduce((a, b) => a + b, 0);
+            const htmlTemplate = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>florr 生态深渊 - 图鉴存档</title>
+<style>
+body{background:#0f172a;color:#e2e8f0;text-align:center;font-family:'Segoe UI',sans-serif;padding:50px;}
+.card{background:rgba(30,41,59,0.85);border:1px solid #475569;border-radius:15px;padding:40px;max-width:500px;margin:0 auto;box-shadow:0 0 20px rgba(56,189,248,0.3);}
+h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
+.stat{font-size:20px;margin:16px 0;}
+.meta-data{font-size:12px;color:#334155;margin-top:50px;word-wrap:break-word;}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>📖 花瓣/异兽图鉴存档</h1>
+<div class="stat">🌸 已解锁花瓣：<b style="color:#facc15">${petalUnlocked} / ${petalTotal}</b></div>
+<div class="stat">👾 已发现异兽：<b style="color:#facc15">${monsterUnlocked} / ${Object.keys(monsterDiscovered).length}</b></div>
+<div class="stat">⚔️ 累计击杀：<b style="color:#facc15">${totalKills}</b></div>
+<hr style="border-color:#334155; margin:30px 0;">
+<p style="color:#94a3b8;">此文件可用于在其他设备上导入您的图鉴记录。</p>
+<div id="secure-save-data" style="display:none;">${dataStr}</div>
+</div></body></html>`;
+            const blob = new Blob([htmlTemplate], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `florr_Codex_${petalUnlocked}petals_${monsterUnlocked}monsters.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ---- 导入图鉴记录 ----
+        function handleCodexImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const match = e.target.result.match(/<div id="secure-save-data" style="display:none;">(.*?)<\/div>/);
+                if (match && match[1]) {
+                    try {
+                        const parts = decodeURIComponent(atob(match[1])).split('|||');
+                        if (parts[1] === CODEX_SAVE_SALT) {
+                            const data = JSON.parse(parts[0]);
+                            pendingCodexImport = {
+                                discoveredPetals: data.discoveredPetals || {},
+                                monsterKills: data.monsterKills || {},
+                                monsterDiscovered: data.monsterDiscovered || {}
+                            };
+                            showImportConfirm();
+                        } else {
+                            alert('存档验证失败！');
+                        }
+                    } catch (err) {
+                        alert('存档解析失败！');
+                    }
+                } else {
+                    alert('无效的图鉴文件！');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        function showImportConfirm() {
+            if (!pendingCodexImport) return;
+            const oldPetals = Object.keys(discoveredPetals).length;
+            const newPetals = Object.keys(pendingCodexImport.discoveredPetals).length;
+            const oldMonsters = Object.values(monsterDiscovered).filter(Boolean).length;
+            const newMonsters = Object.values(pendingCodexImport.monsterDiscovered).filter(Boolean).length;
+            const oldKills = Object.values(monsterKills).reduce((a, b) => a + b, 0);
+            const newKills = Object.values(pendingCodexImport.monsterKills).reduce((a, b) => a + b, 0);
+            document.getElementById('diff-petals-old').innerText = oldPetals;
+            document.getElementById('diff-petals-new').innerText = newPetals;
+            document.getElementById('diff-monsters-old').innerText = oldMonsters;
+            document.getElementById('diff-monsters-new').innerText = newMonsters;
+            document.getElementById('diff-kills-old').innerText = oldKills;
+            document.getElementById('diff-kills-new').innerText = newKills;
+            if (showSettings) { showSettings = false; document.getElementById('settings-modal').style.display = 'none'; }
+            showImportConfirmModal = true;
+            document.getElementById('import-confirm-modal').style.display = 'flex';
+            updatePauseState();
+        }
+        function closeImportConfirm() {
+            pendingCodexImport = null;
+            showImportConfirmModal = false;
+            document.getElementById('import-confirm-modal').style.display = 'none';
+            updatePauseState();
+        }
+        function executeCodexImport(mode) {
+            if (!pendingCodexImport) return;
+            if (mode === 'overwrite') {
+                for (const k in discoveredPetals) delete discoveredPetals[k];
+                Object.assign(discoveredPetals, pendingCodexImport.discoveredPetals);
+                for (const k in monsterKills) monsterKills[k] = pendingCodexImport.monsterKills[k] || 0;
+                for (const k in monsterDiscovered) monsterDiscovered[k] = !!pendingCodexImport.monsterDiscovered[k];
+            } else { // merge
+                Object.assign(discoveredPetals, pendingCodexImport.discoveredPetals);
+                for (const k in monsterKills) {
+                    const importedVal = pendingCodexImport.monsterKills[k] || 0;
+                    monsterKills[k] = Math.max(monsterKills[k] || 0, importedVal);
+                }
+                for (const k in monsterDiscovered) {
+                    monsterDiscovered[k] = monsterDiscovered[k] || !!pendingCodexImport.monsterDiscovered[k];
+                }
+            }
+            saveCodexData();
+            pendingCodexImport = null;
+            showImportConfirmModal = false;
+            document.getElementById('import-confirm-modal').style.display = 'none';
+            renderCodexView('petals');
+            renderCodexView('monsters');
+            updatePauseState();
+        }
+
+        // ---- 清除所有数据 ----
+        function showClearCodexConfirm() {
+            document.getElementById('clear-confirm-input').value = '';
+            if (showSettings) { showSettings = false; document.getElementById('settings-modal').style.display = 'none'; }
+            showClearConfirmModal = true;
+            document.getElementById('clear-confirm-modal').style.display = 'flex';
+            updatePauseState();
+        }
+        function closeClearCodexConfirm() {
+            showClearConfirmModal = false;
+            document.getElementById('clear-confirm-modal').style.display = 'none';
+            updatePauseState();
+        }
+        function confirmClearCodexData() {
+            const input = document.getElementById('clear-confirm-input').value.trim();
+            showClearConfirmModal = false;
+            if (input === '删除') {
+                try { localStorage.removeItem(CODEX_KEY); } catch (e) {}
+                document.getElementById('clear-confirm-modal').style.display = 'none';
+                location.reload();
+            } else {
+                document.getElementById('clear-confirm-modal').style.display = 'none';
+                updatePauseState();
+            }
+        }
+
+        // 加点选择逻辑（不暂停游戏，展示在屏幕顶端）
+        function triggerLevelUpModal() {
+            if (showLevelUpModal || pendingLevelUps <= 0) return;
+            showLevelUpModal = true;
+            renderLevelUpOptions();
+        }
+
+        function getRandomThreeBuffs() {
+            const shuffled = [...ALL_BUFFS].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, 3);
+        }
+
+        function renderLevelUpOptions() {
+            const modal = document.getElementById('levelup-modal');
+            const container = document.getElementById('levelup-options');
+            currentChoices = getRandomThreeBuffs();
+
+            container.innerHTML = '';
+            currentChoices.forEach((buff, idx) => {
+                const card = document.createElement('div');
+                card.className = 'buff-card';
+                card.innerHTML = `
+                    <div class="buff-key-hint">[ ${idx + 1} ]</div>
+                    <div class="buff-icon">${buff.icon}</div>
+                    <div class="buff-title">${buff.title}</div>
+                    <div class="buff-desc">${buff.desc}</div>
+                `;
+                card.onclick = () => chooseBuff(buff);
+                container.appendChild(card);
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        function chooseBuff(buff) {
+            buff.apply();
+            spawnDamageText(player.x, player.y - 30, `${buff.title}!`, '#facc15');
+            pendingLevelUps--;
+
+            if (pendingLevelUps > 0) {
+                renderLevelUpOptions();
+            } else {
+                showLevelUpModal = false;
+                document.getElementById('levelup-modal').style.display = 'none';
+                currentChoices = [];
+                needsUIRender = true;
+            }
+        }
+
+        function switchCodexTab(tab) {
+            if (activeCodexTab === tab) return;
+            activeCodexTab = tab;
+            document.getElementById('codex-tab-petals').classList.toggle('active-tab', tab === 'petals');
+            document.getElementById('codex-tab-monsters').classList.toggle('active-tab', tab === 'monsters');
+
+            const codexBody = document.getElementById('codex-body');
+            const petalsView = document.getElementById('codex-petals-view');
+            const monstersView = document.getElementById('codex-monsters-view');
+            const targetView = tab === 'petals' ? petalsView : monstersView;
+            const currentView = tab === 'petals' ? monstersView : petalsView;
+
+            codexBody.style.height = codexBody.offsetHeight + 'px';
+
+            currentView.classList.remove('visible');
+            setTimeout(() => {
+                currentView.style.display = 'none';
+                renderCodexView(tab);
+                targetView.style.display = 'block';
+
+                const targetHeight = Math.min(360, targetView.scrollHeight);
+                codexBody.style.height = targetHeight + 'px';
+
+                void targetView.offsetWidth;
+                targetView.classList.add('visible');
+            }, 180);
+        }
+        function renderCodexView(viewType) {
+            if (viewType === 'petals') {
+                const container = document.getElementById('codex-petals-view');
+                let total = TIERS.length * Object.keys(KIND_NAMES).length;
+                let unlockedCount = Object.keys(discoveredPetals).length;
+                let html = `<div style="margin-bottom:8px; font-size:12px; color:#94a3b8; text-align:right;">已解锁花瓣: <b style="color:#38bdf8">${unlockedCount}</b> / ${total}</div>`;
+                html += `<div class="codex-grid">`;
+                TIERS.forEach(t => {
+                    Object.keys(KIND_NAMES).forEach(k => {
+                        const key = `${t}|${k}`;
+                        const isUnlocked = !!discoveredPetals[key];
+                        const col = TIER_COLORS[t];
+                        const mythicClass = t === 'mythic' ? 'mythic-text' : '';
+                        const stats = TIER_STATS[t];
+
+                        if (isUnlocked) {
+                            html += `
+                                <div class="codex-card">
+                                    <div class="codex-card-title">
+                                        <span style="color:${col}" class="${mythicClass}">${TIER_NAMES[t]} · ${KIND_NAMES[k]}</span>
+                                        <span>${KIND_ICONS[k] || '⚔️'}</span>
+                                    </div>
+                                    <div>⚔️ 伤害: <b style="color:#facc15">${stats.dmg}</b> | ⏱️ CD: <b>${(stats.regen/60).toFixed(1)}s</b></div>
+                                    <div style="color:#94a3b8; font-size:10px; margin-top:2px;">${KIND_DESCS[k]}</div>
+                                </div>
+                            `;
+                        } else {
+                            html += `
+                                <div class="codex-card locked">
+                                    <div class="codex-card-title">
+                                        <span style="color:#64748b">❓ 未知花瓣 (${TIER_NAMES[t]})</span>
+                                        <span>🔒</span>
+                                    </div>
+                                    <div style="color:#64748b;">尚未在探索中获取或合成该花瓣</div>
+                                </div>
+                            `;
+                        }
+                    });
+                });
+                html += `</div>`;
+                container.innerHTML = html;
+            } else if (viewType === 'monsters') {
+                const container = document.getElementById('codex-monsters-view');
+                let html = `<div class="codex-grid">`;
+                const monsters = [
+                    { type: 'basic', name: '噬块虫', desc: '深渊中最基础的猎食者，靠数量优势围攻。', color: '#ef4444' },
+                    { type: 'dasher', name: '疾风冲锋者', desc: '带有黄色荧光，会蓄力向玩家进行急速冲刺。', color: '#eab308' },
+                    { type: 'bomber', name: '熔岩自爆虫', desc: '体型庞大且浑身燃烧着火光，触碰玩家时会发生剧烈自爆。', color: '#f97316' },
+                    { type: 'ranged', name: '剧毒射手', desc: '隐藏在暗处的毒性异兽，能向玩家发射剧毒弹丸进行远距离打击。', color: '#10b981' },
+                    { type: 'summoner', name: '异兽母体', desc: '极其危险的庞大母体，会周期性在周围孵化大量深渊幼虫。', color: '#ec4899' },
+                    { type: 'splitter', name: '裂变异兽', desc: '体内蕴含分裂能量，被击杀后会瞬间裂变为三个极其敏捷的小型体。', color: '#06b6d4' }
+                ];
+                monsters.forEach(m => {
+                    const kills = monsterKills[m.type] || 0;
+                    const isSeen = monsterDiscovered[m.type] || kills > 0;
+                    if (isSeen) {
+                        html += `
+                            <div class="codex-card" style="border-left:4px solid ${m.color}">
+                                <div class="codex-card-title">
+                                    <span style="color:${m.color}">${m.name}</span>
+                                    <span style="color:#facc15; font-size:11px;">已击杀: <b>${kills}</b></span>
+                                </div>
+                                <div style="margin-top:2px; color:#cbd5e1;">${m.desc}</div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="codex-card locked">
+                                <div class="codex-card-title">
+                                    <span style="color:#64748b">❓ 未知的深渊生物</span>
+                                    <span>🔒</span>
+                                </div>
+                                <div style="color:#64748b;">潜入更深层的深渊以发现此类异兽</div>
+                            </div>
+                        `;
+                    }
+                });
+                html += `</div>`;
+                container.innerHTML = html;
+            }
+        }
+        function showPetalTooltip(e, tier, kind, durability = 5, maxDurability = 5) {
+            const tooltip = document.getElementById('tooltip-card');
+            const color = TIER_COLORS[tier];
+            const tierName = TIER_NAMES[tier];
+            const kindName = KIND_NAMES[kind] || '普通';
+            const stats = TIER_STATS[tier];
+            const dmgVal = Math.floor(stats.dmg * sessionDmgMult * playerBuffs.dmgMult);
+            const cdSec = ((stats.regen * playerBuffs.cdReduction) / 60).toFixed(1);
+            const desc = KIND_DESCS[kind] || '';
+            let mythicClass = tier === 'mythic' ? 'mythic-text' : '';
+
+            tooltip.innerHTML = `
+                <div class="tt-title">
+                    <span style="color:${color}" class="${mythicClass}">${tierName} · ${kindName}</span>
+                    <span style="font-size:11px; opacity:0.8;">${KIND_ICONS[kind] || '⚔️'}</span>
+                </div>
+                <div class="tt-stat">⚔️ 攻击伤害: <b>${dmgVal}</b> (基础 ${stats.dmg})</div>
+                <div class="tt-stat">🛡️ 耐久数值: <b>${durability}/${maxDurability}</b></div>
+                <div class="tt-stat">⏱️ 损坏冷却: <b>${cdSec}s</b></div>
+                ${stats.speedBonus > 1.0 ? `<div class="tt-stat">⚡ 移速加成: <b>+${Math.round((stats.speedBonus - 1) * 100)}%</b></div>` : ''}
+                <div class="tt-desc">💡 ${desc}</div>
+            `;
+            tooltip.style.display = 'block';
+            moveTooltip(e);
+        }
+        function moveTooltip(e) {
+            const tooltip = document.getElementById('tooltip-card');
+            if (!tooltip || tooltip.style.display === 'none') return;
+            const padding = 15;
+            let x = e.clientX + padding;
+            let y = e.clientY + padding;
+            const rect = tooltip.getBoundingClientRect();
+            if (x + rect.width > window.innerWidth - 10) {
+                x = e.clientX - rect.width - 10;
+            }
+            if (y + rect.height > window.innerHeight - 10) {
+                y = e.clientY - rect.height - 10;
+            }
+            tooltip.style.left = Math.max(10, x) + 'px';
+            tooltip.style.top = Math.max(10, y) + 'px';
+        }
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip-card');
+            if (tooltip) tooltip.style.display = 'none';
         }
         function clearAllEnemies() {
             enemies.forEach(e => {
                 spawnParticles(e.x, e.y, e.color, 10, 1.5);
-            }); enemies = [];
+            });
+            enemies = [];
+            enemyProjectiles = [];
             needsUIRender = true;
         }
         function applyDevSettings() {
@@ -732,13 +1723,14 @@
             applyDevSettings();
         }
         function togglePause() {
-            if (!showInventory && !showDevMode) {
+            if (!showInventory && !showDevMode && !showCodex && !showSettings) {
                 isPausedBySpace = !isPausedBySpace;
                 updatePauseState();
             }
         }
         function updatePauseState() {
-            isPaused = showInventory || showDevMode || isPausedBySpace;
+            // 升级不暂停游戏，不再将 showLevelUpModal 计入暂停状态
+            isPaused = showInventory || showDevMode || showCodex || isPausedBySpace || showDevWarnModal || showSettings || showImportConfirmModal || showClearConfirmModal;
             const overlay = document.getElementById('pause-overlay');
             const content = document.getElementById('pause-content');
             const equipBar = document.getElementById('equip-bar');
@@ -753,7 +1745,7 @@
                 } else {
                     equipBar.style.zIndex = '35';
                 }
-                if (isPausedBySpace && !showInventory && !showDevMode) {
+                if (isPausedBySpace && !showInventory && !showDevMode && !showCodex && !showSettings && !showImportConfirmModal && !showClearConfirmModal) {
                     content.classList.add('visible');
                 } else {
                     content.classList.remove('visible');
@@ -769,8 +1761,12 @@
             }
         }
         function handleOverlayClick() {
+            if (showImportConfirmModal || showClearConfirmModal) return; // 二次确认弹窗需要显式点击按钮，避免误触关闭
             if (showDevMode) toggleDevMode();
-            else if (showInventory) toggleInventory(); else if (isPausedBySpace) togglePause();
+            else if (showInventory) toggleInventory();
+            else if (showCodex) toggleCodex();
+            else if (showSettings) toggleSettings();
+            else if (isPausedBySpace) togglePause();
         }
         const camera = { x: 0, y: 0 };
         const player = {
@@ -788,7 +1784,21 @@
             legendary: { dmg: 18, speedBonus: 1.5, regen: 60 },
             mythic: { dmg: 28, speedBonus: 1.8, regen: 30 }
         };
-        const KIND_ICONS = { melee: '', explosive: '爆', missile: '射', speed: '速', guardian: '护' };
+        
+        const KIND_ICONS = { melee: '', explosive: '爆', missile: '射', speed: '速', guardian: '护', poison: '毒', frost: '冰', vampire: '吸', magnet: '磁' };
+        const KIND_NAMES = { melee: '近战花瓣', missile: '飞刀花瓣', explosive: '爆裂花瓣', speed: '极速花瓣', guardian: '守护花瓣', poison: '毒素花瓣', frost: '冰冻花瓣', vampire: '吸血花瓣', magnet: '磁铁花瓣' };
+        const KIND_DESCS = {
+            melee: '随花朵旋转，对直接碰撞的敌人造成基础伤害。',
+            missile: '长按左键可发射飞刀进行远程穿透打击，随后自动返回。',
+            explosive: '击中敌人时瞬间引发剧烈范围爆破，造成高额群伤。',
+            speed: '装备后大幅提升花瓣旋转速度与花朵移动速度。',
+            guardian: '受到致死伤害时自动消耗，触发 500 点全屏爆破并满血复活！',
+            poison: '击中敌人后附带叠层毒素，在持续时间内不断造成中毒持续伤害。',
+            frost: '击中敌人使其减速 50%，并有概率直接冻结敌人使其无法移动。',
+            vampire: '造成伤害时，按伤害的一定比例回复自身生命值。',
+            magnet: '装备后大幅扩大掉落花瓣的自动吸引半径与飞回速度。'
+        };
+        
         const BASE_CRAFT_RATES = { common: 0.68, unusual: 0.58, rare: 0.48, epic: 0.38, legendary: 0.28 };
         const CRAFT_RATES = {};
         for (let key in BASE_CRAFT_RATES) {
@@ -801,24 +1811,37 @@
         let inventory = [];
         let groundPetals = [];
         let enemies = [];
+        let enemyProjectiles = [];
         let particles = []; let damageTexts = [];
         let blastWaves = [];
         const rand = (a, b) => Math.random() * (b - a) + a;
         const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
         const collides = (a, b) => dist(a, b) < a.r + b.r;
+        
         const randomKind = () => {
-            const r = Math.random();
-            if (r < 0.35) return 'melee';
-            if (r < 0.55) return 'missile';
-            if (r < 0.75) return 'explosive';
-            if (r < 0.95) return 'speed';
-            return 'guardian';
+            const kinds = ['melee', 'missile', 'explosive', 'speed', 'guardian', 'poison', 'frost', 'vampire', 'magnet'];
+            const weights = [20, 15, 12, 12, 5, 12, 12, 7, 5];
+            let total = weights.reduce((a, b) => a + b, 0);
+            let r = Math.random() * total;
+            for (let i = 0; i < kinds.length; i++) {
+                if (r < weights[i]) return kinds[i];
+                r -= weights[i];
+            }
+            return 'melee';
         };
-        const createPetal = (type, x = 0, y = 0, kind = randomKind()) => ({
-            id: Date.now() + Math.random(), type: String(type), kind: kind, dmg: TIER_STATS[String(type)].dmg, r: 8, x, y,
-            durability: 5, maxDurability: 5, isActive: true, cooldownTimer: 0,
-            missileState: 'idle', missileTimer: 0, missileVx: 0, missileVy: 0
-        });
+
+        const createPetal = (type, x = 0, y = 0, kind = randomKind()) => {
+            const key = `${type}|${kind}`;
+            if (!discoveredPetals[key]) {
+                discoveredPetals[key] = true;
+                saveCodexData();
+            }
+            return {
+                id: Date.now() + Math.random(), type: String(type), kind: kind, dmg: TIER_STATS[String(type)].dmg, r: 8, x, y,
+                durability: 5, maxDurability: 5, isActive: true, cooldownTimer: 0,
+                missileState: 'idle', missileTimer: 0, missileVx: 0, missileVy: 0
+            };
+        };
         for (let i = 0; i < 4; i++) equipped.push(createPetal('common', 0, 0, 'melee'));
         function getCurrentMaxTierIdx() {
             const all = [...equipped, ...inventory];
@@ -831,6 +1854,7 @@
             damageTexts.push({ x: x + rand(-10, 10), y: y - 10, text, color, life: 40, maxLife: 40, vy: -1.5 });
         }
         function getMapDepth() { return Math.floor(Math.hypot(player.x, player.y) / 100); }
+        
         function spawnEnemy() {
             const angle = Math.random() * Math.PI * 2;
             const maxDim = Math.max(canvas.width, canvas.height);
@@ -840,23 +1864,84 @@
             const hp = Math.floor(10 + lvlMult * 2 + Math.pow(lvlMult, 1.6) * 0.3);
             let type = 'basic';
             const typeRoll = Math.random();
-            if (depth > 5 && typeRoll > 0.7) type = 'bomber';
-            else if (depth > 2 && typeRoll > 0.4) type = 'dasher';
+            
+            if (depth > 12 && typeRoll > 0.82) type = 'splitter';
+            else if (depth > 8 && typeRoll > 0.68) type = 'summoner';
+            else if (depth > 5 && typeRoll > 0.50) {
+                type = Math.random() < 0.5 ? 'bomber' : 'ranged';
+            } else if (depth > 2 && typeRoll > 0.25) type = 'dasher';
+
+            if (!monsterDiscovered[type]) {
+                monsterDiscovered[type] = true;
+                saveCodexData();
+            }
+
             let color = '#ef4444';
+            let r = 14;
             if (type === 'dasher') color = '#eab308';
-            if (type === 'bomber') color = '#f97316';
+            if (type === 'bomber') { color = '#f97316'; r = 18; }
+            if (type === 'ranged') { color = '#10b981'; r = 15; }
+            if (type === 'summoner') { color = '#ec4899'; r = 22; }
+            if (type === 'splitter') { color = '#06b6d4'; r = 18; }
+
             const maxAllowedSpeed = player.baseSpeed * 0.85;
-            const baseSpd = (type === 'dasher' ? 1.2 : (type === 'bomber' ? 1.4 : 1.6));
+            const baseSpd = (type === 'dasher' ? 1.2 : (type === 'bomber' ? 1.4 : (type === 'summoner' ? 0.9 : 1.6)));
             const speedInc = 2.5 * (1 - Math.exp(-lvlMult * 0.02));
             let finalSpeed = baseSpd + speedInc;
             finalSpeed = Math.min(finalSpeed, maxAllowedSpeed);
+
             enemies.push({
                 x: player.x + Math.cos(angle) * sd, y: player.y + Math.sin(angle) * sd,
-                r: type === 'bomber' ? 18 : 14, hp, maxHp: hp, speed: finalSpeed,
-                type, color, hitFlash: 0, aggro: false, wander: Math.random() * Math.PI * 2,
-                dashTimer: rand(60, 180), state: 'normal'
+                r, hp: type === 'summoner' ? Math.floor(hp * 1.6) : hp, maxHp: type === 'summoner' ? Math.floor(hp * 1.6) : hp,
+                speed: finalSpeed, type, color, hitFlash: 0, aggro: false, wander: Math.random() * Math.PI * 2,
+                dashTimer: rand(60, 180), shootTimer: rand(60, 120), summonTimer: rand(120, 240),
+                state: 'normal', isChild: false,
+                poisonStacks: 0, poisonTimer: 0, slowTimer: 0, freezeTimer: 0
             });
         }
+
+        function handleEnemyDeath(e) {
+            monsterKills[e.type] = (monsterKills[e.type] || 0) + 1;
+            saveCodexData();
+            player.xp += (2 + Math.floor(player.lvl / 4)) * sessionXpMult;
+            if (Math.random() < 0.5) dropGroundPetal(e.x, e.y);
+            spawnParticles(e.x, e.y, e.color, 10, 1.5);
+
+            if (e.type === 'splitter' && !e.isChild) {
+                for (let k = 0; k < 3; k++) {
+                    const childAngle = (Math.PI * 2 / 3) * k + Math.random() * 0.4;
+                    const childHp = Math.max(8, Math.floor(e.maxHp * 0.35));
+                    enemies.push({
+                        x: e.x + Math.cos(childAngle) * 15,
+                        y: e.y + Math.sin(childAngle) * 15,
+                        r: 10, hp: childHp, maxHp: childHp,
+                        speed: e.speed * 1.3, type: 'splitter', color: '#22d3ee',
+                        hitFlash: 0, aggro: true, wander: 0, dashTimer: 0,
+                        shootTimer: 0, summonTimer: 0, state: 'normal', isChild: true,
+                        poisonStacks: 0, poisonTimer: 0, slowTimer: 0, freezeTimer: 0
+                    });
+                }
+                spawnDamageText(e.x, e.y - 20, "分裂!", "#06b6d4");
+            }
+
+            while (player.xp >= player.xpMax) {
+                player.lvl++;
+                player.xp -= player.xpMax;
+                if (player.xp < 0) player.xp = 0;
+                player.xpMax = Math.floor(player.xpMax * 1.35);
+                player.maxHp += 15;
+                player.hp = Math.min(player.maxHp, player.hp + 15);
+                spawnDamageText(player.x, player.y - 30, "LEVEL UP!", "#facc15");
+                screenShake = 10;
+                pendingLevelUps++;
+            }
+            if (pendingLevelUps > 0 && !showLevelUpModal) {
+                triggerLevelUpModal();
+            }
+
+            needsUIRender = true;
+        }
+
         function dropGroundPetal(x, y) {
             const depth = getMapDepth();
             let maxIdx = getCurrentMaxTierIdx();
@@ -869,6 +1954,7 @@
             const p = createPetal(TIERS[dropIdx], x, y);
             p.life = 600; groundPetals.push(p); needsUIRender = true;
         }
+
         function renderUINow() {
             document.getElementById('lvl').textContent = player.lvl; document.getElementById('hp').textContent = Math.ceil(player.hp);
             document.getElementById('maxHp').textContent = player.maxHp;
@@ -887,11 +1973,18 @@
                 s.style.cssText = `background:${col}; border:2px solid rgba(255,255,255,0.3); border-radius:8px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; color:#000; position:relative; opacity:${p.isActive ? 1 : 0.3}; box-shadow:0 2px 6px rgba(0,0,0,0.3); cursor:pointer;`;
                 if (p.type === 'mythic') s.classList.add('mythic-bg');
                 let iconHtml = KIND_ICONS[p.kind] ? `<div style="position:absolute; top:2px; right:3px; color:#fff; font-size:10px; font-weight:bold; text-shadow:0 0 2px #000; pointer-events:none;">${KIND_ICONS[p.kind]}</div>` : '';
-                s.innerHTML = `${p.dmg}${iconHtml}`; s.title = `品质: ${TIER_NAMES[p.type]}\n耐久: ${p.durability}/${p.maxDurability}`;
+                s.innerHTML = `${p.dmg}${iconHtml}`;
                 const bar = document.createElement('div');
                 bar.style.cssText = `position:absolute; bottom:0; left:0; width:100%; height:3px; background:${p.durability > 2 ? '#22c55e' : '#ef4444'}; transition:height 0.15s; border-radius: 0 0 6px 6px;`;
                 s.appendChild(bar);
-                s.onmousedown = (e) => { if (shiftPressed) { quickSwap(p, 'equip'); return; } startDrag(e, p, 'equip'); };
+                s.onmouseenter = (e) => showPetalTooltip(e, p.type, p.kind, p.durability, p.maxDurability);
+                s.onmousemove = (e) => moveTooltip(e);
+                s.onmouseleave = () => hideTooltip();
+                s.onmousedown = (e) => {
+                    hideTooltip();
+                    if (shiftPressed) { quickSwap(p, 'equip'); return; }
+                    startDrag(e, p, 'equip');
+                };
                 eqFrag.appendChild(s);
             });
             eqGrid.appendChild(eqFrag);
@@ -918,8 +2011,11 @@
                     let iconHtml = KIND_ICONS[kind] ? `<div style="position:absolute; top:2px; right:3px; color:#fff; font-size:10px; font-weight:bold; text-shadow:0 0 2px #000; pointer-events:none;">${KIND_ICONS[kind]}</div>` : '';
                     el.innerHTML = `<span>${TIER_STATS[tier].dmg}</span>
 ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,0,0,0.65);color:#fff;border-radius:4px;padding:0 4px;font-size:11px;font-weight:600;line-height:1.6;pointer-events:none;">x${count}</span>`;
-                    el.title = TIER_NAMES[tier];
+                    el.onmouseenter = (e) => showPetalTooltip(e, tier, kind, 5, 5);
+                    el.onmousemove = (e) => moveTooltip(e);
+                    el.onmouseleave = () => hideTooltip();
                     el.onmousedown = (e) => {
+                        hideTooltip();
                         if (shiftPressed) { quickSwapByKey(key, 'inv'); return; }
                         startDragByKey(e, key);
                     };
@@ -928,14 +2024,25 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                 const panel = document.getElementById('craft-panel');
                 panel.innerHTML = '';
                 const craftFrag = document.createDocumentFragment();
+                let canCraftAny = false;
                 TIERS.slice(0, -1).forEach(t => {
-                    const count = inventory.filter(p => p.type === t).length; const btn = document.createElement('button');
+                    const count = inventory.filter(p => p.type === t).length;
+                    if (count >= 5) canCraftAny = true;
+                    const btn = document.createElement('button');
                     btn.className = 'craft-btn';
                     btn.disabled = count < 5;
                     btn.innerHTML = `5 ${TIER_NAMES[t]} → ${TIER_NAMES[TIERS[TIERS.indexOf(t) + 1]]} (<span>${Math.floor(CRAFT_RATES[t] * 100)}%</span>)`;
                     btn.onclick = () => craft(t);
                     craftFrag.appendChild(btn);
                 });
+
+                const allBtn = document.createElement('button');
+                allBtn.className = 'craft-btn craft-btn-all';
+                allBtn.disabled = !canCraftAny;
+                allBtn.innerHTML = `一键合成`;
+                allBtn.onclick = () => craftAll();
+                craftFrag.appendChild(allBtn);
+
                 panel.appendChild(craftFrag);
             }
         }
@@ -944,17 +2051,19 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
             const dstArr = source === 'equip' ? inventory : equipped;
             const idx = srcArr.indexOf(petal);
             if (idx === -1) return; if (source === 'inv' && dstArr.length >= maxEquipLimit) return;
+            if (source === 'inv' && equipped.length === 0) expandEquipBar();
             srcArr.splice(idx, 1); dstArr.push(petal); needsUIRender = true;
         }
         function quickSwapByKey(key, source) {
             if (source === 'inv' && equipped.length < maxEquipLimit) {
                 const [tier, kind] = key.split('|');
                 const idx = inventory.findIndex(p => p.type === tier && p.kind === kind);
-                if (idx !== -1) { equipped.push(inventory.splice(idx, 1)[0]); needsUIRender = true; }
+                if (idx !== -1) { if (equipped.length === 0) expandEquipBar(); equipped.push(inventory.splice(idx, 1)[0]); needsUIRender = true; }
             }
         }
         function startDragByKey(e, key) {
             e.preventDefault();
+            hideTooltip();
             const [tier, kind] = key.split('|');
             const idx = inventory.findIndex(p => p.type === tier && p.kind === kind);
             if (idx === -1) return;
@@ -962,7 +2071,9 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
         }
         let dragData = null, ghost = document.getElementById('drag-ghost');
         function startDrag(e, petal, source) {
-            e.preventDefault(); dragData = { petal, source };
+            e.preventDefault();
+            hideTooltip();
+            dragData = { petal, source };
             const srcArr = source === 'equip' ? equipped : inventory;
             const idx = srcArr.indexOf(petal);
             if (idx > -1) srcArr.splice(idx, 1); setupDragGhost(e, petal);
@@ -989,7 +2100,7 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
             for (let s of eqSlots) { if (s.contains(target) || s === target) { droppedInEquip = true; break; } }
             const eqWrapper = document.getElementById('equip-wrapper');
             if (eqWrapper && (eqWrapper.contains(target) || eqWrapper === target)) droppedInEquip = true;
-            if (droppedInEquip && equipped.length < maxEquipLimit) equipped.push(dragData.petal);
+            if (droppedInEquip && equipped.length < maxEquipLimit) { if (equipped.length === 0) expandEquipBar(); equipped.push(dragData.petal); }
             else inventory.push(dragData.petal);
             dragData = null; needsUIRender = true;
         }
@@ -1006,6 +2117,25 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
             else for (let i = 0; i < Math.floor(rand(1, 5)); i++) inventory.push(createPetal(tier));
             needsUIRender = true;
         }
+        function craftAll() {
+            let totalCrafts = 0;
+            let totalSuccess = 0;
+            for (let i = 0; i < TIERS.length - 1; i++) {
+                const tier = TIERS[i];
+                while (inventory.filter(p => p.type === tier).length >= 5) {
+                    const beforeNextCount = inventory.filter(p => p.type === TIERS[i + 1]).length;
+                    craft(tier);
+                    totalCrafts++;
+                    const afterNextCount = inventory.filter(p => p.type === TIERS[i + 1]).length;
+                    if (afterNextCount > beforeNextCount) totalSuccess++;
+                }
+            }
+            if (totalCrafts > 0) {
+                spawnDamageText(player.x, player.y - 30, `合成${totalCrafts}次(成功${totalSuccess}次)!`, "#38bdf8");
+            }
+            needsUIRender = true;
+        }
+
         function loop() {
             if (!running) return; requestAnimationFrame(loop);
             if (needsUIRender) { renderUINow(); needsUIRender = false; }
@@ -1013,12 +2143,13 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
             const mDist = Math.hypot(dx, dy);
             if (!isPaused) {
                 frame++;
-                if (frame % 60 === 0 && sessionHpRegen !== 0) {
-                    if (sessionHpRegen > 0 && player.hp < player.maxHp) {
-                        player.hp = Math.min(player.maxHp, player.hp + sessionHpRegen);
+                const totalHpRegen = sessionHpRegen + playerBuffs.hpRegen;
+                if (frame % 60 === 0 && totalHpRegen !== 0) {
+                    if (totalHpRegen > 0 && player.hp < player.maxHp) {
+                        player.hp = Math.min(player.maxHp, player.hp + totalHpRegen);
                         needsUIRender = true;
-                    } else if (sessionHpRegen < 0) {
-                        player.hp += sessionHpRegen; needsUIRender = true;
+                    } else if (totalHpRegen < 0) {
+                        player.hp += totalHpRegen; needsUIRender = true;
                         if (player.hp <= 0) gameOver();
                     }
                 }
@@ -1031,7 +2162,7 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                     if (b.alpha <= 0 || b.radius >= b.maxRadius - 2) blastWaves.splice(i, 1);
                 }
                 let speedMultiSum = equipped.reduce((sum, p) => sum + TIER_STATS[p.type].speedBonus, 0); let avgSpeedBonus = equipped.length ? speedMultiSum / equipped.length : 1;
-                const rot = (0.035 + player.lvl * 0.0015) * avgSpeedBonus;
+                const rot = (0.035 + player.lvl * 0.0015) * avgSpeedBonus * playerBuffs.rotSpeed;
                 let speedPetalBoost = 0;
                 equipped.forEach(p => {
                     if (p.kind === 'speed') {
@@ -1039,8 +2170,8 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                     }
                 });
                 let targetRadiusOffset = 0;
-                let currentSpeedCap = player.baseSpeed * avgSpeedBonus * (1 + speedPetalBoost) * sessionSpeedMult;
-                let dmgMult = 1.0 * sessionDmgMult;
+                let currentSpeedCap = player.baseSpeed * avgSpeedBonus * (1 + speedPetalBoost) * sessionSpeedMult * playerBuffs.moveSpeed;
+                let dmgMult = 1.0 * sessionDmgMult * playerBuffs.dmgMult;
                 if (isLeftMouseDown) { currentSpeedCap *= 1.25; targetRadiusOffset = 25; }
                 else if (isRightMouseDown) { targetRadiusOffset = -20; dmgMult *= 1.3; }
                 currentRadiusOffset += (targetRadiusOffset - currentRadiusOffset) * 0.15;
@@ -1063,6 +2194,58 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                 if (frame % 20 === 0 && enemies.length < 35 + player.lvl * 1.5) spawnEnemy();
                 player.invincibleTimer = Math.max(0, player.invincibleTimer - 1);
                 player.hurtFlashTimer = Math.max(0, player.hurtFlashTimer - 1);
+
+                for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+                    const proj = enemyProjectiles[i];
+                    proj.x += proj.vx;
+                    proj.y += proj.vy;
+                    proj.life--;
+                    if (proj.life <= 0) {
+                        enemyProjectiles.splice(i, 1);
+                        continue;
+                    }
+                    if (collides(player, proj)) {
+                        let dmgTaken = proj.dmg;
+                        if (player.invincibleTimer <= 0) {
+                            if (player.hp - dmgTaken <= 0) {
+                                let guardianIdx = equipped.findIndex(pt => pt.kind === 'guardian' && pt.isActive);
+                                if (guardianIdx !== -1) {
+                                    equipped.splice(guardianIdx, 1);
+                                    dmgTaken = 0;
+                                    player.hp = player.maxHp;
+                                    player.invincibleTimer = 120;
+                                    spawnDamageText(player.x, player.y, "守护触发! 满血复活!", "#facc15");
+                                    equipped.forEach(pt => {
+                                        pt.isActive = false;
+                                        pt.cooldownTimer = Math.max(15, Math.floor(TIER_STATS[pt.type].regen * playerBuffs.cdReduction));
+                                        pt.durability = 0;
+                                        if (pt.kind === 'missile') pt.missileState = 'idle';
+                                    });
+                                    blastWaves.push({ x: player.x, y: player.y, radius: 10, maxRadius: 200, color: '#facc15', alpha: 0.8, type: 'guardian' });
+                                    enemies.forEach(otherE => {
+                                        if (dist(player, otherE) < 200) {
+                                            otherE.hp -= 500;
+                                            otherE.hitFlash = 10;
+                                            spawnDamageText(otherE.x, otherE.y, "500", '#ffffff');
+                                        }
+                                    });
+                                    needsUIRender = true;
+                                }
+                            }
+                            if (dmgTaken > 0) {
+                                player.hp -= dmgTaken;
+                                player.invincibleTimer = 35;
+                                player.hurtFlashTimer = 8;
+                                spawnDamageText(player.x, player.y, `-${dmgTaken}`, '#ef4444');
+                                spawnParticles(player.x, player.y, proj.color, 6);
+                            }
+                            if (player.hp <= 0) gameOver();
+                            needsUIRender = true;
+                        }
+                        enemyProjectiles.splice(i, 1);
+                    }
+                }
+
                 equipped.forEach((p, i) => {
                     if (!p.isActive && p.kind !== 'missile') {
                         p.cooldownTimer--;
@@ -1095,7 +2278,7 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                             if (d < 25) {
                                 p.missileState = 'idle';
                                 p.x = orbitX; p.y = orbitY;
-                                p.isActive = false; p.cooldownTimer = 60;
+                                p.isActive = false; p.cooldownTimer = Math.max(15, Math.floor(60 * playerBuffs.cdReduction));
                                 needsUIRender = true;
                             }
                             else {
@@ -1106,11 +2289,16 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                         p.x = orbitX; p.y = orbitY;
                     }
                 });
+
+                const magnetCount = equipped.filter(p => p.kind === 'magnet' && p.isActive).length;
+                const magnetRadius = (120 + magnetCount * 180) * playerBuffs.pickupRadius;
+                const magnetPullSpeed = 0.04 + magnetCount * 0.04;
+
                 for (let i = groundPetals.length - 1; i >= 0; i--) {
                     const p = groundPetals[i]; p.life--;
                     const d = dist(player, p);
-                    if (d < 120) {
-                        p.attract = Math.min(1.0, (p.attract || 0.04) + 0.04);
+                    if (d < magnetRadius) {
+                        p.attract = Math.min(1.0, (p.attract || magnetPullSpeed) + magnetPullSpeed);
                         p.x += (player.x - p.x) * p.attract;
                         p.y += (player.y - p.y) * p.attract;
                     }
@@ -1136,27 +2324,96 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                 for (let i = enemies.length - 1; i >= 0; i--) {
                     const e = enemies[i];
                     if (e.hp <= 0) {
-                        player.xp += (2 + Math.floor(player.lvl / 4)) * sessionXpMult;
-                        if (Math.random() < 0.5) dropGroundPetal(e.x, e.y);
-                        spawnParticles(e.x, e.y, e.color, 10, 1.5);
+                        handleEnemyDeath(e);
                         enemies.splice(i, 1);
-                        if (player.xp >= player.xpMax) {
-                            player.lvl++; player.xp = 0; player.xpMax = Math.floor(player.xpMax * 1.35); player.maxHp += 15;
-                            spawnDamageText(player.x, player.y - 30, "LEVEL UP!", "#facc15"); screenShake = 10;
-                        } needsUIRender = true;
                         continue;
                     }
+
+                    if (e.poisonTimer > 0) {
+                        e.poisonTimer--;
+                        if (e.poisonTimer % 30 === 0 && e.poisonStacks > 0) {
+                            const poisonDmg = Math.max(1, Math.floor(e.poisonStacks * 2 * sessionDmgMult * playerBuffs.dmgMult));
+                            e.hp -= poisonDmg;
+                            e.hitFlash = 3;
+                            spawnDamageText(e.x, e.y, `${poisonDmg}`, "#22c55e");
+                            spawnParticles(e.x, e.y, "#22c55e", 3, 0.8);
+                            if (e.hp <= 0) {
+                                handleEnemyDeath(e);
+                                enemies.splice(i, 1);
+                                continue;
+                            }
+                        }
+                        if (e.poisonTimer <= 0) e.poisonStacks = 0;
+                    }
+
                     const edx = player.x - e.x, edy = player.y - e.y, edist = Math.hypot(edx, edy) || 1;
                     if (!e.aggro && edist <= AGGRO) e.aggro = true;
                     if (e.aggro) {
                         let currentSpeed = e.speed;
+
+                        if (e.freezeTimer > 0) {
+                            e.freezeTimer--;
+                            currentSpeed = 0;
+                        } else if (e.slowTimer > 0) {
+                            e.slowTimer--;
+                            currentSpeed *= 0.5;
+                        }
+
                         if (e.type === 'dasher') {
                             e.dashTimer--;
                             if (e.dashTimer <= 0) { e.state = 'dashing'; e.dashTimer = rand(80, 150); }
                             if (e.state === 'dashing' && e.dashTimer > 130) { currentSpeed *= 3.5; spawnParticles(e.x, e.y, '#eab308', 1); }
                             else { e.state = 'normal'; }
+                            e.x += (edx / edist) * currentSpeed; e.y += (edy / edist) * currentSpeed;
+                        } else if (e.type === 'ranged') {
+                            if (edist < 180) {
+                                e.x -= (edx / edist) * currentSpeed * 0.6;
+                                e.y -= (edy / edist) * currentSpeed * 0.6;
+                            } else if (edist > 250) {
+                                e.x += (edx / edist) * currentSpeed;
+                                e.y += (edy / edist) * currentSpeed;
+                            }
+                            e.shootTimer--;
+                            if (e.shootTimer <= 0 && e.freezeTimer <= 0) {
+                                e.shootTimer = rand(110, 170);
+                                const pAngle = Math.atan2(edy, edx);
+                                const pSpd = 5.5;
+                                enemyProjectiles.push({
+                                    x: e.x, y: e.y,
+                                    vx: Math.cos(pAngle) * pSpd,
+                                    vy: Math.sin(pAngle) * pSpd,
+                                    r: 5, life: 180, dmg: 10 + Math.floor(player.lvl * 0.8),
+                                    color: '#10b981'
+                                });
+                                spawnParticles(e.x, e.y, '#10b981', 4, 1.2);
+                            }
+                        } else if (e.type === 'summoner') {
+                            e.x += (edx / edist) * currentSpeed; e.y += (edy / edist) * currentSpeed;
+                            e.summonTimer--;
+                            if (e.summonTimer <= 0 && e.freezeTimer <= 0) {
+                                e.summonTimer = rand(200, 320);
+                                if (enemies.length < 50) {
+                                    for (let s = 0; s < 2; s++) {
+                                        const subAngle = Math.random() * Math.PI * 2;
+                                        const subR = 25;
+                                        if (!monsterDiscovered['basic']) { monsterDiscovered['basic'] = true; saveCodexData(); }
+                                        enemies.push({
+                                            x: e.x + Math.cos(subAngle) * subR,
+                                            y: e.y + Math.sin(subAngle) * subR,
+                                            r: 12, hp: Math.floor(e.maxHp * 0.25), maxHp: Math.floor(e.maxHp * 0.25),
+                                            speed: player.baseSpeed * 0.75, type: 'basic', color: '#ef4444',
+                                            hitFlash: 0, aggro: true, wander: 0, dashTimer: 0,
+                                            shootTimer: 0, summonTimer: 0, state: 'normal', isChild: true,
+                                            poisonStacks: 0, poisonTimer: 0, slowTimer: 0, freezeTimer: 0
+                                        });
+                                    }
+                                    spawnParticles(e.x, e.y, '#ec4899', 12, 2);
+                                    spawnDamageText(e.x, e.y - 15, "孵化!", "#ec4899");
+                                }
+                            }
+                        } else {
+                            e.x += (edx / edist) * currentSpeed; e.y += (edy / edist) * currentSpeed;
                         }
-                        e.x += (edx / edist) * currentSpeed; e.y += (edy / edist) * currentSpeed;
                     }
                     else {
                         const wa = e.wander + Math.sin(frame * 0.05 + i * 0.1) * 0.5; e.x += Math.cos(wa) * e.speed * 0.12; e.y += Math.sin(wa) * e.speed * 0.12;
@@ -1172,8 +2429,41 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                             } if (p.kind === 'explosive') {
                                 actualDmg *= 2.5;
                             }
+
+                            let isCrit = Math.random() < playerBuffs.critRate;
+                            if (isCrit) {
+                                actualDmg *= 2;
+                            }
+
+                            if (p.kind === 'poison') {
+                                e.poisonStacks = (e.poisonStacks || 0) + 1;
+                                e.poisonTimer = 180;
+                            }
+                            if (p.kind === 'frost') {
+                                e.slowTimer = 120;
+                                if (Math.random() < 0.22) {
+                                    e.freezeTimer = 65;
+                                    spawnDamageText(e.x, e.y - 10, "冰冻!", "#38bdf8");
+                                }
+                            }
+                            if (p.kind === 'vampire') {
+                                const lifestealAmt = Math.max(1, Math.floor(actualDmg * 0.22));
+                                if (player.hp < player.maxHp) {
+                                    player.hp = Math.min(player.maxHp, player.hp + lifestealAmt);
+                                    spawnDamageText(player.x, player.y - 15, `+${lifestealAmt}`, "#22c55e");
+                                    spawnParticles(player.x, player.y, '#22c55e', 3, 1);
+                                    needsUIRender = true;
+                                }
+                            }
+
                             e.hp -= actualDmg; e.hitFlash = 5; p.durability -= 1;
-                            spawnDamageText(e.x, e.y, Math.floor(actualDmg > 10000 ? e.maxHp : actualDmg), e.hp <= 0 ? '#facc15' : '#fff');
+                            if (isCrit) {
+                                spawnDamageText(e.x, e.y, `暴击 ${Math.floor(actualDmg)}!`, '#f59e0b');
+                                spawnParticles(e.x, e.y, '#f59e0b', 6, 2);
+                            } else {
+                                spawnDamageText(e.x, e.y, Math.floor(actualDmg > 10000 ? e.maxHp : actualDmg), e.hp <= 0 ? '#facc15' : '#fff');
+                            }
+
                             spawnParticles(e.x, e.y, getPetalColor(p.type), 3);
                             if (p.kind === 'explosive') {
                                 blastWaves.push({ x: e.x, y: e.y, radius: 10, maxRadius: 90, color: '#f97316', alpha: 0.7, type: 'normal' });
@@ -1187,20 +2477,16 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                                 });
                                 p.durability = 0;
                             }
-                            if (p.durability <= 0) { p.isActive = false; p.cooldownTimer = TIER_STATS[p.type].regen; }
+                            if (p.durability <= 0) { 
+                                p.isActive = false; 
+                                p.cooldownTimer = Math.max(15, Math.floor(TIER_STATS[p.type].regen * playerBuffs.cdReduction)); 
+                            }
                             if (e.hp <= 0) { died = true; break; }
                         }
                     }
                     if (died) {
-                        player.xp += (2 + Math.floor(player.lvl / 4)) * sessionXpMult;
-                        if (Math.random() < 0.5) dropGroundPetal(e.x, e.y);
-                        spawnParticles(e.x, e.y, e.color, 10, 1.5);
+                        handleEnemyDeath(e);
                         enemies.splice(i, 1);
-                        if (player.xp >= player.xpMax) {
-                            player.lvl++; player.xp = 0; player.xpMax = Math.floor(player.xpMax * 1.35); player.maxHp += 15;
-                            spawnDamageText(player.x, player.y - 30, "LEVEL UP!", "#facc15"); screenShake = 10;
-                        }
-                        needsUIRender = true;
                         continue;
                     }
                     if (player.invincibleTimer <= 0 && collides(player, e)) {
@@ -1220,7 +2506,7 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                                 spawnDamageText(player.x, player.y, "守护触发! 满血复活!", "#facc15");
                                 equipped.forEach(pt => {
                                     pt.isActive = false;
-                                    pt.cooldownTimer = Math.max(60, TIER_STATS[pt.type].regen);
+                                    pt.cooldownTimer = Math.max(15, Math.floor(TIER_STATS[pt.type].regen * playerBuffs.cdReduction));
                                     pt.durability = 0;
                                     if (pt.kind === 'missile') pt.missileState = 'idle';
                                 });
@@ -1258,6 +2544,7 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
         }
         function gameOver() {
             running = false;
+            hideTooltip();
             document.getElementById('gameOver').classList.add('visible');
             document.getElementById('finalLvl').textContent = player.lvl;
             document.getElementById('survTime').textContent = Math.floor((Date.now() - startTime) / 1000);
@@ -1339,6 +2626,14 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                 }
                 ctx.restore();
             });
+
+            enemyProjectiles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.shadowBlur = 8; ctx.shadowColor = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+                ctx.shadowBlur = 0; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+            });
+
             groundPetals.forEach(p => {
                 ctx.globalAlpha = p.life < 100 ? p.life / 100 : 0.8; const col = getPetalColor(p.type, p.x + p.y);
                 ctx.shadowBlur = 10; ctx.shadowColor = col;
@@ -1350,9 +2645,30 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
             enemies.forEach(e => {
                 ctx.fillStyle = e.aggro ? (e.hitFlash > 0 ? '#fff' : e.color) : '#64748b';
                 ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.fill();
+                
                 if (e.type === 'bomber' && e.aggro) {
                     ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(e.x, e.y, e.r * 0.5, 0, Math.PI * 2); ctx.fill();
+                } else if (e.type === 'ranged' && e.aggro) {
+                    ctx.fillStyle = '#6ee7b7'; ctx.beginPath(); ctx.arc(e.x, e.y, e.r * 0.4, 0, Math.PI * 2); ctx.fill();
+                } else if (e.type === 'summoner' && e.aggro) {
+                    ctx.fillStyle = '#f472b6'; ctx.beginPath(); ctx.arc(e.x, e.y, e.r * 0.5, 0, Math.PI * 2); ctx.fill();
+                } else if (e.type === 'splitter' && e.aggro) {
+                    ctx.fillStyle = '#a5f3fc'; ctx.beginPath(); ctx.arc(e.x, e.y, e.r * 0.45, 0, Math.PI * 2); ctx.fill();
                 }
+
+                if (e.freezeTimer > 0) {
+                    ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
+                    ctx.beginPath(); ctx.arc(e.x, e.y, e.r + 3, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.stroke();
+                } else if (e.slowTimer > 0) {
+                    ctx.strokeStyle = '#a5f3fc'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(e.x, e.y, e.r + 2, 0, Math.PI * 2); ctx.stroke();
+                }
+                if (e.poisonStacks > 0) {
+                    ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(e.x, e.y, e.r + 4, 0, Math.PI * 2); ctx.stroke();
+                }
+
                 ctx.fillStyle = '#0f172a'; ctx.fillRect(e.x - 12, e.y - e.r - 8, 24, 4);
                 ctx.fillStyle = '#22c55e'; ctx.fillRect(e.x - 12, e.y - e.r - 8, 24 * Math.max(0, e.hp / e.maxHp), 4);
             });
