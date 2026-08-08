@@ -74,7 +74,7 @@
     <link rel="stylesheet" href="files/css/shaihai-theme.css">
     <style>
         /* 设置与确认弹窗高优先级层级与样式 */
-        #settings-modal, #import-confirm-modal, #clear-confirm-modal, #rules-modal {
+        #settings-modal, #import-confirm-modal, #clear-confirm-modal {
             z-index: 1000;
         }
         .settings-action-group {
@@ -116,64 +116,9 @@
             font-size: 13px;
             line-height: 1.5;
         }
-
-        /* 左上角游戏规则按钮 */
-        .rules-btn-topleft {
-            position: fixed; /* 改为 fixed 固定定位 */
-            top: 16px;
-            left: 16px;
-            z-index: 9999; /* 提高层级，使其浮在主界面和开始弹窗之上 */
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: all 0.25s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-        }
-        .rules-btn-topleft:hover {
-            background: rgba(30, 41, 59, 0.95);
-            border-color: rgba(96, 165, 250, 0.8);
-            color: #60a5fa;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(96, 165, 250, 0.3);
-        }
-        /* 游戏规则弹窗内部样式 */
-        #rules-modal .modal-content {
-            max-width: 620px;
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            padding: 24px;
-        }
-        .rules-body-container {
-            flex: 1;
-            overflow-y: auto;
-            margin: 16px 0;
-            padding: 16px;
-            background: rgba(0, 0, 0, 0.35);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            font-size: 14px;
-            line-height: 1.8;
-            color: #e2e8f0;
-            white-space: pre-wrap; /* 保持文本中的段落换行与空格 */
-            text-align: left;
-            word-break: break-word;
-        }
     </style>
 </head>
 <body>
-    <!-- 左上角游戏规则按钮 -->
-        <button class="rules-btn-topleft" id="btn-open-rules">游戏规则</button>
     <!-- 黑色底板 + 谷歌蓝毛毛虫加载动画组件 -->
     <div id="page-loader">
         <svg class="google-spinner" viewBox="0 0 50 50">
@@ -311,17 +256,6 @@
     <section class="elements-section" id="elements-container">
         <!-- 动态生成 -->
     </section>
-
-    <!-- 游戏规则模态框 -->
-    <div class="modal" id="rules-modal" style="display:none;">
-        <div class="modal-content">
-            <h2 style="margin-top: 0; text-align: center; color: #60a5fa;">📖 游戏规则</h2>
-            <div class="rules-body-container" id="rules-content">
-                <div style="text-align:center; padding: 20px; color: #9ca3af;">正在加载规则文本...</div>
-            </div>
-            <button class="btn btn-secondary" id="close-rules-btn" style="width: 100%;">关闭</button>
-        </div>
-    </div>
     
     <!-- 开始界面模态框 -->
     <div class="modal" id="start-modal" style="display:none;">
@@ -715,56 +649,6 @@
 
             console.log('函数棋游戏已加载完成！');
         });
-    </script>
-
-    <!-- 游戏规则弹窗处理逻辑 -->
-    <script>
-        (function initGameRules() {
-            const btnOpenRules = document.getElementById('btn-open-rules');
-            const rulesModal = document.getElementById('rules-modal');
-            const closeRulesBtn = document.getElementById('close-rules-btn');
-            const rulesContent = document.getElementById('rules-content');
-            let rulesLoaded = false;
-
-            if (btnOpenRules) {
-                btnOpenRules.addEventListener('click', () => {
-                    rulesModal.style.display = 'flex';
-                    if (!rulesLoaded) {
-                        fetch('游戏规则.txt')
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error('未找到游戏规则文件');
-                                }
-                                return response.text();
-                            })
-                            .then(text => {
-                                rulesContent.textContent = text;
-                                rulesLoaded = true;
-                            })
-                            .catch(err => {
-                                rulesContent.innerHTML = `<div style="color: #f87171; text-align: center; padding: 20px;">
-                                    无法加载规则文件：${err.message}<br>
-                                    <small style="color: #9ca3af;">请确保根目录下存在 <b>游戏规则.txt</b> 文件。</small>
-                                </div>`;
-                            });
-                    }
-                });
-            }
-
-            if (closeRulesBtn) {
-                closeRulesBtn.addEventListener('click', () => {
-                    rulesModal.style.display = 'none';
-                });
-            }
-
-            if (rulesModal) {
-                rulesModal.addEventListener('click', (e) => {
-                    if (e.target === rulesModal) {
-                        rulesModal.style.display = 'none';
-                    }
-                });
-            }
-        })();
     </script>
 
     <!-- 游戏设置与导入/导出/清除数据 逻辑脚本 -->
@@ -1184,7 +1068,7 @@ h1 { color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5); }
     <!-- <<< 按钮交互增强：涟漪 + 磁性吸附 + 光晕跟随 + 箭头注入 >>> -->
     <script>
         (function initButtonEnhancements() {
-            var btns = document.querySelectorAll('.btn, .btn-exit, .mode-btn, .btn-small, .summa-dialog-option-btn, .summa-dialog-skip-btn, .summa-dialog-exit-btn, .campaign-difficulty-grid .btn, .campaign-level-cell, .summa-dialog-input-buttons .btn, .rules-btn-topleft');
+            var btns = document.querySelectorAll('.btn, .btn-exit, .mode-btn, .btn-small, .summa-dialog-option-btn, .summa-dialog-skip-btn, .summa-dialog-exit-btn, .campaign-difficulty-grid .btn, .campaign-level-cell, .summa-dialog-input-buttons .btn');
 
             btns.forEach(function(el) {
                 if (el.hasAttribute('data-arrow') && !el.querySelector('.btn-arrow')) {
