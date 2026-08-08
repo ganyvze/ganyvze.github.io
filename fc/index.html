@@ -149,6 +149,9 @@
 
     <div id="summa-container"></div>
 
+    <!-- 游戏规则悬浮按钮 -->
+    <button id="btn-game-rules" class="btn btn-secondary" style="position: fixed; top: 15px; left: 15px; z-index: 1001; padding: 12px 24px; font-size: 24px; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">游戏规则</button>
+    
     <!-- 顶部信息栏 -->
     <header class="header" id="header">
         <div class="score-display">
@@ -310,7 +313,7 @@
                 <!-- 右侧：模式按钮 + 开始按钮 -->
                 <div class="start-right-column">
                     <div class="mode-select start-modes-right">
-                        <!-- 在本地对战上方新增：⚙ 游戏设置 按钮 -->
+                        <!-- 新增：⚙ 游戏设置 按钮 -->
                         <button class="mode-btn" id="btn-open-settings" style="margin-bottom: 8px; background: rgba(167, 139, 250, 0.18); border: 1px solid rgba(167, 139, 250, 0.5); color: #c4b5fd;">⚙ 游戏设置</button>
                         <div class="mode-toggle mode-toggle-vertical">
                             <button class="mode-btn active" id="mode-local" data-mode="local">本地对战</button>
@@ -557,6 +560,15 @@
             <h2>游戏报告</h2>
             <div id="report-content"></div>
             <button class="btn btn-secondary" id="close-report-btn" style="width: 100%; margin-top: 20px;">关闭</button>
+        </div>
+    </div>
+
+    <!-- 游戏规则模态框 -->
+    <div class="modal" id="rules-modal" style="display:none; z-index: 2000;">
+        <div class="modal-content" style="max-width: 600px; padding: 24px; max-height: 80vh; display: flex; flex-direction: column;">
+            <h2 style="margin-top: 0; text-align: center; color: #a78bfa;">游戏规则</h2>
+            <div id="rules-content" style="flex: 1; overflow-y: auto; text-align: left; line-height: 1.6; font-size: 14px; white-space: pre-wrap; padding: 15px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; margin-bottom: 20px; color: #e5e7eb;">加载中...</div>
+            <button class="btn btn-secondary" id="close-rules-btn" style="width: 100%;">关闭</button>
         </div>
     </div>
 
@@ -1112,6 +1124,46 @@ h1 { color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5); }
                 });
             });
         })();
+    </script>
+
+    <!-- 游戏规则读取与展示逻辑 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnGameRules = document.getElementById('btn-game-rules');
+            const rulesModal = document.getElementById('rules-modal');
+            const closeRulesBtn = document.getElementById('close-rules-btn');
+            const rulesContent = document.getElementById('rules-content');
+            let isRulesLoaded = false;
+
+            if (btnGameRules && rulesModal) {
+                // 打开规则弹窗
+                btnGameRules.addEventListener('click', function() {
+                    rulesModal.style.display = 'flex';
+                    
+                    // 如果尚未加载过，则发起请求读取 txt
+                    if (!isRulesLoaded) {
+                        fetch('游戏规则.txt')
+                            .then(response => {
+                                if (!response.ok) throw new Error('网络响应错误');
+                                return response.text();
+                            })
+                            .then(text => {
+                                rulesContent.textContent = text;
+                                isRulesLoaded = true;
+                            })
+                            .catch(error => {
+                                console.error('获取游戏规则失败:', error);
+                                rulesContent.textContent = '⚠️ 加载失败';
+                            });
+                    }
+                });
+
+                // 关闭规则弹窗
+                closeRulesBtn.addEventListener('click', function() {
+                    rulesModal.style.display = 'none';
+                });
+            }
+        });
     </script>
 </body>
 </html>
