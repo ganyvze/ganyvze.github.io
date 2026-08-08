@@ -166,6 +166,32 @@
       letter-spacing: 1px;
     }
 
+    /* PERFECT 动态提示样式 */
+    .perfect-popup {
+      position: fixed;
+      left: 50%;
+      top: 38%;
+      transform: translate(-50%, -50%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 46px;
+      font-weight: 900;
+      font-style: italic;
+      background: linear-gradient(135deg, #ffe528, #ff68fd, #15befc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 15px rgba(255, 229, 40, 0.7));
+      pointer-events: none;
+      z-index: 80;
+      opacity: 0;
+      animation: perfectPop 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes perfectPop {
+      0% { opacity: 0; transform: translate(-50%, -20%) scale(0.5) rotate(-6deg); }
+      30% { opacity: 1; transform: translate(-50%, -50%) scale(1.25) rotate(2deg); }
+      65% { opacity: 1; transform: translate(-50%, -60%) scale(1.0) rotate(0deg); }
+      100% { opacity: 0; transform: translate(-50%, -90%) scale(0.8) rotate(6deg); }
+    }
+
     /* 暂停弹窗 */
     #pauseOverlay {
       display: none;
@@ -408,6 +434,10 @@
           </select>
         </div>
         <div class="setting-row">
+          <span>长按右键临时加速</span>
+          <span style="color:#ffe528; font-weight:bold;">1.25x ⚡</span>
+        </div>
+        <div class="setting-row">
           <span>粒子与渲染特效</span>
           <label style="display:flex; align-items:center; cursor:pointer;">
             <input type="checkbox" id="effectsToggle" checked onchange="toggleEffects(this.checked)" style="width:18px; height:18px; accent-color:#ff68fd;">
@@ -539,6 +569,15 @@
     const SQ_SIZE     = 0.7;   // 方块边长
     const SQ_SPACING  = 0.9;   // 方块中心间距
 
+    // ===== 移动轨道系统（中后期动态挑战） =====
+    const MOVING_TRACK_SCORE_THRESHOLD = 30; // 达到该分数后才可能出现左右移动的方形轨道
+    const MOVING_TRACK_CHANCE = 0.35;         // 满足分数条件后，方形轨道组出现移动的概率
+    const MOVING_TRACK_SPEED_MIN = 0.9;       // 左右移动速度下限（单位/秒）
+    const MOVING_TRACK_SPEED_MAX = 1.8;       // 左右移动速度上限（单位/秒）
+    const MOVING_TRACK_RANGE_MIN = 0.4;       // 左右移动幅度（相对初始位置的偏移半径）下限
+    const MOVING_TRACK_RANGE_MAX = 0.7;       // 左右移动幅度上限
+    const MOVING_TRACK_BOUND_X = LONG_SIZE_X / 2 - SQ_SIZE / 2 - 0.15; // X 轴可移动的安全边界（避免超出长轨道范围）
+
     // ===== 几何体（共享） =====
     const longGeo = new THREE.BoxGeometry(LONG_SIZE_X, PLATE_HEIGHT, LONG_SIZE_Z);
     const sqGeo   = new THREE.BoxGeometry(SQ_SIZE, PLATE_HEIGHT, SQ_SIZE);
@@ -598,6 +637,7 @@
     const trackGroups = [];
     const groupZList  = [];
     let groupIdCounter = 0;
+    let score = 0; // 提前声明，供移动轨道生成逻辑（生成时机早于分数面板初始化）读取
 
     function createType1(z, colorKey) {
       const mat = makeMat(colorKey);
@@ -607,6 +647,26 @@
       mesh.castShadow = true;
       scene.add(mesh);
       return { type: 1, meshes: [mesh], mats: [mat], z, colorKey, id: groupIdCounter++ };
+    }
+
+    // 是否允许在当前分数下生成移动轨道
+    function shouldSpawnMovingTrack() {
+      return score >= MOVING_TRACK_SCORE_THRESHOLD && Math.random() < MOVING_TRACK_CHANCE;
+    }
+
+    // 为组内每个方块附加左右移动状态（baseX 为摆动中心，即原始生成位置）
+    function attachMovingState(result, xPositions) {
+      const moving = shouldSpawnMovingTrack();
+      result.moving = moving;
+      result.moveBaseX = xPositions.slice();
+      if (moving) {
+        result.moveSpeed = MOVING_TRACK_SPEED_MIN + Math.random() * (MOVING_TRACK_SPEED_MAX - MOVING_TRACK_SPEED_MIN);
+        result.moveRange = MOVING_TRACK_RANGE_MIN + Math.random() * (MOVING_TRACK_RANGE_MAX - MOVING_TRACK_RANGE_MIN);
+        result.movePhase = Math.random() * Math.PI * 2;
+        // 方向随机取反，避免所有移动轨道同步摆动
+        if (Math.random() < 0.5) result.moveSpeed *= -1;
+      }
+      return result;
     }
 
     function createType2(z, colors) {
@@ -623,7 +683,7 @@
         result.mats.push(...mats);
         result.colorKeys.push(colors[i]);
       }
-      return result;
+      return attachMovingState(result, xPositions);
     }
 
     function createType3(z, colors) {
@@ -641,7 +701,7 @@
         result.mats.push(...mats);
         result.colorKeys.push(colors[i]);
       }
-      return result;
+      return attachMovingState(result, xPositions);
     }
 
     function createRandomGroup(z, safeColor) {
@@ -703,12 +763,27 @@
     const FADE_START = 3;
     const FADE_END   = 12;
 
-    function updateTrack(deltaZ) {
+    function updateTrack(deltaZ, dt) {
       for (let i = 0; i < trackGroups.length; i++) {
         groupZList[i] += deltaZ;
         trackGroups[i].z = groupZList[i];
         for (const m of trackGroups[i].meshes) {
           m.position.z = groupZList[i];
+        }
+      }
+
+      // 更新左右移动轨道的 X 位置（正弦摆动，速度决定摆动快慢及方向）
+      if (dt) {
+        for (const group of trackGroups) {
+          if (!group.moving) continue;
+          group.movePhase += group.moveSpeed * dt;
+          for (let mi = 0; mi < group.meshes.length; mi++) {
+            const baseX = group.moveBaseX[mi];
+            const offset = Math.sin(group.movePhase) * group.moveRange;
+            let x = baseX + offset;
+            x = Math.max(-MOVING_TRACK_BOUND_X, Math.min(MOVING_TRACK_BOUND_X, x));
+            group.meshes[mi].position.x = x;
+          }
         }
       }
 
@@ -772,6 +847,9 @@
     let velZ        = 0;
     let falling     = false;
 
+    // 连击 (Combo) 机制变量
+    let comboCount = 0;
+
     const raycaster = new THREE.Raycaster();
     const mouseNDC  = new THREE.Vector2(0, 0);
     const groundPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
@@ -797,6 +875,40 @@
         updateTargetBallXFromEvent(e.touches[0].clientX, e.touches[0].clientY);
       }
     }, { passive: true });
+
+    // ===== 长按右键临时加速系统 =====
+    let isRightClickPressed = false;
+
+    // 禁用默认右键菜单
+    window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    window.addEventListener('mousedown', (e) => {
+      if (e.button === 2) {
+        isRightClickPressed = true;
+        updateSpeedDisplayUI();
+      }
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (e.button === 2) {
+        isRightClickPressed = false;
+        updateSpeedDisplayUI();
+      }
+    });
+
+    window.addEventListener('mouseleave', () => {
+      if (isRightClickPressed) {
+        isRightClickPressed = false;
+        updateSpeedDisplayUI();
+      }
+    });
+
+    window.addEventListener('blur', () => {
+      if (isRightClickPressed) {
+        isRightClickPressed = false;
+        updateSpeedDisplayUI();
+      }
+    });
 
     function findCollisionWithAnyGroup() {
       const r = BALL_RADIUS;
@@ -846,36 +958,57 @@
       return 1.0 + 0.2 * Math.log1p(score);
     }
 
+    // 获取右键加速倍率（按住时 1.5x）
+    function getRightClickMultiplier() {
+      return isRightClickPressed ? 1.5 : 1.0;
+    }
+
     // 更新 UI 右上角速度文本
     function updateSpeedDisplayUI() {
       const speedEl = document.getElementById('speedDisplay');
       if (speedEl) {
-        const totalMult = getScoreSpeedMultiplier() * gameSpeedMultiplier;
-        speedEl.textContent = `速度 ${totalMult.toFixed(2)}x`;
+        const totalMult = getScoreSpeedMultiplier() * gameSpeedMultiplier * getRightClickMultiplier();
+        const boostTag = isRightClickPressed ? ' ⚡' : '';
+        speedEl.textContent = `速度 ${totalMult.toFixed(2)}x${boostTag}`;
       }
     }
 
-    function setCookie(name, value, days) {
-      const maxAge = days * 24 * 60 * 60;
-      document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; SameSite=Lax`;
-    }
+    // ===== 数据存储（使用 localStorage，向下兼容 Cookie） =====
     function getCookie(name) {
       const target = name + '=';
       const parts = document.cookie.split(';');
       for (let c of parts) {
         c = c.trim();
-        if (c.indexOf(target) === 0) {
-          return decodeURIComponent(c.substring(target.length));
-        }
+        if (c.indexOf(target) === 0) return decodeURIComponent(c.substring(target.length));
       }
       return null;
+    }
+
+    function getBestScore() {
+      try {
+        const val = localStorage.getItem('infiniteTrack_bestScore');
+        if (val !== null) return parseInt(val, 10) || 0;
+      } catch (e) {}
+      // 向下兼容：尝试读取原 Cookie 存储
+      const cookieVal = getCookie('infiniteTrack_bestScore');
+      if (cookieVal !== null) {
+        const parsed = parseInt(cookieVal, 10) || 0;
+        setBestScore(parsed);
+        return parsed;
+      }
+      return 0;
+    }
+
+    function setBestScore(val) {
+      try {
+        localStorage.setItem('infiniteTrack_bestScore', val.toString());
+      } catch (e) {}
     }
 
     const scoreValueEl     = document.getElementById('scoreValue');
     const bestScoreValueEl = document.getElementById('bestScoreValue');
 
-    let score = 0;
-    let bestScore = parseInt(getCookie('infiniteTrack_bestScore'), 10) || 0;
+    let bestScore = getBestScore();
     bestScoreValueEl.textContent = bestScore;
 
     function syncScoreColor() {
@@ -894,7 +1027,7 @@
       if (score > bestScore) {
         bestScore = score;
         bestScoreValueEl.textContent = bestScore;
-        setCookie('infiniteTrack_bestScore', bestScore, 365);
+        setBestScore(bestScore);
       }
       updateSpeedDisplayUI();
     }
@@ -906,17 +1039,100 @@
       updateSpeedDisplayUI();
     }
 
-    // 碎裂系统
+    // ===== 完美着陆与连击视觉反馈 =====
+    function showPerfectUI(combo) {
+      const popup = document.createElement('div');
+      popup.className = 'perfect-popup';
+      popup.textContent = combo > 1 ? `PERFECT! x${combo}` : 'PERFECT!';
+      document.body.appendChild(popup);
+      setTimeout(() => {
+        if (popup && popup.parentNode) popup.parentNode.removeChild(popup);
+      }, 850);
+    }
+
+    // 爆彩粒子系统
+    const perfectParticles = [];
+
+    function triggerPerfectBurstParticles(x, y, colorKey) {
+      if (!enableParticles) return;
+      const particleGeo = new THREE.SphereGeometry(BALL_RADIUS * 0.08, 6, 6);
+      const particleCount = 45;
+      const rainbowColors = [0xff68fd, 0xffe528, 0x15befc, 0xff3366, 0x33ffaa, 0xffffff];
+
+      for (let i = 0; i < particleCount; i++) {
+        const colorHex = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
+        const pMat = new THREE.MeshStandardMaterial({
+          color: colorHex,
+          emissive: colorHex,
+          emissiveIntensity: 0.8,
+          roughness: 0.1,
+          transparent: true,
+          opacity: 1.0
+        });
+        const particle = new THREE.Mesh(particleGeo, pMat);
+        particle.position.set(
+          x + (Math.random() - 0.5) * 0.3,
+          y + 0.1,
+          (Math.random() - 0.5) * 0.3
+        );
+        scene.add(particle);
+
+        const speed = 4 + Math.random() * 6;
+        const angle = Math.random() * Math.PI * 2;
+        const elevation = Math.random() * Math.PI * 0.4;
+
+        perfectParticles.push({
+          mesh: particle,
+          mat: pMat,
+          vel: new THREE.Vector3(
+            Math.cos(angle) * Math.cos(elevation) * speed,
+            Math.sin(elevation) * speed + 2,
+            Math.sin(angle) * Math.cos(elevation) * speed
+          ),
+          life: 0.7 + Math.random() * 0.3,
+          maxLife: 0.7 + Math.random() * 0.3
+        });
+      }
+    }
+
+    function updatePerfectParticles(dt) {
+      for (let i = perfectParticles.length - 1; i >= 0; i--) {
+        const p = perfectParticles[i];
+        p.life -= dt;
+        p.vel.y -= 8 * dt;
+        p.mesh.position.addScaledVector(p.vel, dt);
+
+        const ratio = Math.max(0, p.life / p.maxLife);
+        p.mat.opacity = ratio;
+        p.mesh.scale.setScalar(Math.max(0.01, ratio * 1.2));
+
+        if (p.life <= 0) {
+          scene.remove(p.mesh);
+          p.mesh.geometry.dispose();
+          p.mat.dispose();
+          perfectParticles.splice(i, 1);
+        }
+      }
+    }
+
+    // ===== 碎裂系统与摄像机震动 =====
     const DEATH_DURATION = 1.0;
     let dying = false;
     let deathTimer = 0;
     const deathFragments = [];
     const deathParticles = [];
 
+    // 摄像机震动参数
+    let cameraShakeTimer = 0;
+    const CAMERA_SHAKE_DURATION = 0.4;
+
     function triggerDeath(plateColorKey) {
       dying = true;
       deathTimer = 0;
       velZ = 0;
+
+      // 触发摄像机快频震动
+      cameraShakeTimer = CAMERA_SHAKE_DURATION;
 
       sphere.visible = false;
       wireMesh.visible = false;
@@ -1014,11 +1230,17 @@
         p.mat.dispose();
       }
       deathParticles.length = 0;
+      for (const p of perfectParticles) {
+        scene.remove(p.mesh);
+        p.mesh.geometry.dispose();
+        p.mat.dispose();
+      }
+      perfectParticles.length = 0;
     }
 
     let lastLandedGroupId = -1;
 
-    function onLandUpdateVelZ() {
+    function onLandUpdateVelZ(scoreToAdd = 1) {
       let landingIdx = -1;
       let landingZ = Infinity;
       for (let i = 0; i < groupZList.length; i++) {
@@ -1039,7 +1261,7 @@
         }
         syncScoreColor();
         if (group.id !== lastLandedGroupId) {
-          addScore(1);
+          addScore(scoreToAdd);
           lastLandedGroupId = group.id;
         }
       }
@@ -1206,7 +1428,7 @@
       resetGame();
     });
 
-    // ===== 暂停系统 =====
+    // ===== 暂停系统与切后台监听 =====
     const pauseOverlay = document.getElementById('pauseOverlay');
     const pauseKeyTip  = document.getElementById('pauseKeyTip');
     let isPaused = false;
@@ -1239,6 +1461,13 @@
 
     pauseOverlay.addEventListener('click', togglePause);
 
+    // 页面切后台自动暂停
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && !isPaused && !isGameOverVisible()) {
+        setPaused(true);
+      }
+    });
+
     // ===== 设置与弹窗逻辑 =====
     let isListeningKey = false;
 
@@ -1247,13 +1476,12 @@
       const settingsModal = document.getElementById('settingsModalOverlay');
       if (settingsModal.style.display === 'flex') return;
 
-      // 关键特调：记录打开设置前游戏是否原本就处于暂停状态
+      // 记录打开设置前游戏是否原本就处于暂停状态
       wasPausedBeforeSettings = isPaused;
 
       if (!isPaused) {
         setPaused(true);
       } else {
-        // 如果原本就已经暂停，隐去“已暂停”提示遮罩，避免界面重叠与视觉混乱
         pauseOverlay.style.display = 'none';
       }
       settingsModal.style.display = 'flex';
@@ -1305,7 +1533,7 @@
 
     // 导出/导入战绩
     window.exportSave = function() {
-      const best = parseInt(getCookie('infiniteTrack_bestScore'), 10) || 0;
+      const best = getBestScore();
       const dataStr = btoa(encodeURIComponent(JSON.stringify({ bestScore: best }) + '|||INF_TRACK_SECURE_V1'));
       const htmlTemplate = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -1349,7 +1577,7 @@ h1{color:#ff4060;}
               if (parsed.bestScore !== undefined) {
                 bestScore = parseInt(parsed.bestScore, 10) || 0;
                 bestScoreValueEl.textContent = bestScore;
-                setCookie('infiniteTrack_bestScore', bestScore, 365);
+                setBestScore(bestScore);
                 alert(`成功导入最高分：${bestScore} 分！`);
               }
             } else { alert('存档验证失败！文件可能已被修改。'); }
@@ -1376,7 +1604,7 @@ h1{color:#ff4060;}
       if (inputVal === bestScore) {
         bestScore = 0;
         bestScoreValueEl.textContent = 0;
-        setCookie('infiniteTrack_bestScore', 0, 365);
+        setBestScore(0);
         closeClearConfirm();
         alert('最高分数据已成功清除！');
       } else {
@@ -1386,7 +1614,6 @@ h1{color:#ff4060;}
 
     // 全局 Keydown 事件
     document.addEventListener('keydown', (e) => {
-      // 正在监听改键输入
       if (isListeningKey) {
         e.preventDefault();
         currentPauseKey = e.key === ' ' ? ' ' : e.key;
@@ -1394,7 +1621,6 @@ h1{color:#ff4060;}
         return;
       }
 
-      // Esc 键按键处理（开关设置弹窗）
       if (e.key === 'Escape' || e.key === 'Esc') {
         e.preventDefault();
         if (document.getElementById('clearConfirmOverlay').style.display === 'flex') {
@@ -1410,7 +1636,6 @@ h1{color:#ff4060;}
         return;
       }
 
-      // 暂停快捷键处理
       if (e.key === currentPauseKey || (currentPauseKey === ' ' && e.code === 'Space')) {
         e.preventDefault();
         if (document.getElementById('settingsModalOverlay').style.display === 'flex') {
@@ -1425,6 +1650,7 @@ h1{color:#ff4060;}
     let voidGameOverTriggered = false;
 
     function resetGame() {
+      resetScore();
       while (trackGroups.length > 0) {
         removeGroup(0);
       }
@@ -1436,6 +1662,14 @@ h1{color:#ff4060;}
       falling = false;
       dying = false;
       ballColorKey = null;
+      comboCount = 0;
+
+      // 重置右键加速状态
+      isRightClickPressed = false;
+
+      // 重置摄像机位置与震动
+      cameraShakeTimer = 0;
+      camera.position.set(0, 3, 10);
 
       if (trackGroups.length > 0 && trackGroups[0].type === 1 && trackGroups[0].colorKey) {
         const cKey = trackGroups[0].colorKey;
@@ -1457,7 +1691,6 @@ h1{color:#ff4060;}
       wasPausedBeforeSettings = false;
       pauseOverlay.style.display = 'none';
       lastTime = performance.now() / 1000;
-      resetScore();
       syncScoreColor();
       lastLandedGroupId = -1;
       voidGameOverTriggered = false;
@@ -1490,7 +1723,8 @@ h1{color:#ff4060;}
       requestAnimationFrame(animate);
       const now = performance.now() / 1000;
       
-      const totalSpeedMultiplier = getScoreSpeedMultiplier() * gameSpeedMultiplier;
+      // 包含分数速度提升、基础倍速以及右键 1.25x 临时加速
+      const totalSpeedMultiplier = getScoreSpeedMultiplier() * gameSpeedMultiplier * getRightClickMultiplier();
       
       let dt = (now - lastTime) * totalSpeedMultiplier;
       lastTime = now;
@@ -1499,8 +1733,10 @@ h1{color:#ff4060;}
       if (!isPaused) {
         t += dt;
 
+        // X 轴移动平滑化（使用指数衰减插值）
         if (!dying && !voidGameOverTriggered && hasMouseInput) {
-          ballX = targetBallX;
+          const lerpFactor = 1 - Math.exp(-25 * dt);
+          ballX += (targetBallX - ballX) * lerpFactor;
         }
 
         if (!dying && !voidGameOverTriggered) {
@@ -1512,16 +1748,35 @@ h1{color:#ff4060;}
           if (ballY <= floorContact && velY < 0) {
             const hit = findCollisionWithAnyGroup();
             if (hit) {
-              const { group, colorKey } = hit;
+              const { group, colorKey, mesh } = hit;
               if (group.type !== 1 && ballColorKey && colorKey && ballColorKey !== colorKey) {
                 triggerDeath(colorKey);
               } else {
                 ballY = floorContact;
                 velY = Math.abs(velY);
-                onLandUpdateVelZ();
+
+                // 计算碰撞点是否位于方块/轨道的中心 30% 区域
+                const pw = group.type === 1 ? LONG_SIZE_X : SQ_SIZE;
+                const pd = group.type === 1 ? LONG_SIZE_Z : SQ_SIZE;
+                const dx = Math.abs(ballX - mesh.position.x);
+                const dz = Math.abs(0 - group.z);
+
+                // 中心 30% 判定标准（左右及前后各占 15% 门槛）
+                const isPerfect = (group.type !== 1) && (dx <= pw * 0.1) && (dz <= pd * 0.15);
+                let scoreToAdd = 1;
+
+                if (isPerfect) {
+                  comboCount++;
+                  scoreToAdd = 2; // PERFECT! 触发时加 2 分
+                  showPerfectUI(comboCount);
+                  triggerPerfectBurstParticles(ballX, ballY, colorKey);
+                } else {
+                  comboCount = 0; // 离心落地重置连击
+                }
+
+                onLandUpdateVelZ(scoreToAdd);
+
                 if (hit.mesh && hit.colorKey) {
-                  const pw = hit.group.type === 1 ? LONG_SIZE_X : SQ_SIZE;
-                  const pd = hit.group.type === 1 ? LONG_SIZE_Z : SQ_SIZE;
                   triggerLandEffect(hit.mesh, hit.colorKey, hit.group, pw, pd);
                 }
               }
@@ -1541,13 +1796,27 @@ h1{color:#ff4060;}
           if (ballY < FALL_RESET_Y && !voidGameOverTriggered) {
             voidGameOverTriggered = true;
             velZ = 0;
+            // 掉入虚空时叠加轻微的摄像机快频震动
+            cameraShakeTimer = CAMERA_SHAKE_DURATION;
             showGameOver('掉入虚空了...');
           }
         } else if (dying) {
           updateDeath(dt);
         }
 
-        updateTrack(velZ * dt);
+        // 摄像机震动计算与应用
+        if (cameraShakeTimer > 0) {
+          cameraShakeTimer -= dt;
+          const factor = Math.max(0, cameraShakeTimer / CAMERA_SHAKE_DURATION);
+          const shakeX = (Math.random() - 0.5) * 0.4 * factor;
+          const shakeY = (Math.random() - 0.5) * 0.4 * factor;
+          const shakeZ = (Math.random() - 0.5) * 0.4 * factor;
+          camera.position.set(shakeX, 3 + shakeY, 10 + shakeZ);
+        } else {
+          camera.position.set(0, 3, 10);
+        }
+
+        updateTrack(velZ * dt, dt);
 
         if (!dying) {
           sphere.position.x   = ballX;
@@ -1577,6 +1846,7 @@ h1{color:#ff4060;}
         lightBall.position.copy(movingLight.position);
 
         updateLandEffects(dt);
+        updatePerfectParticles(dt);
       }
 
       controls.update();
