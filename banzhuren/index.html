@@ -161,6 +161,21 @@
             --danger-sd: rgba(239, 68, 68, 0.4)
         }
 
+        /* 隐藏全局与所有子元素的滚动条 */
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            transition: all .35s cubic-bezier(.25, .8, .25, 1);
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
         body::before {
             content: "";
             position: fixed;
@@ -179,12 +194,6 @@
             100% {
                 transform: scale(1.15)
             }
-        }
-
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            transition: all .35s cubic-bezier(.25, .8, .25, 1)
         }
 
         body {
@@ -704,6 +713,131 @@
             background: linear-gradient(90deg, var(--bg-w-10), var(--bg-w-40))
         }
 
+        .seat-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .podium-bar {
+            width: 90%;
+            max-width: 520px;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: #fff;
+            font-weight: bold;
+            letter-spacing: 4px;
+            font-size: .9em;
+            box-shadow: 0 6px 16px var(--sd-15);
+        }
+
+        .seat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(180px, 260px));
+            grid-template-rows: repeat(3, auto);
+            gap: 16px 28px;
+            width: 100%;
+            max-width: 560px;
+            justify-content: center;
+        }
+
+        .seat-row-label {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: .75em;
+            font-weight: bold;
+            color: var(--text-light);
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+
+        .seat-slot {
+            background: linear-gradient(135deg, var(--bg-w-70), var(--bg-w-25));
+            backdrop-filter: blur(16px);
+            border: 2px dashed var(--bd-w-40);
+            border-radius: 14px;
+            padding: 14px;
+            min-height: 96px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: all .3s ease;
+            cursor: grab;
+            position: relative;
+        }
+
+        .seat-slot.drag-over {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--bg-w-95), var(--bg-w-60));
+            transform: scale(1.03);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .seat-slot.dragging {
+            opacity: .4;
+        }
+
+        .seat-name {
+            font-weight: 900;
+            font-size: 1.05em;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .seat-gender {
+            font-size: .85em;
+        }
+
+        .seat-gender.g-M {
+            color: #2563eb;
+        }
+
+        .seat-gender.g-F {
+            color: #db2777;
+        }
+
+        .seat-meta {
+            font-size: .72em;
+            color: var(--text-light);
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .seat-buff {
+            font-size: .68em;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .seat-buff.buff-pos {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #15803d;
+        }
+
+        .seat-buff.buff-neg {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #b91c1c;
+        }
+
+        .seat-legend {
+            font-size: .8em;
+            color: var(--text-light);
+            text-align: left;
+            max-width: 560px;
+            line-height: 1.6;
+            background: var(--bg-w-50);
+            padding: 10px 16px;
+            border-radius: 10px;
+        }
+
         .right-panel {
             display: flex;
             flex-direction: column;
@@ -797,10 +931,9 @@
 
         .chart-container {
             width: 100%;
-            height: 220px;
             border-radius: 12px;
-            margin-top: 15px;
-            padding: 20px 10px 10px 10px;
+            margin-top: 10px;
+            padding: 15px;
             background: linear-gradient(135deg, var(--bg-w-50), var(--bg-w-10));
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -809,7 +942,8 @@
             box-shadow: inset 0 2px 10px var(--sd-05);
             position: relative;
             display: flex;
-            align-items: flex-end
+            align-items: center;
+            justify-content: center;
         }
 
         .exam-table {
@@ -909,6 +1043,31 @@
             border-color: var(--accent)
         }
 
+        .gender-toggle {
+            display: flex;
+            gap: 6px;
+        }
+
+        .gender-toggle button {
+            flex: 1;
+            padding: 7px 4px;
+            font-size: .8em;
+            font-weight: bold;
+            border-radius: 7px;
+            border: 1px solid var(--bd-w-50);
+            background: var(--bg-w-50);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all .25s ease;
+        }
+
+        .gender-toggle button.active {
+            background: linear-gradient(135deg, var(--accent), #3730a3);
+            color: #fff;
+            border-color: var(--accent);
+            box-shadow: 0 3px 10px var(--accent-glow);
+        }
+
         #exam-skip-btn {
             position: absolute;
             top: 20px;
@@ -924,24 +1083,6 @@
         #exam-skip-btn:hover {
             background: var(--btn-skip-2);
             color: var(--primary)
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-w-20);
-            border-radius: 4px
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--scroll-thumb);
-            border-radius: 4px
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent)
         }
 
         @keyframes pulse {
@@ -1081,6 +1222,29 @@
             justify-content: space-between;
             align-items: center
         }
+
+        /* 毕业盛典全屏样式 */
+        #ending-modal.fullscreen-ending {
+            padding: 0;
+            background: var(--body-bg);
+            backdrop-filter: blur(20px);
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ending-modal.fullscreen-ending .modal-box {
+            width: 100vw;
+            max-width: 100vw;
+            height: 100vh;
+            max-height: 100vh;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            padding: 40px 60px;
+            margin: 0;
+            overflow-y: auto;
+        }
     </style>
 </head>
 
@@ -1108,24 +1272,41 @@
             <div class=g-cd2 style=margin-bottom:25px>
                 <h3 style="text-align:center;margin-top:0;margin-bottom:15px;color:var(--primary)">为你的6名神仙命名（留空则默认）：
                 </h3>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:15px"><input type=text
-                        id=name-0 placeholder="Double10" class="name-input animate-up" style=animation-delay:.1s><input
-                        type=text id=name-1 placeholder="_Sparktasia_" class="name-input animate-up"
-                        style=animation-delay:.2s><input type=text id=name-2 placeholder="paper_"
-                        class="name-input animate-up" style=animation-delay:.3s><input type=text id=name-3
-                        placeholder="GoldSpade" class="name-input animate-up" style=animation-delay:.4s><input type=text
-                        id=name-4 placeholder="xxxxxzy" class="name-input animate-up" style=animation-delay:.5s><input
-                        type=text id=name-5 placeholder="_Communist" class="name-input animate-up"
-                        style=animation-delay:.6s></div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px"><button class="btn-action animate-up"
-                        style="margin:0;padding:10px;animation-delay:.65s" onclick=UI.iNms()>
-                        <h5>📥 导入名单</h5>
-                        <p>导入本地名单</p>
-                    </button><button class="btn-action animate-up" style="margin:0;padding:10px;animation-delay:.65s"
-                        onclick=UI.eNms()>
-                        <h5>📤 导出名单</h5>
-                        <p>保存当前名单</p>
-                    </button><input type=file id=import-input class=hidden accept=.txt onchange="UI.hFS(event)"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:15px" id=name-inputs>
+                    <div class=animate-up style=animation-delay:.1s><input type=text id=name-0 placeholder="Double10" class=name-input style=margin-bottom:6px><div class=gender-toggle id=gender-0><button type=button class=active onclick="UI.setGender(0,'M',this)">♂ 男</button><button type=button onclick="UI.setGender(0,'F',this)">♀ 女</button></div></div>
+                    <div class=animate-up style=animation-delay:.15s><input type=text id=name-1 placeholder="_Sparktasia_" class=name-input style=margin-bottom:6px><div class=gender-toggle id=gender-1><button type=button onclick="UI.setGender(1,'M',this)">♂ 男</button><button type=button class=active onclick="UI.setGender(1,'F',this)">♀ 女</button></div></div>
+                    <div class=animate-up style=animation-delay:.2s><input type=text id=name-2 placeholder="paper_" class=name-input style=margin-bottom:6px><div class=gender-toggle id=gender-2><button type=button class=active onclick="UI.setGender(2,'M',this)">♂ 男</button><button type=button onclick="UI.setGender(2,'F',this)">♀ 女</button></div></div>
+                    <div class=animate-up style=animation-delay:.25s><input type=text id=name-3 placeholder="GoldSpade" class=name-input style=margin-bottom:6px><div class=gender-toggle id=gender-3><button type=button onclick="UI.setGender(3,'M',this)">♂ 男</button><button type=button class=active onclick="UI.setGender(3,'F',this)">♀ 女</button></div></div>
+                    <div class=animate-up style=animation-delay:.3s><input type=text id=name-4 placeholder="xxxxxzy" class=name-input style=margin-bottom:6px><div class=gender-toggle id=gender-4><button type=button class=active onclick="UI.setGender(4,'M',this)">♂ 男</button><button type=button onclick="UI.setGender(4,'F',this)">♀ 女</button></div></div>
+                    <div class=animate-up style=animation-delay:.35s><input type=text id=name-5 placeholder="_Communist" class=name-input style=margin-bottom:6px><div class=gender-toggle id=gender-5><button type=button onclick="UI.setGender(5,'M',this)">♂ 男</button><button type=button class=active onclick="UI.setGender(5,'F',this)">♀ 女</button></div></div>
+                </div>
+                <!-- 偏好设置按钮区域（全按钮化） -->
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <button class="btn-action animate-up" style="margin:0;padding:12px 10px;text-align:center;animation-delay:.65s" onclick="UI.loadPref(1, this)">
+                            <h5 style="justify-content:center;font-size:1em">📂 读取偏好 1</h5>
+                        </button>
+                        <button class="btn-action animate-up" style="margin:0;padding:12px 10px;text-align:center;animation-delay:.65s" onclick="UI.savePref(1, this)">
+                            <h5 style="justify-content:center;font-size:1em">💾 写入偏好 1</h5>
+                        </button>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <button class="btn-action animate-up" style="margin:0;padding:12px 10px;text-align:center;animation-delay:.65s" onclick="UI.loadPref(2, this)">
+                            <h5 style="justify-content:center;font-size:1em">📂 读取偏好 2</h5>
+                        </button>
+                        <button class="btn-action animate-up" style="margin:0;padding:12px 10px;text-align:center;animation-delay:.65s" onclick="UI.savePref(2, this)">
+                            <h5 style="justify-content:center;font-size:1em">💾 写入偏好 2</h5>
+                        </button>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <button class="btn-action animate-up" style="margin:0;padding:12px 10px;text-align:center;animation-delay:.65s" onclick="UI.loadPref(3, this)">
+                            <h5 style="justify-content:center;font-size:1em">📂 读取偏好 3</h5>
+                        </button>
+                        <button class="btn-action animate-up" style="margin:0;padding:12px 10px;text-align:center;animation-delay:.65s" onclick="UI.savePref(3, this)">
+                            <h5 style="justify-content:center;font-size:1em">💾 写入偏好 3</h5>
+                        </button>
+                    </div>
+                </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px"><button class="btn-action animate-up"
                     style="margin:0;border-color:var(--success);animation-delay:.7s" onclick="Game.start('easy')">
@@ -1232,8 +1413,16 @@
         <main class="main-view glass-panel animate-up" style=animation-delay:.3s>
             <div class=main-tabs-wrapper><button onclick="UI.sMain('classroom')" id=btn-classroom class=active>🏫 教室概况
                     <span id=badge-classroom class=status-badge>🤒 0 🤯 0</span></button><button
+                    onclick="UI.sMain('seating')" id=btn-seating>🪑 座位表</button><button
                     onclick="UI.sMain('archive')" id=btn-archive>📂 学生档案</button></div>
             <div id=view-classroom class=stu-grid></div>
+            <div id=view-seating class=hidden>
+                <div class=seat-wrap>
+                    <div class=podium-bar>讲台</div>
+                    <div id=seat-grid class=seat-grid></div>
+                    <div class=seat-legend><b>拖拽学生卡片可交换座位</b><br><b>前排</b>：学习效率 +10%，但压力增长更快<br><b>后排</b>：压力增长较慢，但容易触发摸鱼类负面事件<br><b>同桌羁绊</b>：两个"卷王"相邻，全科微幅提升；语文强与数学强搭档互补提分；带"网瘾"的同桌会拖慢对方复习效率；<br><b>互生好感的男女生作为同桌超过半个月将转化为“早恋”状态，大幅降低学习效率并在大考中易发挥失常</b></div>
+                </div>
+            </div>
             <div id=view-archive class=hidden>
                 <div id=arc-tabs style=margin-bottom:20px></div>
                 <div id=arc-detail class=g-cd3></div>
@@ -1253,6 +1442,32 @@
             <div class="log-panel animate-up" id=log-area style=animation-delay:.5s></div>
         </aside>
     </div>
+
+    <!-- 统一游戏内 Alert 弹窗 -->
+    <div id="alert-modal" class="overlay hidden" style="z-index: 25000;">
+        <div class="modal-box" id="alert-box" style="max-width: 450px; text-align: center; transition: border-color 0.3s;">
+            <h2 class="modal-title" id="alert-title" style="margin-bottom: 15px;">提示</h2>
+            <p id="alert-msg" style="font-size: 1.1em; line-height: 1.6; color: var(--text); margin-bottom: 25px; white-space: pre-wrap; word-break: break-all;"></p>
+            <button id="alert-btn" style="width: 100%; padding: 12px; color: #fff; font-size: 1.1em; border-radius: 10px;" onclick="UI.cAlert()">确定</button>
+        </div>
+    </div>
+
+    <!-- 继续游戏弹窗 -->
+    <div id="continue-modal" class="overlay hidden" style="z-index: 20000;">
+        <div class="modal-box" style="max-width: 480px; text-align: center; border-top: 6px solid var(--accent);">
+            <h2 class="modal-title" style="color: var(--primary);">💾 发现历史存档</h2>
+            <p style="font-size: 1.1em; line-height: 1.6; color: var(--text); margin-bottom: 20px;">
+                检测到未完成的带班记录：<br>
+                <b id="save-info-text" style="color: var(--accent); font-size: 1.25em; display: inline-block; margin-top: 6px;"></b><br>
+                是否继续上次的带班之旅？
+            </p>
+            <div style="display: flex; gap: 15px;">
+                <button class="g-bt1" style="flex: 1; padding: 12px;" onclick="Game.discardSave()">重新开始</button>
+                <button style="flex: 1.5; padding: 12px; background: linear-gradient(135deg, var(--accent), #3730a3); color: #fff; font-size: 1.05em;" onclick="Game.loadSave()">继续游戏</button>
+            </div>
+        </div>
+    </div>
+
     <div id=hotpot-modal class="overlay hidden">
         <div class=modal-box style=text-align:center>
             <h2 class=modal-title>🍲 全班包场吃火锅</h2>
@@ -1284,6 +1499,20 @@
                 onclick=Game.cWk()>确认分配并继续</button>
         </div>
     </div>
+
+    <!-- 强基计划破格入围弹窗 -->
+    <div id="qiangji-modal" class="overlay hidden">
+        <div class="modal-box" style="max-width: 700px; border-top: 6px solid var(--accent);">
+            <h2 class="modal-title" style="color: var(--primary);">🏛️ 2026年高校“强基计划” 破格复试</h2>
+            <p style="font-size: 1.05em; line-height: 1.6; color: var(--text);">
+                作为信息学奥赛（OI）退役选手，同学们在高校“强基计划”复试中拥有巨大算法优势！<br>
+                文化课单科达到 <b style="color:var(--accent)">US (148/150)</b> 或 <b style="color:var(--warning)">SSS+ (142/150)</b> 评级的学生，均可获得 C9/清北 降分录取优惠。
+            </p>
+            <div id="qiangji-list" style="display:flex; flex-direction:column; gap:12px; margin:20px 0; max-height: 50vh; overflow-y: auto;"></div>
+            <button style="width: 100%; padding: 15px; background: linear-gradient(135deg, var(--accent), #3730a3); color: #fff; font-size: 1.1em; border-radius: 12px;" onclick="UI.cMod('qiangji-modal')">确认强基认定优惠并继续</button>
+        </div>
+    </div>
+
     <div id=choice-modal class="overlay hidden">
         <div class=modal-box>
             <h2 class=modal-title style=color:var(--warning);border-color:rgba(245,158,11,.3)>⚠️ 突发状况</h2>
@@ -1318,12 +1547,10 @@
                 style="padding:20px 60px;background:linear-gradient(135deg,var(--cq-red),#9f1239);color:#fff;font-size:1.6em;border-radius:50px;margin-top:30px;box-shadow:0 15px 30px rgba(230,57,70,.4);transform:scale(1.05);animation:pulse 2s infinite">奔赴考场</button>
         </div>
     </div>
-    <div id=ending-modal class="overlay hidden"
-        style="background:var(--overlay-bg);overflow-y:auto;padding:40px 0;backdrop-filter:blur(20px)">
-        <div class=modal-box
-            style="max-width:950px;text-align:center;margin:0 auto;border:none;box-shadow:0 30px 60px var(--sd-25)">
+    <div id=ending-modal class="overlay fullscreen-ending hidden">
+        <div class=modal-box style="text-align:center;border:none;">
             <h1
-                style="font-size:3em;color:var(--primary);margin-bottom:20px;background:-webkit-linear-gradient(45deg,var(--accent),var(--danger));-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+                style="font-size:3.2em;color:var(--primary);margin-bottom:20px;background:-webkit-linear-gradient(45deg,var(--accent),var(--danger));-webkit-background-clip:text;-webkit-text-fill-color:transparent">
                 🎓 2026届 毕业盛典 🎓</h1>
             <div id=ending-player
                 style="background:linear-gradient(135deg, var(--sub-bg-1), var(--sub-bg-2));backdrop-filter:blur(16px);padding:25px;border:2px solid var(--warning);border-radius:16px;margin-bottom:35px;text-align:left;box-shadow:0 10px 30px var(--sd-10)">
@@ -1332,7 +1559,7 @@
                 style="color:var(--primary);border-bottom:2px solid rgba(79,70,229,.2);padding-bottom:10px;text-align:left;font-size:1.5em">
                 🗺️ 全国大一新生蹭饭地图</h3>
             <div id=ending-cengfan
-                style="text-align:left;margin-bottom:40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px">
+                style="text-align:left;margin-bottom:40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:15px">
             </div>
             <div style="display:flex;gap:20px;justify-content:center"><button class=g-bt1
                     style="padding:15px 35px;font-size:1.2em" onclick=Game.rTC()>回到班级 (彩蛋)</button><button
@@ -1346,63 +1573,630 @@
         const CONFIG = { SUB: [['chi', '语文', 150], ['mat', '数学', 150], ['eng', '英语', 150], ['phy', '物理', 100], ['che', '化学', 100], ['bio', '生物', 100]].map(x => ({ id: x[0], n: x[1], c: x[2] })), GRD: [['US', 148], ['SSS+', 142], ['SSS', 135], ['SS', 125], ['S', 115], ['A', 100], ['B', 85], ['C', 70], ['D', 50], ['E', 0]].map(x => ({ l: x[0], v: x[1] })), FAC: [['desk', '课桌椅', ['破木桌', '普通课桌', '人体工学椅'], [0, 2000, 6000], '降低复习压力'], ['tech', '教学硬件', ['粉笔黑板', '投影仪', '智慧屏'], [0, 3000, 8000], '提高吸收效率'], ['ac', '恒温系统', ['无', '空调', '中央新风'], [0, 2500, 7000], '减免恶劣天气生病率与惩罚']].map(x => ({ id: x[0], n: x[1], lv: x[2], p: x[3], d: x[4] })), TAL: [['t1', '解析眼', 'pos', '数学/物理提升+20%'], ['t2', '语感', 'pos', '英语提升+20%'], ['t3', '大心脏', 'pos', '压力自然增长减半'], ['t4', '实验狂', 'pos', '化/生提升+20%'], ['t5', '卷王', 'pos', '全科微弱加成'], ['t6', '锦鲤', 'pos', '考试不易发挥失常'], ['t7', '记忆大师', 'pos', '生物/化学提升+30%'], ['t8', '逻辑鬼才', 'pos', '数学/物理提升+30%'], ['n1', '粗心', 'neg', '大考易扣分'], ['n2', '玻璃心', 'neg', '压力极易升高'], ['n3', '偏科', 'neg', '大考随机发挥拉胯'], ['n4', '网瘾', 'neg', '概率翘课打CF'], ['n5', '失眠', 'neg', '每周额外增加压力']].map(x => ({ id: x[0], n: x[1], t: x[2], d: x[3] })), UNI: [[685, ['清华大学', '北京大学']], [650, ['复旦大学', '上海交通大学', '浙江大学', '中国科学技术大学', '南京大学', '哈尔滨工业大学', '西安交通大学']], [600, ['重庆大学', '四川大学', '电子科大', '中南大学', '厦门大学', '山东大学', '武汉大学']], [500, ['重庆邮电大学', '西南大学', '合肥工业大学', '郑州大学', '福州大学']], [0, ['重庆蓝翔技校', '家里蹲大学', '复读高中']]].map(x => ({ min: x[0], list: x[1] })) };
         const SEASONS = { '8': '秋', '9': '秋', '10': '秋', '11': '冬', '12': '冬', '1': '冬', '2': '春', '3': '春', '4': '春', '5': '夏', '6': '夏' };
         const WEATHER_POOL = { '秋': [{ i: '☀️', n: '秋高气爽' }, { i: '🌧️', n: '秋雨连绵' }], '冬': [{ i: '🌫️', n: '湿冷大雾', eff: 'cold' }, { i: '🌨️', n: '寒潮入侵', eff: 'cold' }], '春': [{ i: '🌤️', n: '春暖花开' }, { i: '🌧️', n: '春雨绵绵' }], '夏': [{ i: '🥵', n: '高温预警', eff: 'hot' }, { i: '⛈️', n: '狂风暴雨' }] };
-        let State = { week: 1, month: 8, year: 2025, money: 0, ap: 3, maxAp: 3, diff: 'normal', isGraduated: !1, isMockExam: !1, weather: { i: '☀️', n: '晴朗', eff: '' }, season: '秋', fac: { desk: 0, tech: 0, ac: 0 }, tempAlloc: {}, stu: [] };
+        let State = { week: 1, month: 8, year: 2025, money: 0, ap: 3, maxAp: 3, diff: 'normal', isGraduated: !1, isMockExam: !1, qjEvaluated: !1, weather: { i: '☀️', n: '晴朗', eff: '' }, season: '秋', fac: { desk: 0, tech: 0, ac: 0 }, tempAlloc: {}, stu: [], logs: [] };
+        const RANDOM_EVENTS = [
+            // 1. 课桌椅老化
+            { c: s => s.fac.desk < 2, t: "由于课桌椅陈旧摇晃，学生们联合写信向你请求修理。", c1: { n: "拨专款直接升级课桌", f: () => { let cs = CONFIG.FAC[0].p[State.fac.desk + 1]; if (State.money >= cs) { State.money -= cs; State.fac.desk++; Game.log("升级了课桌", "[设施升级]") } else { State.stu.forEach(x => x.st += 20); Game.log("没钱修桌子", "[压力+]") } } }, c2: { n: "厉声驳回：克服困难", f: () => { State.stu.forEach(s => s.st += 25); Game.log("驳回了换桌子请求", "[压力++]") } } },
+            // 2. 酷暑无空调
+            { c: s => s.weather.eff === 'hot' && s.fac.ac < 2, t: "酷暑难耐，电风扇已经失去作用，大家热得发晕，请求改善制冷。", c1: { n: "咬牙升级空调系统", f: () => { let cs = CONFIG.FAC[2].p[State.fac.ac + 1]; if (State.money >= cs) { State.money -= cs; State.fac.ac++; Game.log("升级了恒温系统", "[设施升级]") } else { State.stu.forEach(x => x.st += 20); Game.log("没钱装空调", "[压力+]") } } }, c2: { n: "心静自然凉！", f: () => { State.stu.forEach(s => s.st += 30); Game.log("大家都在流汗", "[压力++]") } } },
+            // 3. 机房打CF
+            { c: s => !0, t: "巡查机房时，你隔着窗户发现两名学生似乎在偷偷打 Codeforces 比赛！", c1: { n: "直接冲进去没收电脑", f: () => { let vs = Game.gRS(2); vs.forEach(s => { s.st += 35; Game.addM(s, 'mat', -2) }); Game.log(`没收了 ${vs[0].name} 和 ${vs[1].name} 的作案工具`, "[压力++, 纪律加强]") } }, c2: { n: "装作没看见，顺便祈祷他们能上分", f: () => { let vs = Game.gRS(2); vs.forEach(s => { s.st = 0; Game.addM(s, 'mat', 5); Game.addM(s, 'phy', 3) }); Game.log(`放任 ${vs[0].name} 和 ${vs[1].name} 打CF，这下不得不绿名了`, "[压力清零, 数理+]") } } },
+            // 4. 生化实验申请
+            { c: s => !0, t: "课代表跑来申请：『老师，大家觉得纯看书太枯燥了，想去实验室做做真实的生化实验！』", c1: { n: "立刻安排！(¥1000)", f: () => { if (State.money >= 1000) { State.money -= 1000; State.stu.forEach(s => { s.st = M_M(0, s.st - 20); Game.addM(s, 'che', 6); Game.addM(s, 'bio', 6) }); Game.log("去实验室玩火", "[资金-1000, 生化+, 压力-]") } else { State.stu.forEach(s => s.st += 10); Game.log("资金不足以做实验", "[失望]") } } }, c2: { n: "安全第一，乖乖刷题", f: () => { State.stu.forEach(s => s.st += 10); Game.log("驳回了实验请求", "[压力+]") } } },
+            // 5. 学长探望捐款
+            { c: s => !0, t: "上一届毕业的学长回校探望，看到你们班在苦熬，非常感动。", c1: { n: "感谢并接受他的捐款", f: () => { State.money += 1500; Game.log("收到学长捐助 ¥1500", "[天降横财]") } }, c2: { n: "婉拒捐款，让他传授经验", f: () => { State.stu.forEach(s => { s.st = M_M(0, s.st - 15); Game.addM(s, 'chi', 3); Game.addM(s, 'mat', 3) }); Game.log("学长分享了独门复习法", "[全班微幅提升, 压力-]") } } },
+            // 6. 家长会冲击：月考后家长质疑退役OI生的文化课成绩
+            { c: s => s.stu.some(x => x.h.scores.length > 0), t: "家长会上，一位家长翻着孩子的月考成绩单，当众质疑：『天天搞什么信息学竞赛，文化课都快垫底了，退役了还耽误正事！』你注意到孩子在一旁攥紧了拳头。", c1: { n: "自己顶住压力：『请再给他们一点时间』", f: () => { State.stu.forEach(s => s.st = M_M(0, s.st - 8)); Game.log("你在家长会上为大家扛下了质疑", "[全班压力-, 你独自消化了委屈]") } }, c2: { n: "转头给学生加压：『你们要争口气』", f: () => { State.stu.forEach(s => { s.st += 18; Game.addM(s, 'mat', 3); Game.addM(s, 'chi', 2) }); Game.log("家长会后你把压力转嫁给了学生", "[全班压力++, 微幅提升]") } } },
+            // 7. 早恋/青涩好感：两名学生互生好感
+            { c: s => s.stu.some(x => x.gender === 'M' && !x.romanceState) && s.stu.some(x => x.gender === 'F' && !x.romanceState), t: "你发现班上两名异性学生最近总是形影不离，传纸条、占座位，明眼人都看得出他们互生好感。若继续作为同桌超过半个月，恐怕会转为“早恋”...", c1: { n: "睁一只眼闭一只眼，顺其自然", f: () => { let m = Game.shf(State.stu.filter(x => x.gender === 'M' && !x.romanceState))[0]; let f = Game.shf(State.stu.filter(x => x.gender === 'F' && !x.romanceState))[0]; if (m && f) { m.crushWith = f.name; m.romanceState = 'crush'; m.crushDeskmateWeeks = 0; f.crushWith = m.name; f.romanceState = 'crush'; f.crushDeskmateWeeks = 0; m.st = M_M(0, m.st - 12); f.st = M_M(0, f.st - 12); Game.log(`默许了 ${m.name} 和 ${f.name} 的青涩好感`, "[产生好感, 压力-]"); } } }, c2: { n: "找他们谈话：『高三还是要以学业为重』", f: () => { let m = Game.shf(State.stu.filter(x => x.gender === 'M'))[0]; let f = Game.shf(State.stu.filter(x => x.gender === 'F'))[0]; if (m && f) { m.st += 15; f.st += 15; Game.log(`找${m.name}和${f.name}谈了话，气氛一度尴尬`, "[压力+, 关系降温]"); } } } },
+            // 8. 体考/体测：体育高考测试
+            { c: s => [4, 5].includes(s.month), t: "教务处通知：下周将进行体育高考测试项目模拟，需要抽出时间进行体能训练，否则体育分可能拖后腿。", c1: { n: "耗费AP组织专项锻炼", f: () => { if (State.ap >= 1) { State.ap -= 1; State.stu.forEach(s => { s.st = M_M(0, s.st - 10) }); Game.log("组织了体测专项训练，大家顺带放松了一下", "[AP-1, 压力-]") } else { State.stu.forEach(s => s.st += 10); Game.log("AP不足，仓促应付了事", "[压力+]") } } }, c2: { n: "摆烂：文化课要紧，体测随缘", f: () => { State.stu.forEach(s => s.st += 5); Game.log("放弃了体测训练，专心刷题", "[压力+, 体测分堪忧]") } } },
+            // 9. 竞赛圈老友聚会邀约
+            { c: s => !0, t: "一名学生收到当年OI集训队队友的消息，对方约他线上聚会『打打CF怀旧一下』，学生犹豫着要不要请假去网吧聚一聚。", c1: { n: "批准短暂放松，念旧情", f: () => { let v = Game.gRS(1)[0]; v.st = M_M(0, v.st - 25); Game.log(`批准了${v.name}和老朋友的线上聚会`, "[该生压力大幅-]") } }, c2: { n: "婉拒：『高考后再聚不迟』", f: () => { let v = Game.gRS(1)[0]; v.st += 10; Game.addM(v, 'mat', 4); Game.log(`${v.name}虽然失落，但把心思放回了学习上`, "[该生压力+, 数学+]") } } },
+            // 10. 月考成绩滑坡质疑
+            { c: s => s.stu.some(x => x.h.scores.length > 0), t: "教导主任找你谈话：『你们班这次联考成绩不太理想，是不是管理上要收紧一些？』", c1: { n: "申请增加一次自习课", f: () => { if (State.money >= 500) { State.money -= 500; State.stu.forEach(s => Game.addM(s, 'mat', 2)); Game.log("申请加课获批，全班数学微幅提升", "[资金-500, 数学+]") } else { Game.log("资金不足，申请被搁置", "[无事发生]") } } }, c2: { n: "坚持现有节奏，相信积累", f: () => { State.stu.forEach(s => s.st = M_M(0, s.st - 5)); Game.log("你顶住了压力，坚持既定节奏", "[压力-]") } } },
+            // 11. 感冒季集体咳嗽
+            { c: s => s.season === '冬', t: "教室里此起彼伏的咳嗽声让你有些担心，看样子流感又要在班里传开了。", c1: { n: "统一采购常备药品 (¥800)", f: () => { if (State.money >= 800) { State.money -= 800; State.stu.forEach(s => s.st = M_M(0, s.st - 5)); Game.log("统一发放了感冒药，大家安心不少", "[资金-800, 压力-]") } else { Game.log("资金不足，没能采购", "[无事发生]") } } }, c2: { n: "让大家自己注意保暖", f: () => { if (R() < 0.3) { let v = Game.gRS(1)[0]; v.sk = 2; Game.log(`${v.name}还是感冒病倒了`, "[生病2周]") } else { Game.log("大家倒也扛过去了", "[无事发生]") } } } },
+            // 12. 竞赛保送/自主招生诱惑
+            { c: s => s.month === 11 || s.month === 12, t: "一名学生的OI战绩被某高校计算机学院看中，对方发来邮件，暗示只要参加冬令营选拔就有机会破格签约，但这会占用大量文化课时间。", c1: { n: "支持他去试一试", f: () => { let v = Game.gRS(1)[0]; v.st += 20; Game.log(`${v.name}去参加了冬令营选拔，压力陡增但充满期待`, "[该生压力++, 潜在机遇]") } }, c2: { n: "劝他先稳住文化课", f: () => { let v = Game.gRS(1)[0]; v.st = M_M(0, v.st - 10); Game.addM(v, 'chi', 3); Game.addM(v, 'eng', 3); Game.log(`${v.name}听从了建议，专心备考`, "[该生压力-, 语英+]") } } },
+            // 13. 深夜刷题猝倒隐患
+            { c: s => !0, t: "你发现宿舍熄灯后仍有学生打着手电筒刷题到深夜，长期缺觉恐怕会影响身体和状态。", c1: { n: "严令熄灯后必须休息", f: () => { State.stu.forEach(s => s.st = M_M(0, s.st - 10)); Game.log("强制执行熄灯纪律，大家休息更充分了", "[全班压力-]") } }, c2: { n: "感动于他们的拼劲，默许", f: () => { State.stu.forEach(s => { Game.addM(s, 'mat', 1.5); s.st += 12 }); Game.log("默许了熬夜刷题，进步的同时也更疲惫了", "[微幅提升, 压力+]") } } },
+            // 14. 班级荣誉墙评比
+            { c: s => !0, t: "学校要评选『年级学习标兵班』，需要各班上交一份特色学习经验总结，班委来找你商量该怎么写。", c1: { n: "如实撰写，突出OI退役生特色", f: () => { State.stu.forEach(s => s.st = M_M(0, s.st - 6)); Game.log("班级经验总结获得好评，大家与有荣焉", "[全班压力-]") } }, c2: { n: "随便应付，专心搞学习", f: () => { Game.log("敷衍了事地交了材料，把时间都留给了刷题", "[无事发生]") } } },
+            // 15. 学生突发厌学情绪
+            { c: s => s.stu.some(x => x.st > 70), t: "一名压力值偏高的学生找到你，情绪低落地说：『老师，我觉得自己好像怎么努力都追不上了……』", c1: { n: "耐心开导，帮他重新树立目标", f: () => { let cand = State.stu.filter(x => x.st > 70); let v = cand[Math.floor(R() * cand.length)] || Game.gRS(1)[0]; v.st = M_M(0, v.st - 30); Game.log(`你耐心开导了${v.name}，他重新振作了起来`, "[该生压力大幅-]") } }, c2: { n: "『高三都这样，坚持一下』", f: () => { let cand = State.stu.filter(x => x.st > 70); let v = cand[Math.floor(R() * cand.length)] || Game.gRS(1)[0]; v.st += 15; Game.log(`${v.name}没有得到想要的安慰，情绪更低落了`, "[该生压力++]") } } },
+            // 16. 食堂伙食差学生抱怨
+            { c: s => !0, t: "食堂新换的承包商伙食质量下降，学生们私下抱怨『吃不饱哪有力气刷题』。", c1: { n: "自费给班级订购营养餐补贴 (¥1200)", f: () => { if (State.money >= 1200) { State.money -= 1200; State.stu.forEach(s => s.st = M_M(0, s.st - 10)); Game.log("订购了营养餐补贴，大家吃得更好了", "[资金-1200, 压力-]") } else { Game.log("资金不足，没能订购", "[无事发生]") } } }, c2: { n: "向食堂反映情况，静待改善", f: () => { State.stu.forEach(s => s.st += 8); Game.log("食堂迟迟没有改善，大家有点失望", "[压力+]") } } },
+            // 17. 手机管理风波
+            { c: s => !0, t: "查寝时你发现有学生偷偷把手机带进了宿舍，用来刷短视频到很晚，这在年级里查得很严。", c1: { n: "没收手机，严肃处理", f: () => { let v = Game.gRS(1)[0]; v.st += 20; Game.log(`没收了${v.name}的手机，他很不情愿地交了出来`, "[该生压力++, 纪律加强]") } }, c2: { n: "约定每天限时使用，网开一面", f: () => { let v = Game.gRS(1)[0]; v.st = M_M(0, v.st - 8); Game.log(`和${v.name}约定了每日限时使用手机`, "[该生压力-]") } } },
+            // 18. 校友返校分享保送经验
+            { c: s => s.month === 3 || s.month === 4, t: "一位已被强基计划录取的往届OI退役学长回校分享经验，教室里气氛热烈，但也有学生开始患得患失地比较自己的进度。", c1: { n: "趁热打铁，组织交流会", f: () => { if (State.money >= 600) { State.money -= 600; State.stu.forEach(s => { s.st = M_M(0, s.st - 8); Game.addM(s, 'mat', 2) }); Game.log("组织了交流会，大家收获满满", "[资金-600, 压力-, 数学+]") } else { Game.log("资金不足，交流会从简进行", "[无事发生]") } } }, c2: { n: "提醒大家：『别人的路不能照搬』", f: () => { State.stu.forEach(s => s.st = M_M(0, s.st - 4)); Game.log("你适时提醒大家保持自己的节奏", "[全班压力小幅-]") } } },
+            // 19. 突击模拟演讲/主题班会
+            { c: s => !0, t: "学校要求各班开展一次『高考百日誓师』主题班会，需要占用一节自习时间准备。", c1: { n: "认真筹备，鼓舞士气", f: () => { State.stu.forEach(s => { s.st = M_M(0, s.st - 15) }); Game.log("百日誓师班会圆满举行，全班士气高涨", "[全班压力-]") } }, c2: { n: "简单走个流程，抓紧刷题", f: () => { State.stu.forEach(s => Game.addM(s, 'chi', 1.5)); Game.log("班会草草结束，大家立刻投入了刷题", "[语文微幅+]") } } },
+            // 20. 视力急剧下降
+            { c: s => !0, t: "校医体检通报，你们班好几名学生视力下降明显，长期伏案刷题用眼过度是主因。", c1: { n: "统一安排眼保健操 + 护眼灯 (¥1000)", f: () => { if (State.money >= 1000) { State.money -= 1000; State.stu.forEach(s => s.st = M_M(0, s.st - 6)); Game.log("添置了护眼灯，大家用眼负担减轻了", "[资金-1000, 压力-]") } else { State.stu.forEach(s => s.st += 5); Game.log("资金不足，只能口头提醒注意用眼", "[压力+]") } } }, c2: { n: "『高三都这样，忍一忍就过去了』", f: () => { State.stu.forEach(s => s.st += 8); Game.log("你选择了无视，大家继续埋头刷题", "[压力+]") } } },
+            // 21. 竞赛群吃瓜引发攀比焦虑
+            { c: s => !0, t: "学生们在OI退役生交流群里看到同届的人已经进入知名企业实习或拿到了签约offer，几人明显焦虑起来，无心刷题。", c1: { n: "开导：『高考是另一条赛道，不必比较』", f: () => { State.stu.forEach(s => s.st = M_M(0, s.st - 12)); Game.log("一番开导后，大家重新静下心来", "[全班压力-]") } }, c2: { n: "『别看群消息了，专心复习』", f: () => { let v = Game.gRS(2); v.forEach(s => s.st += 10); Game.log("强制要求退群，部分学生有些抵触", "[压力+]") } } },
+            // 22. 突发停电/设备故障
+            { c: s => s.fac.tech > 0, t: "教室智慧屏突然黑屏罢工，正准备用来讲题的课件全都用不了了，气氛一度尴尬。", c1: { n: "紧急报修 (¥400)", f: () => { if (State.money >= 400) { State.money -= 400; Game.log("紧急报修花费¥400，设备恢复正常", "[资金-400]") } else { State.stu.forEach(s => s.st += 10); Game.log("资金不足，只能干等着", "[压力+]") } } }, c2: { n: "板书代替，锻炼手写能力", f: () => { State.stu.forEach(s => Game.addM(s, 'chi', 1)); Game.log("改用板书授课，意外锻炼了大家的书写", "[语文微幅+]") } } },
+            // 23. 家长送考焦虑传导
+            { c: s => s.month === 5, t: "临近高考，几位家长天天在班级群里追问孩子的排名和状态，无形中把焦虑传导给了学生。", c1: { n: "统一给家长做一次沟通说明", f: () => { State.stu.forEach(s => s.st = M_M(0, s.st - 14)); Game.log("你安抚了家长情绪，学生们如释重负", "[全班压力-]") } }, c2: { n: "让学生自己去应对家里的期望", f: () => { State.stu.forEach(s => s.st += 12); Game.log("家长的焦虑还是传导给了学生们", "[全班压力+]") } } }
+        ];
         const Game = {
             examTimeouts: [], examSettled: !1,
             addM(s, subId, gain) { if (gain <= 0) { s.m[subId] += gain; return; } let c = CONFIG.SUB.find(x => x.id === subId); let oR = s.m[subId] / c.c; let oG = CONFIG.GRD.find(x => oR >= x.v / 150) || CONFIG.GRD[9]; s.m[subId] += gain; let nR = s.m[subId] / c.c; let nG = CONFIG.GRD.find(x => nR >= x.v / 150) || CONFIG.GRD[9]; if (nG.v > oG.v && R() < .01) { s.m[subId] = c.c; Game.log(`🎉 奇迹发生！${s.name} 的${c.n}突然开窍了，直接达到了满级！`, "[顿悟]"); } },
-            start(diff) { State.diff = diff; State.money = diff === 'easy' ? 10000 : 2000; let rMin = diff === 'easy' ? .42 : .36, rMax = diff === 'easy' ? .80 : .70; const def = ["Double10", "_Sparktasia_", "paper_", "GoldSpade", "xxxxxzy", "_Communist"]; let names = []; for (let i = 0; i < 6; i++)names.push($(`name-${i}`).value.trim() || def[i]); localStorage.setItem('whk-names', JSON.stringify(names)); let p = CONFIG.TAL.filter(t => t.t === 'pos'), n = CONFIG.TAL.filter(t => t.t === 'neg'); let rl = () => rMin + Math.sqrt(R()) * (rMax - rMin); State.stu = names.map(nm => ({ name: nm, status: 'normal', st: 30 + R() * 20, sk: 0, h: { scores: [], ranks: [] }, tl: [...this.shf([...p]).slice(0, 2), ...this.shf([...n]).slice(0, 1)], m: { chi: O(150 * rl()), mat: O(150 * rl()), eng: O(150 * rl()), phy: O(100 * rl()), che: O(100 * rl()), bio: O(100 * rl()) } })); $('start-screen').classList.add('hidden'); $('main-header').classList.remove('hidden'); $('main-body').classList.remove('hidden'); $$('.animate-up').forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = null }); this.uW(); this.log("新学期开始，目标：2026年6月高考！", "[档案建立]"); this.uUI() },
+            start(diff) { State.diff = diff; State.money = diff === 'easy' ? 10000 : 2000; State.logs = []; let rMin = diff === 'easy' ? .42 : .36, rMax = diff === 'easy' ? .80 : .70; const def = ["Double10", "_Sparktasia_", "paper_", "GoldSpade", "xxxxxzy", "_Communist"]; let names = []; for (let i = 0; i < 6; i++)names.push($(`name-${i}`).value.trim() || def[i]); localStorage.setItem('whk-names', JSON.stringify(names)); let p = CONFIG.TAL.filter(t => t.t === 'pos'), n = CONFIG.TAL.filter(t => t.t === 'neg'); let rl = () => rMin + Math.sqrt(R()) * (rMax - rMin); window.stuGenders = window.stuGenders || ['M', 'F', 'M', 'F', 'M', 'F']; State.stu = names.map((nm, i) => ({ name: nm, gender: window.stuGenders[i] || 'M', seat: i, status: 'normal', st: 30 + R() * 20, sk: 0, qjBonus: 0, romanceState: null, crushWith: null, crushDeskmateWeeks: 0, h: { scores: [], ranks: [] }, tl: [...this.shf([...p]).slice(0, 2), ...this.shf([...n]).slice(0, 1)], m: { chi: O(150 * rl()), mat: O(150 * rl()), eng: O(150 * rl()), phy: O(100 * rl()), che: O(100 * rl()), bio: O(100 * rl()) } })); $('start-screen').classList.add('hidden'); $('main-header').classList.remove('hidden'); $('main-body').classList.remove('hidden'); $$('.animate-up').forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = null }); this.uW(); this.log("新学期开始，目标：2026年6月高考！", "[档案建立]"); this.saveState(); this.uUI() },
+            // 持久化自动存档
+            saveState() {
+                if (!State.isGraduated) {
+                    localStorage.setItem('whk-save-state', JSON.stringify(State));
+                }
+            },
+            // 读取存档
+            loadSave() {
+                try {
+                    let saved = JSON.parse(localStorage.getItem('whk-save-state'));
+                    if (saved) {
+                        State = saved;
+                        // 兼容旧存档：补齐座位表/性别/恋爱字段
+                        if (!State.logs) State.logs = [];
+                        State.stu.forEach((s, i) => { 
+                            if (typeof s.seat !== 'number') s.seat = i; 
+                            if (!s.gender) s.gender = i % 2 === 0 ? 'M' : 'F';
+                            if (s.romanceState === undefined) s.romanceState = null;
+                            if (s.crushWith === undefined) s.crushWith = null;
+                            if (s.crushDeskmateWeeks === undefined) s.crushDeskmateWeeks = 0;
+                        });
+                        $('start-screen').classList.add('hidden');
+                        $('continue-modal').classList.add('hidden');
+                        $('main-header').classList.remove('hidden');
+                        $('main-body').classList.remove('hidden');
+                        $('log-area').innerHTML = State.logs.join('');
+                        this.uW();
+                        this.uUI();
+                        this.log("读取存档成功，继续带班！", "[恢复进度]");
+                    }
+                } catch(e) {
+                    UI.showAlert("存档读取失败！", "red");
+                    this.discardSave();
+                }
+            },
+            // 放弃/清理存档
+            discardSave() {
+                localStorage.removeItem('whk-save-state');
+                $('continue-modal').classList.add('hidden');
+            },
             shf(a) { let r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1));[r[i], r[j]] = [r[j], r[i]] } return r }, gRS(num) { return this.shf(State.stu).slice(0, num) },
             gGM(sub, cur) { if (sub === 'mat' && cur < 120) return 1.4; if (sub === 'eng' && cur < 110) return 1.4; if (sub === 'chi' && cur < 100) return 1.4; let c = CONFIG.SUB.find(x => x.id === sub).c; return M_M(.05, 1 - Math.pow(cur / c, sub === 'chi' ? 1.5 : 3.0)) },
-            doA(cat, sub) { if (State.isGraduated) { if (['study', 'train', 'test'].includes(cat)) return alert("同学们已经毕业啦哦！"); if (cat === 'rest' && sub === 'snack') { Game.log("学生们凑钱请你吃了校门口小吃！", "[压力清零]"); State.stu.forEach(s => s.st = 0); this.uUI(); return } if (cat === 'rest' && sub === 'walk') return Game.log("你独自在校园散步，回忆着他们的高三。", "[思绪万千]"); } if (State.ap < 1 && !State.isGraduated) return alert("AP 不足！"); let aC = State.stu.filter(s => s.sk === 0).length; if (aC === 0) return alert("全班都病假了！"); let cA = cat === 'train' ? 2 : (cat === 'rest' && sub === 'walk' ? 1 : 1), cM = cat === 'test' ? 500 : (cat === 'train' ? 2000 : (cat === 'rest' && sub === 'snack' ? 500 : 0)); if (State.ap < cA && !State.isGraduated) return alert("AP 不足！"); if (State.money < cM) return alert("班费不足！"); if (!State.isGraduated) { State.ap -= cA; State.money -= cM } let tB = 1 + (State.fac.tech * .15), dR = State.fac.desk * 5, dM = State.diff === 'hard' ? .8 : 1.0; State.stu.filter(s => s.sk === 0).forEach(s => { if (s.tl.some(t => t.id === 'n4') && R() < .15) return this.log(`${s.name} 翘课去机房打 CF 去了！`, "[网瘾发作]"); if (['study', 'test'].includes(cat)) { let bG = (sub === 'chi' ? 1.5 : 2.5) * tB * this.gGM(sub, s.m[sub]) * dM; if (s.st > 80) bG *= M_M(0, 1 - (s.st - 80) / 100); if (cat === 'test') bG *= 1.5; if (s.tl.some(t => t.id === 't5')) bG *= 1.2; if (['mat', 'phy'].includes(sub) && s.tl.some(t => t.id === 't1')) bG *= 1.2; if (['mat', 'phy'].includes(sub) && s.tl.some(t => t.id === 't8')) bG *= 1.3; if (sub === 'eng' && s.tl.some(t => t.id === 't2')) bG *= 1.2; if (['che', 'bio'].includes(sub)) { if (s.tl.some(t => t.id === 't4')) bG *= 1.2; if (s.tl.some(t => t.id === 't7')) bG *= 1.3 } Game.addM(s, sub, bG); s.st += M_M(2, (cat === 'test' ? 15 : 12) - dR) } else if (cat === 'train') { sub.split('_').forEach(su => { let bG = (su === 'chi' ? 1.5 : 2.5) * 2.0 * tB * this.gGM(su, s.m[su]) * dM; if (s.st > 80) bG *= M_M(0, 1 - (s.st - 80) / 100); Game.addM(s, su, bG) }); s.st += M_M(10, 25 - dR) } else if (cat === 'rest') { s.st = M_M(0, s.st - (sub === 'walk' ? 20 : 30)) } }); UI.hAM(); this.uUI(); if (cat !== 'rest') this.log(cat === 'study' ? `组织了自习` : cat === 'test' ? `进行了随堂测验` : `开启了特训`, cM > 0 ? `[资金-${cM}]` : ``) },
-            healD(i) { if (State.money < 1000) return alert("班费不足！"); State.money -= 1000; let s = State.stu[i]; s.sk = 0; UI.cMod('doctor-modal'); this.log(`请私人医生治好了 ${s.name}。`, "[资金-1000, 恢复健康]"); this.uUI() },
-            cHP() { if (State.isGraduated) { Game.log("学生们重返母校，凑份子请你吃了一顿顶级的九宫格老火锅！", "[极度愉悦]"); State.stu.forEach(s => s.st = 0); UI.cMod('hotpot-modal'); this.uUI(); return } if (State.money < 3000 || State.ap < 2) return alert("班费不够包场或AP不足！"); State.money -= 3000; State.ap -= 2; let cN = []; State.stu.forEach(s => { s.st = 0; let iL = s.tl.length; s.tl = s.tl.filter(t => t.t !== 'neg' || R() > .7); if (s.tl.length < iL) cN.push(s.name) }); UI.cMod('hotpot-modal'); this.log(`花费 ¥3000 包场吃火锅。`, `[压力清空${cN.length > 0 ? `, ${cN.join(',')}克服了心魔` : ''}]`); this.uUI() },
-            doME() { if (State.isGraduated || State.money < 4000 || State.ap < 2) return alert("资金不足买题或AP不足！"); State.money -= 4000; State.ap -= 2; State.isMockExam = !0; let tB = 1 + (State.fac.tech * .15), dM = State.diff === 'hard' ? .8 : 1.0; State.stu.filter(s => s.sk === 0).forEach(s => { CONFIG.SUB.forEach(sub => { let bG = (sub.id === 'chi' ? 1.5 : 2.5) * tB * this.gGM(sub.id, s.m[sub.id]) * dM; if (s.st > 80) bG *= M_M(0, 1 - (s.st - 80) / 100); Game.addM(s, sub.id, bG) }); s.st += 15 }); this.log("豪掷 ¥4000 组织全真模拟考！", "[全科能力+]"); this.pEx("全真模拟考试", !0) },
-            nextT() { State.week++; State.stu.forEach(s => { if (s.sk > 0) { s.sk--; if (s.sk === 0) this.log(`${s.name} 病好了。`, "[状态恢复]") } }); if (State.week === 2 && State.month !== 6) return UI.sWMod(); if (State.week > 4) { State.week = 1; State.month++; if (State.month > 12) { State.month = 1; State.year++ } this.uW(); if (State.month === 5 && State.year === 2026) { State.maxAp = 4; this.log("🔥 进入五月冲刺期！大家进入狂暴状态，每周获得 4 点行动力！", "[冲刺开启]"); State.stu.forEach(s => s.st += 20); this.pEx("四月调考"); return } if (State.month === 6 && State.year === 2026) { $('gaokao-modal') && $('gaokao-modal').classList.remove('hidden'); return } else return this.pEx() } this.fTL() },
-            cWk() { let p = parseInt($('weekly-pts').innerText); if (p > 0) return alert("请分配完！"); State.stu.filter(s => s.sk === 0).forEach(s => { for (let k in State.tempAlloc) Game.addM(s, k, State.tempAlloc[k] * 1.5) }); UI.cMod('weekly-modal'); this.log("周考复盘，薄弱学科微幅补强。"); this.fTL() },
-            tRE() { if (R() > .6) return; let evs = [{ c: s => s.fac.desk < 2, t: "由于课桌椅陈旧摇晃，学生们联合写信向你请求修理。", c1: { n: "拨专款直接升级课桌", f: () => { let cs = CONFIG.FAC[0].p[State.fac.desk + 1]; if (State.money >= cs) { State.money -= cs; State.fac.desk++; Game.log("升级了课桌", "[设施升级]") } else { State.stu.forEach(x => x.st += 20); Game.log("没钱修桌子", "[压力+]") } } }, c2: { n: "厉声驳回：克服困难", f: () => { State.stu.forEach(s => s.st += 25); Game.log("驳回了换桌子请求", "[压力++]") } } }, { c: s => s.weather.eff === 'hot' && s.fac.ac < 2, t: "酷暑难耐，电风扇已经失去作用，大家热得发晕，请求改善制冷。", c1: { n: "咬牙升级空调系统", f: () => { let cs = CONFIG.FAC[2].p[State.fac.ac + 1]; if (State.money >= cs) { State.money -= cs; State.fac.ac++; Game.log("升级了恒温系统", "[设施升级]") } else { State.stu.forEach(x => x.st += 20); Game.log("没钱装空调", "[压力+]") } } }, c2: { n: "心静自然凉！", f: () => { State.stu.forEach(s => s.st += 30); Game.log("大家都在流汗", "[压力++]") } } }, { c: s => !0, t: "巡查机房时，你隔着窗户发现两名学生似乎在偷偷打 Codeforces 比赛！", c1: { n: "直接冲进去没收电脑", f: () => { let vs = Game.gRS(2); vs.forEach(s => { s.st += 35; Game.addM(s, 'mat', -2) }); Game.log(`没收了 ${vs[0].name} 和 ${vs[1].name} 的作案工具`, "[压力++, 纪律加强]") } }, c2: { n: "装作没看见，顺便祈祷他们能上分", f: () => { let vs = Game.gRS(2); vs.forEach(s => { s.st = 0; Game.addM(s, 'mat', 5); Game.addM(s, 'phy', 3) }); Game.log(`放任 ${vs[0].name} 和 ${vs[1].name} 打CF，这下不得不绿名了`, "[压力清零, 数理+]") } } }, { c: s => !0, t: "课代表跑来申请：『老师，大家觉得纯看书太枯燥了，想去实验室做做真实的生化实验！』", c1: { n: "立刻安排！(¥1000)", f: () => { if (State.money >= 1000) { State.money -= 1000; State.stu.forEach(s => { s.st = M_M(0, s.st - 20); Game.addM(s, 'che', 6); Game.addM(s, 'bio', 6) }); Game.log("去实验室玩火", "[资金-1000, 生化+, 压力-]") } else { State.stu.forEach(s => s.st += 10); Game.log("资金不足以做实验", "[失望]") } } }, c2: { n: "安全第一，乖乖刷题", f: () => { State.stu.forEach(s => s.st += 10); Game.log("驳回了实验请求", "[压力+]") } } }, { c: s => !0, t: "上一届毕业的学长回校探望，看到你们班在苦熬，非常感动。", c1: { n: "感谢并接受他的捐款", f: () => { State.money += 1500; Game.log("收到学长捐助 ¥1500", "[天降横财]") } }, c2: { n: "婉拒捐款，让他传授经验", f: () => { State.stu.forEach(s => { s.st = M_M(0, s.st - 15); Game.addM(s, 'chi', 3); Game.addM(s, 'mat', 3) }); Game.log("学长分享了独门复习法", "[全班微幅提升, 压力-]") } } }]; let vs = evs.filter(e => e.c(State)); if (vs.length > 0) { window.currEv = vs[Math.floor(R() * vs.length)]; UI.sCMod(window.currEv) } },
-            fTL() { State.ap = State.maxAp; State.money += 500 + (State.stu.length * 100); if (State.month === 10 && State.week === 1) { this.log("🏃‍♂️ 全校秋季运动会召开！大家在赛场上尽情挥洒汗水！", "[全员压力清空]"); State.stu.forEach(s => s.st = 0); this.uUI(); return } let wS = 0; if (['cold', 'hot'].includes(State.weather.eff)) wS = State.fac.ac === 0 ? .10 : (State.fac.ac === 1 ? .05 : 0); State.stu.forEach(s => { let hl = s.tl.some(t => t.id === 't3') ? 8 : 4; s.st = M_M(0, s.st - hl); if (s.tl.some(t => t.id === 'n5')) s.st += 8; if (s.st > 90 && R() > .7) { let ns = CONFIG.TAL.filter(t => t.t === 'neg'); let gT = ns[Math.floor(R() * ns.length)]; if (!s.tl.some(x => x.id === gT.id)) { s.tl.push(gT); this.log(`⚠️ ${s.name} 心态崩溃了！`, `[负面: ${gT.n}]`) } } if (wS > 0 && s.sk === 0 && R() < wS) { s.sk = 4; this.log(`糟糕，${s.name} 因为天气原因病倒了！`, "[生病1个月]") } }); this.tRE(); this.uUI() },
+            // === 座位表系统 ===
+            gRow(seat) { return seat < 2 ? 'front' : (seat < 4 ? 'mid' : 'back') },
+            gDeskmate(idx) { let s = State.stu[idx]; if (typeof s.seat !== 'number') return null; let pairSeat = s.seat % 2 === 0 ? s.seat + 1 : s.seat - 1; let mate = State.stu.find(x => x.seat === pairSeat); return mate || null },
+            isGoodAt(s, subId, thresh = .65) { let sub = CONFIG.SUB.find(x => x.id === subId); return (s.m[subId] / sub.c) >= thresh },
+            // 学习效率加成：讲台效应(前排+10%) + 同桌互补/网瘾拖累/早恋效率惩罚(-40%)
+            gSeatMultFor(s) { let idx = State.stu.indexOf(s); return idx === -1 ? 1 : this.gSeatMult(idx) },
+            gSeatMult(idx) {
+                let s = State.stu[idx]; if (typeof s.seat !== 'number') return 1;
+                let mult = 1;
+                if (this.gRow(s.seat) === 'front') mult *= 1.10;
+                let mate = this.gDeskmate(idx);
+                if (mate) {
+                    if (mate.tl.some(t => t.id === 'n4')) mult *= 0.90; // 网瘾传染：拖慢复习效率
+                    if (s.tl.some(t => t.id === 't5') && mate.tl.some(t => t.id === 't5')) mult *= 1.05; // 双强组合微幅提升
+                }
+                if (s.romanceState === 'dating') mult *= 0.60; // 早恋：复习效率下降40%
+                return mult;
+            },
+            // 座位表展示用的羁绊徽章
+            gSeatBuffs(idx) {
+                let s = State.stu[idx], buffs = [];
+                if (typeof s.seat !== 'number') return buffs;
+                let row = this.gRow(s.seat);
+                if (row === 'front') buffs.push({ n: '📖 前排+10%效率', t: 'pos' });
+                if (row === 'back') buffs.push({ n: '😌 后排压力增长慢', t: 'pos' });
+                let mate = this.gDeskmate(idx);
+                if (mate) {
+                    if (s.tl.some(t => t.id === 't5') && mate.tl.some(t => t.id === 't5')) buffs.push({ n: '👑 双强组合', t: 'pos' });
+                    if ((this.isGoodAt(s, 'chi') && this.isGoodAt(mate, 'mat')) || (this.isGoodAt(s, 'mat') && this.isGoodAt(mate, 'chi'))) buffs.push({ n: '🤝 互补组合', t: 'pos' });
+                    if (mate.tl.some(t => t.id === 'n4')) buffs.push({ n: '🎮 网瘾传染', t: 'neg' });
+                }
+                if (row === 'back') {
+                    let rowmate = mate;
+                    if (rowmate && s.gender === 'M' && rowmate.gender === 'M') buffs.push({ n: '⚠️ 后排双男生易摸鱼', t: 'neg' });
+                }
+                // 恋爱相关标记
+                if (s.romanceState === 'crush') {
+                    let isTogether = mate && mate.name === s.crushWith;
+                    buffs.push({ 
+                        n: `💕 青涩好感${isTogether ? `(同桌${s.crushDeskmateWeeks || 0}/2周)` : ''}`, 
+                        t: isTogether ? 'neg' : 'pos' 
+                    });
+                } else if (s.romanceState === 'dating') {
+                    buffs.push({ n: '💔 早恋中', t: 'neg' });
+                }
+                return buffs;
+            },
+            // 每周结算：讲台效应带来的压力变化 + 同桌互补微幅提分 + 早恋状态判定
+            applySeatEffects() {
+                State.stu.forEach((s, i) => {
+                    if (typeof s.seat !== 'number' || s.sk > 0) return;
+                    let row = this.gRow(s.seat);
+                    if (row === 'front') s.st += 4; // 前排：盯得紧，压力增长更快
+                    else if (row === 'back') s.st = M_M(0, s.st - 2); // 后排：压力增长慢
+                });
+
+                // 同桌恋爱递进逻辑：好感同桌超2周转为早恋
+                let processedCrush = new Set();
+                State.stu.forEach((s, i) => {
+                    if (processedCrush.has(i) || s.romanceState !== 'crush' || !s.crushWith) return;
+                    let mate = this.gDeskmate(i);
+                    let mateIdx = State.stu.findIndex(x => x.name === s.crushWith);
+                    
+                    if (mate && mate.name === s.crushWith) {
+                        s.crushDeskmateWeeks = (s.crushDeskmateWeeks || 0) + 1;
+                        if (mateIdx !== -1) {
+                            State.stu[mateIdx].crushDeskmateWeeks = s.crushDeskmateWeeks;
+                            processedCrush.add(i);
+                            processedCrush.add(mateIdx);
+                        }
+                        if (s.crushDeskmateWeeks >= 2) {
+                            s.romanceState = 'dating';
+                            s.st = 0; // 压力清零
+                            if (mateIdx !== -1) {
+                                State.stu[mateIdx].romanceState = 'dating';
+                                State.stu[mateIdx].st = 0;
+                            }
+                            this.log(`⚠️ ${s.name} 与 ${s.crushWith} 关系升级为“早恋”！`, "[学习效率大幅下降, 大考易失常]");
+                        }
+                    } else {
+                        s.crushDeskmateWeeks = 0; // 被拆开后同桌周数重置
+                    }
+                });
+
+                // 早恋状态下压力清零且锁定
+                State.stu.forEach(s => {
+                    if (s.romanceState === 'dating') s.st = 0;
+                });
+
+                // 同桌互补：语文/数学互帮互助，自习式微幅提分
+                let processed = new Set();
+                State.stu.forEach((s, i) => {
+                    if (processed.has(i) || typeof s.seat !== 'number' || s.sk > 0) return;
+                    let mate = this.gDeskmate(i);
+                    if (!mate || mate.sk > 0) return;
+                    let mateIdx = State.stu.indexOf(mate);
+                    processed.add(i); processed.add(mateIdx);
+                    if ((this.isGoodAt(s, 'chi') && this.isGoodAt(mate, 'mat')) || (this.isGoodAt(s, 'mat') && this.isGoodAt(mate, 'chi'))) {
+                        this.addM(s, 'mat', 1.5); this.addM(s, 'chi', 1.5);
+                        this.addM(mate, 'mat', 1.5); this.addM(mate, 'chi', 1.5);
+                    }
+                });
+                // 后排两名男生相邻：概率触发摸鱼类负面小事件
+                [[4, 5]].forEach(pair => {
+                    let a = State.stu.find(x => x.seat === pair[0]), b = State.stu.find(x => x.seat === pair[1]);
+                    if (a && b && a.gender === 'M' && b.gender === 'M' && a.sk === 0 && b.sk === 0 && R() < 0.12) {
+                        let opts = [
+                            () => { this.addM(a, 'mat', -1.5); this.addM(b, 'mat', -1.5); this.log(`${a.name} 和 ${b.name} 后排偷偷打了一局CF，进度略有落下`, "[数理-]") },
+                            () => { a.st += 6; b.st += 6; this.log(`${a.name} 和 ${b.name} 在后排看小说被你抓包，罚站反省`, "[压力+]") }
+                        ];
+                        opts[Math.floor(R() * opts.length)]();
+                    }
+                });
+            },
+            doA(cat, sub) { if (State.isGraduated) { if (['study', 'train', 'test'].includes(cat)) return UI.showAlert("同学们已经毕业啦哦！", "yellow"); if (cat === 'rest' && sub === 'snack') { Game.log("学生们凑钱请你吃了校门口小吃！", "[压力清零]"); State.stu.forEach(s => s.st = 0); this.uUI(); return } if (cat === 'rest' && sub === 'walk') return Game.log("你独自在校园散步，回忆着他们的高三。", "[思绪万千]"); } if (State.ap < 1 && !State.isGraduated) return UI.showAlert("AP 不足！", "red"); let aC = State.stu.filter(s => s.sk === 0).length; if (aC === 0) return UI.showAlert("全班都病假了！", "red"); let cA = cat === 'train' ? 2 : (cat === 'rest' && sub === 'walk' ? 1 : 1), cM = cat === 'test' ? 500 : (cat === 'train' ? 2000 : (cat === 'rest' && sub === 'snack' ? 500 : 0)); if (State.ap < cA && !State.isGraduated) return UI.showAlert("AP 不足！", "red"); if (State.money < cM) return UI.showAlert("班费不足！", "red"); if (!State.isGraduated) { State.ap -= cA; State.money -= cM } let tB = 1 + (State.fac.tech * .15), dR = State.fac.desk * 5, dM = State.diff === 'hard' ? .8 : 1.0; State.stu.filter(s => s.sk === 0).forEach(s => { if (s.tl.some(t => t.id === 'n4') && R() < .15) return this.log(`${s.name} 翘课去机房打 CF 去了！`, "[网瘾发作]"); if (['study', 'test'].includes(cat)) { let bG = (sub === 'chi' ? 1.5 : 2.5) * tB * this.gGM(sub, s.m[sub]) * dM * this.gSeatMultFor(s); if (s.st > 80) bG *= M_M(0, 1 - (s.st - 80) / 100); if (cat === 'test') bG *= 1.5; if (s.tl.some(t => t.id === 't5')) bG *= 1.2; if (['mat', 'phy'].includes(sub) && s.tl.some(t => t.id === 't1')) bG *= 1.2; if (['mat', 'phy'].includes(sub) && s.tl.some(t => t.id === 't8')) bG *= 1.3; if (sub === 'eng' && s.tl.some(t => t.id === 't2')) bG *= 1.2; if (['che', 'bio'].includes(sub)) { if (s.tl.some(t => t.id === 't4')) bG *= 1.2; if (s.tl.some(t => t.id === 't7')) bG *= 1.3 } Game.addM(s, sub, bG); if (s.romanceState !== 'dating') s.st += M_M(2, (cat === 'test' ? 15 : 12) - dR) } else if (cat === 'train') { sub.split('_').forEach(su => { let bG = (su === 'chi' ? 1.5 : 2.5) * 2.0 * tB * this.gGM(su, s.m[su]) * dM * this.gSeatMultFor(s); if (s.st > 80) bG *= M_M(0, 1 - (s.st - 80) / 100); Game.addM(s, su, bG) }); if (s.romanceState !== 'dating') s.st += M_M(10, 25 - dR) } else if (cat === 'rest') { s.st = M_M(0, s.st - (sub === 'walk' ? 20 : 30)) } }); UI.hAM(); this.uUI(); if (cat !== 'rest') this.log(cat === 'study' ? `组织了自习` : cat === 'test' ? `进行了随堂测验` : `开启了特训`, cM > 0 ? `[资金-${cM}]` : ``) },
+            healD(i) { if (State.money < 1000) return UI.showAlert("班费不足！", "red"); State.money -= 1000; let s = State.stu[i]; s.sk = 0; UI.cMod('doctor-modal'); this.log(`请私人医生治好了 ${s.name}。`, "[资金-1000, 恢复健康]"); this.uUI() },
+            cHP() { if (State.isGraduated) { Game.log("学生们重返母校，凑份子请你吃了一顿顶级的九宫格老火锅！", "[极度愉悦]"); State.stu.forEach(s => s.st = 0); UI.cMod('hotpot-modal'); this.uUI(); return } if (State.money < 3000 || State.ap < 2) return UI.showAlert("班费不够包场或AP不足！", "red"); State.money -= 3000; State.ap -= 2; let cN = []; State.stu.forEach(s => { s.st = 0; let iL = s.tl.length; s.tl = s.tl.filter(t => t.t !== 'neg' || R() > .7); if (s.tl.length < iL) cN.push(s.name) }); UI.cMod('hotpot-modal'); this.log(`花费 ¥3000 包场吃火锅。`, `[压力清空${cN.length > 0 ? `, ${cN.join(',')}克服了心魔` : ''}]`); this.uUI() },
+            doME() { if (State.isGraduated || State.money < 4000 || State.ap < 2) return UI.showAlert("资金不足或 AP 不足！", "red"); State.money -= 4000; State.ap -= 2; State.isMockExam = !0; let tB = 1 + (State.fac.tech * .15), dM = State.diff === 'hard' ? .8 : 1.0; State.stu.filter(s => s.sk === 0).forEach(s => { CONFIG.SUB.forEach(sub => { let bG = (sub.id === 'chi' ? 1.5 : 2.5) * tB * this.gGM(sub.id, s.m[sub.id]) * dM; if (s.st > 80) bG *= M_M(0, 1 - (s.st - 80) / 100); Game.addM(s, sub.id, bG) }); if (s.romanceState !== 'dating') s.st += 15 }); this.log("豪掷 ¥4000 组织全真模拟考！", "[全科能力+]"); this.pEx("全真模拟考试", !0) },
+            // 强基计划面试评定
+            evalQiangJi() {
+                let qList = $('qiangji-list');
+                if (!qList) return;
+                let html = '';
+                State.stu.forEach(s => {
+                    let usCount = CONFIG.SUB.filter(sub => (s.m[sub.id] / sub.c) >= (148 / 150)).length;
+                    let sssCount = CONFIG.SUB.filter(sub => (s.m[sub.id] / sub.c) >= (142 / 150)).length;
+                    let bonus = 0;
+                    let desc = '';
+
+                    if (usCount >= 3) {
+                        bonus = 30;
+                        desc = `<b style="color:var(--success)">🔥 3科达到US！获强基最高优惠 +30分</b>`;
+                    } else if (usCount === 2) {
+                        bonus = 20;
+                        desc = `<b style="color:var(--accent)">✨ 2科达到US！获强基优惠 +20分</b>`;
+                    } else if (usCount === 1) {
+                        bonus = 10;
+                        desc = `<b style="color:var(--accent)">🎯 1科达到US！获强基优惠 +10分</b>`;
+                    } else if (sssCount >= 1) {
+                        bonus = 5;
+                        desc = `<b style="color:var(--warning)">⚡ 单科达到SSS+！获强基优惠 +5分</b>`;
+                    } else {
+                        bonus = 0;
+                        desc = `<span style="color:var(--text-light)">未达到强基降分门槛 (需单科达到 US/SSS+)</span>`;
+                    }
+                    s.qjBonus = bonus;
+
+                    html += `<div class="g-cd1 g-flx" style="padding:12px 16px;">
+                        <div>
+                            <b style="font-size:1.1em; color:var(--primary);">${s.name}</b>
+                            <div style="font-size:0.85em; color:var(--text-light); margin-top:2px;">US学科数: <b style="color:var(--accent)">${usCount}</b> | SSS+学科数: <b>${sssCount}</b></div>
+                        </div>
+                        <div style="text-align:right;">
+                            ${desc}
+                        </div>
+                    </div>`;
+                });
+                qList.innerHTML = html;
+                $('qiangji-modal').classList.remove('hidden');
+                this.log("🏛️ 2026年高校“强基计划”复试评定完成！", "[强基计划]");
+            },
+            nextT() { State.week++; State.stu.forEach(s => { if (s.sk > 0) { s.sk--; if (s.sk === 0) this.log(`${s.name} 病好了。`, "[状态恢复]") } }); this.saveState(); if (State.week === 2 && State.month !== 6) return UI.sWMod(); if (State.week > 4) { State.week = 1; State.month++; if (State.month > 12) { State.month = 1; State.year++ } this.uW(); this.saveState(); if (State.month === 2 && State.year === 2026 && !State.qjEvaluated) { State.qjEvaluated = !0; this.evalQiangJi(); return } if (State.month === 5 && State.year === 2026) { State.maxAp = 4; this.log("🔥 进入五月冲刺期！大家进入狂暴状态，每周获得 4 点行动力！", "[冲刺开启]"); State.stu.forEach(s => { if (s.romanceState !== 'dating') s.st += 20 }); this.pEx("四月调考"); return } if (State.month === 6 && State.year === 2026) { $('gaokao-modal') && $('gaokao-modal').classList.remove('hidden'); return } else return this.pEx() } this.fTL() },
+            cWk() { let p = parseInt($('weekly-pts').innerText); if (p > 0) return UI.showAlert("请分配完点数！", "yellow"); State.stu.filter(s => s.sk === 0).forEach(s => { for (let k in State.tempAlloc) Game.addM(s, k, State.tempAlloc[k] * 1.5) }); UI.cMod('weekly-modal'); this.log("周考复盘，薄弱学科微幅补强。"); this.fTL() },
+            tRE() { if (R() > .6) return; let vs = RANDOM_EVENTS.filter(e => e.c(State)); if (vs.length > 0) { window.currEv = vs[Math.floor(R() * vs.length)]; UI.sCMod(window.currEv) } },
+            fTL() { State.ap = State.maxAp; State.money += 500 + (State.stu.length * 100); if (State.month === 10 && State.week === 1) { this.log("🏃‍♂️ 全校秋季运动会召开！大家在赛场上尽情挥洒汗水！", "[全员压力清空]"); State.stu.forEach(s => s.st = 0); this.saveState(); this.uUI(); return } let wS = 0; if (['cold', 'hot'].includes(State.weather.eff)) wS = State.fac.ac === 0 ? .10 : (State.fac.ac === 1 ? .05 : 0); State.stu.forEach(s => { let hl = s.tl.some(t => t.id === 't3') ? 8 : 4; if (s.romanceState !== 'dating') s.st = M_M(0, s.st - hl); else s.st = 0; if (s.tl.some(t => t.id === 'n5') && s.romanceState !== 'dating') s.st += 8; if (s.st > 90 && R() > .7) { let ns = CONFIG.TAL.filter(t => t.t === 'neg'); let gT = ns[Math.floor(R() * ns.length)]; if (!s.tl.some(x => x.id === gT.id)) { s.tl.push(gT); this.log(`⚠️ ${s.name} 心态崩溃了！`, `[负面: ${gT.n}]`) } } if (wS > 0 && s.sk === 0 && R() < wS) { s.sk = 4; this.log(`糟糕，${s.name} 因为天气原因病倒了！`, "[生病1个月]") } }); this.applySeatEffects(); this.tRE(); this.saveState(); this.uUI() },
             uW() { State.season = SEASONS[State.month.toString()]; let p = WEATHER_POOL[State.season]; State.weather = p[Math.floor(R() * p.length)] },
             gRR(sc) { if (sc >= 720) return 1; if (sc >= 681) return Math.floor(1 + 158 * Math.pow((720 - sc) / 39, 2)); const tb = [{ s: 681, r: 159 }, { s: 680, r: 176 }, { s: 650, r: 1701 }, { s: 600, r: 11716 }, { s: 550, r: 32260 }, { s: 500, r: 62078 }, { s: 450, r: 91261 }, { s: 400, r: 112843 }, { s: 350, r: 126882 }, { s: 300, r: 134938 }, { s: 250, r: 138444 }, { s: 200, r: 139415 }, { s: 180, r: 139478 }, { s: 0, r: 140000 }]; for (let i = 0; i < tb.length - 1; i++) { if (sc >= tb[i + 1].s) return M_M(1, O(tb[i].r + ((tb[i].s - sc) / (tb[i].s - tb[i + 1].s)) * (tb[i + 1].r - tb[i].r))) } return 140000 },
             fEC(rI, cI, rw) { let cl = $(`c-${rI}-${cI}`); if (!cl || cl.classList.contains('pop')) return; if (cI === 'total') { cl.innerText = rw.total; cl.style.color = "var(--danger)" } else if (cI === 'rank') { cl.innerText = `第${rw.rank}名`; cl.style.color = "var(--accent)" } else if (cI === 'ev') cl.innerHTML = rw.evTxt || '-'; else { let c = CONFIG.SUB.find(x => x.id === cI).c; cl.innerText = rw.scores[cI]; cl.style.background = UI.gSCol(rw.scores[cI], c); if (rw.scores[cI] / c > .65) cl.style.color = '#fff' } cl.classList.add('pop') },
             fES(rD, isM) { if (this.examSettled) return; this.examSettled = !0; let rw = 0, dt = []; rD.forEach(r => { let p = 0; if (r.rank === 1) { p = 100000; if (!isM) this.log(`🎉 震惊！${r.name} 荣获全市理科状元！`, "[巨额奖金]") } else if (r.rank <= 10) p = 30000; else if (r.rank <= 100) p = 10000; else if (r.rank <= 1000) p = 5000; else if (r.rank <= 5000) p = 3000; else if (r.rank <= 50000) p = 1000; rw += p; if (p > 0) dt.push(`${r.name}+${p}`); if (!isM) { r.ref.h.scores.push(r.total); r.ref.h.ranks.push(r.rank) } }); if (!isM) { let b = 2000; State.money += (rw + b); $('exam-rewards-txt').innerText = `🏆 保底补助¥2000。达标奖励¥${rw} (${dt.join(', ') || '无'})`; this.log(`大考结算：共获 ¥${rw + b}`, "[入账]") } $('exam-close-btn').classList.remove('hidden'); $('exam-skip-btn').classList.add('hidden') },
-            pEx(fN = "", isM = !1) { const m = $('exam-modal'); $('exam-title').innerText = fN || (State.month === 9 ? "起点摸底" : State.month === 1 ? "一诊" : State.month === 3 ? "二诊" : "月度联考"); $('exam-rewards-txt').innerText = isM ? "（本场为模拟考试，成绩不计入档案）" : ""; $('exam-close-btn').classList.add('hidden'); m.classList.remove('hidden'); const tb = $('exam-table'); tb.innerHTML = `<tr><th>姓名</th>${CONFIG.SUB.map(s => `<th>${s.n}</th>`).join('')}<th style=background:var(--danger)>总分</th><th style=background:var(--accent)>市排名</th><th style="width:250px;background:#f59e0b">考场动态</th></tr>`; let rD = State.stu.map(s => { let o = { name: s.name, scores: {}, total: 0, evTxt: "", ref: s }, dp = s.tl.some(t => t.id === 'n3') ? .9 : 1, sd = s.tl.some(t => t.id === 't6') ? 0 : 1, sP = s.sk > 0 ? .8 : 1; CONFIG.SUB.forEach(sub => { let b = s.m[sub.id]; if (sub.id === 'chi' && b > 120) b = 120 + (b - 120) * .1; let r = b * (1 - (s.st / 600)) * dp * sP, pG = (b / sub.c) * .4, pB = (1 - b / sub.c) * .4 * (s.sk > 0 ? 2 : 1), rn = R(); if (rn < pG) { let eL = EXAM_EV[sub.id].filter(x => x[1] > 0), ev = eL[Math.floor(R() * eL.length)]; o.evTxt += `[${sub.n}]${ev[0]}(+${ev[1]})<br>`; r += ev[1] } else if (rn > 1 - pB) { let eL = EXAM_EV[sub.id].filter(x => x[1] < 0), ev = eL[Math.floor(R() * eL.length)]; o.evTxt += `[${sub.n}]${ev[0]}(${ev[1]})<br>`; r += (ev[1] * (1 - sd)) } o.scores[sub.id] = M_M(0, M_N(sub.c, O(r))) }); o.total = Object.values(o.scores).reduce((a, b) => a + b, 0); return o }); rD.sort((a, b) => b.total - a.total); for (let i = 0; i < rD.length; i++) { if (i > 0 && rD[i].total === rD[i - 1].total) rD[i].rank = rD[i - 1].rank; else { let cl = this.gRR(rD[i].total); rD[i].rank = rD[i].total >= 720 ? i + 1 : M_M(cl, i + 1, (i > 0 ? rD[i - 1].rank + 1 : 1)) } } let cs = [...CONFIG.SUB.map(x => x.id), 'total', 'rank', 'ev']; rD.forEach((rw, rI) => { let tr = document.createElement('tr'); tr.innerHTML = `<td>${rw.name} ${rw.ref.sk > 0 ? '🤒' : ''}</td>`; cs.forEach(c => tr.innerHTML += `<td id=c-${rI}-${c} class="exam-cell ${c === 'ev' ? 'event-col' : ''}"></td>`); tb.appendChild(tr) }); this.examSettled = !1; this.examTimeouts.forEach(clearTimeout); this.examTimeouts = []; let sB = $('exam-skip-btn'); sB.classList.remove('hidden'); sB.onclick = () => { this.examTimeouts.forEach(clearTimeout); this.examTimeouts = []; rD.forEach((rw, rI) => { cs.forEach(cI => { let cl = $(`c-${rI}-${cI}`); if (cl) cl.style.animationDuration = '.1s'; this.fEC(rI, cI, rw) }) }); this.fES(rD, isM) }; cs.forEach((cI, cIdx) => { this.examTimeouts.push(setTimeout(() => { rD.forEach((rw, rI) => { this.examTimeouts.push(setTimeout(() => { this.fEC(rI, cI, rw) }, rI * 100)) }); if (cIdx === cs.length - 1) this.examTimeouts.push(setTimeout(() => { this.fES(rD, isM) }, rD.length * 100 + 500)) }, cIdx * 600)) }) },
-            sGK() { $('gaokao-modal') && $('gaokao-modal').classList.add('hidden'); this.pEx("全国统一高考 (重庆卷)"); $('exam-close-btn').innerText = "查看录取去向"; $('exam-close-btn').onclick = () => { State.isGraduated = !0; this.sEd() } },
-            sEd() { $('exam-modal').classList.add('hidden'); $('ending-modal').classList.remove('hidden'); let tS = 0, cH = ""; State.stu.forEach((s, i) => { let fS = s.h.scores[s.h.scores.length - 1]; tS += fS; let tr = CONFIG.UNI.find(u => fS >= u.min) || CONFIG.UNI[4], un = tr.list[Math.floor(R() * tr.list.length)]; cH += `<div class="cengfan-card animate-up g-cd1 g-flx" style="animation-delay:${i * .1}s;gap:12px"><div style=font-size:2em>📍</div><div><b style="font-size:1.1em;color:var(--primary)">${s.name}</b><br><span style="font-size:.9em;color:var(--accent);font-weight:bold">${un} (${fS}分)</span></div></div>` }); $('ending-cengfan').innerHTML = cH; let aS = tS / State.stu.length; let pT = aS >= 685 ? `均分 ${O(aS)}！全员清北！神级教练，你被直接提拔为校长！` : aS >= 650 ? `均分 ${O(aS)}！全员C9！神仙班级再续辉煌，你晋升为副校长！` : aS >= 600 ? `均分 ${O(aS)}！全员985！你获得了市级优秀教师称号，提拔为年级主任。` : aS >= 500 ? `均分 ${O(aS)}！全员211！无一人掉队，你稳稳保住了班主任的职位。` : `均分 ${O(aS)}。未能带领大家全部突破211线，家长频频投诉，你遗憾被下放去教初中。`; $('ending-player').innerHTML = `<h3 style="margin-top:0;border-bottom:1px solid rgba(245,158,11,.3);padding-bottom:10px">你的执教评价</h3><p style="font-size:1.2em;color:var(--text);font-weight:bold">${pT}</p>` },
+            pEx(fN = "", isM = !1) { const m = $('exam-modal'); $('exam-title').innerText = fN || (State.month === 9 ? "起点摸底" : State.month === 1 ? "一诊" : State.month === 3 ? "二诊" : "月度联考"); $('exam-rewards-txt').innerText = isM ? "（本场为模拟考试，成绩不计入档案）" : ""; $('exam-close-btn').classList.add('hidden'); m.classList.remove('hidden'); const tb = $('exam-table'); tb.innerHTML = `<tr><th>姓名</th>${CONFIG.SUB.map(s => `<th>${s.n}</th>`).join('')}<th style=background:var(--danger)>总分</th><th style=background:var(--accent)>市排名</th><th style="width:250px;background:#f59e0b">考场动态</th></tr>`; let rD = State.stu.map(s => { let o = { name: s.name, scores: {}, total: 0, evTxt: "", ref: s }, dp = s.tl.some(t => t.id === 'n3') ? .9 : 1, sd = s.tl.some(t => t.id === 't6') ? 0 : 1, sP = s.sk > 0 ? .8 : 1; CONFIG.SUB.forEach(sub => { let b = s.m[sub.id]; if (sub.id === 'chi' && b > 120) b = 120 + (b - 120) * .1; let r = b * (1 - (s.st / 600)) * dp * sP, pG = (b / sub.c) * .4, pB = (1 - b / sub.c) * .4 * (s.sk > 0 ? 2 : 1), rn = R(); 
+            // 早恋状态下：大考大概率（70%概率）发挥失常扣分
+            if (s.romanceState === 'dating' && R() < 0.7) {
+                r *= 0.82;
+                o.evTxt += `[${sub.n}]早恋走神(-${O(b * 0.18)})<br>`;
+            }
+            if (rn < pG) { let eL = EXAM_EV[sub.id].filter(x => x[1] > 0), ev = eL[Math.floor(R() * eL.length)]; o.evTxt += `[${sub.n}]${ev[0]}(+${ev[1]})<br>`; r += ev[1] } else if (rn > 1 - pB) { let eL = EXAM_EV[sub.id].filter(x => x[1] < 0), ev = eL[Math.floor(R() * eL.length)]; o.evTxt += `[${sub.n}]${ev[0]}(${ev[1]})<br>`; r += (ev[1] * (1 - sd)) } o.scores[sub.id] = M_M(0, M_N(sub.c, O(r))) }); o.total = Object.values(o.scores).reduce((a, b) => a + b, 0); return o }); rD.sort((a, b) => b.total - a.total); for (let i = 0; i < rD.length; i++) { if (i > 0 && rD[i].total === rD[i - 1].total) rD[i].rank = rD[i - 1].rank; else { let cl = this.gRR(rD[i].total); rD[i].rank = rD[i].total >= 720 ? i + 1 : M_M(cl, i + 1, (i > 0 ? rD[i - 1].rank + 1 : 1)) } } let cs = [...CONFIG.SUB.map(x => x.id), 'total', 'rank', 'ev']; rD.forEach((rw, rI) => { let tr = document.createElement('tr'); tr.innerHTML = `<td>${rw.name} ${rw.ref.sk > 0 ? '🤒' : ''}</td>`; cs.forEach(c => tr.innerHTML += `<td id=c-${rI}-${c} class="exam-cell ${c === 'ev' ? 'event-col' : ''}"></td>`); tb.appendChild(tr) }); this.examSettled = !1; this.examTimeouts.forEach(clearTimeout); this.examTimeouts = []; let sB = $('exam-skip-btn'); sB.classList.remove('hidden'); sB.onclick = () => { this.examTimeouts.forEach(clearTimeout); this.examTimeouts = []; rD.forEach((rw, rI) => { cs.forEach(cI => { let cl = $(`c-${rI}-${cI}`); if (cl) cl.style.animationDuration = '.1s'; this.fEC(rI, cI, rw) }) }); this.fES(rD, isM) }; cs.forEach((cI, cIdx) => { this.examTimeouts.push(setTimeout(() => { rD.forEach((rw, rI) => { this.examTimeouts.push(setTimeout(() => { this.fEC(rI, cI, rw) }, rI * 100)) }); if (cIdx === cs.length - 1) this.examTimeouts.push(setTimeout(() => { this.fES(rD, isM) }, rD.length * 100 + 500)) }, cIdx * 600)) }) },
+            sGK() { $('gaokao-modal') && $('gaokao-modal').classList.add('hidden'); this.pEx("全国统一高考 (重庆卷)"); $('exam-close-btn').innerText = "查看录取去向"; $('exam-close-btn').onclick = () => { State.isGraduated = !0; localStorage.removeItem('whk-save-state'); this.sEd() } },
+            sEd() { $('exam-modal').classList.add('hidden'); $('ending-modal').classList.remove('hidden'); let tS = 0, cH = ""; State.stu.forEach((s, i) => { let rawScore = s.h.scores[s.h.scores.length - 1]; let qj = s.qjBonus || 0; let fS = rawScore + qj; tS += fS; let tr = CONFIG.UNI.find(u => fS >= u.min) || CONFIG.UNI[4], un = tr.list[Math.floor(R() * tr.list.length)]; cH += `<div class="cengfan-card animate-up g-cd1 g-flx" style="animation-delay:${i * .1}s;gap:12px"><div style=font-size:2em>📍</div><div><b style="font-size:1.1em;color:var(--primary)">${s.name}</b><br><span style="font-size:.9em;color:var(--accent);font-weight:bold">${un} (${rawScore}分${qj ? ` <span style="color:var(--success)">+强基${qj}分</span>` : ''})</span></div></div>` }); $('ending-cengfan').innerHTML = cH; let aS = tS / State.stu.length; let pT = aS >= 685 ? `含强基加分均分 ${O(aS)}！全员清北！神级教练，你被直接提拔为校长！` : aS >= 650 ? `含强基加分均分 ${O(aS)}！全员C9！神仙班级再续辉煌，你晋升为副校长！` : aS >= 600 ? `含强基加分均分 ${O(aS)}！全员985！你获得了市级优秀教师称号，提拔为年级主任。` : aS >= 500 ? `含强基加分均分 ${O(aS)}！全员211！无一人掉队，你稳稳保住了班主任的职位。` : `含强基加分均分 ${O(aS)}。未能带领大家全部突破211线，家长频频投诉，你遗憾被下放去教初中。`; $('ending-player').innerHTML = `<h3 style="margin-top:0;border-bottom:1px solid rgba(245,158,11,.3);padding-bottom:10px">你的执教评价</h3><p style="font-size:1.2em;color:var(--text);font-weight:bold">${pT}</p>` },
             rTC() { $('ending-modal').classList.add('hidden'); State.ap = 'INF'; State.maxAp = 'INF'; $('ui-ap').innerText = 'INF'; $('ap-max-txt').innerText = ''; $('btn-next-turn').innerText = '已毕业'; $('btn-next-turn').disabled = !0; $('title-snack').innerText = '🍢 同学请客吃小吃'; $('cost-snack').innerText = '免费 | AP: 0'; $('title-hotpot').innerText = '🍲 同学请客老火锅'; $('cost-hotpot').innerText = '免费 | AP: 0'; $('cost-train').innerText = '无法使用'; $('graduated-actions').classList.remove('hidden'); this.log("同学们已经毕业，班级里空空荡荡，但偶尔他们会回来看你。", "[完结撒花]"); this.uUI() },
-            eGK() { let tH = $('exam-table').innerHTML; let tm = `<!DOCTYPE html><html lang=zh-CN><head><meta charset=UTF-8><title>2026届 高考成绩单 - 班主任模拟器</title><style>body{background:radial-gradient(circle at 50% 0,#fef2f2,#f1f5f9);font-family:'Segoe UI',sans-serif;padding:40px;color:#1e293b;margin:0}.container{background:rgba(255,255,255,.95);border:2px solid #e2e8f0;border-radius:24px;padding:40px;box-shadow:0 20px 50px rgba(0,0,0,.1);max-width:1400px;margin:0 auto;backdrop-filter:blur(10px)}h1{color:#e63946;text-align:center;font-size:2.8em;margin:0 0 30px 0;letter-spacing:2px;text-shadow:0 2px 10px rgba(230,57,70,.2)}.exam-table{width:100%;border-collapse:separate;border-spacing:0;font-size:1.05em;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.05);background:rgba(255,255,255,.6)}.exam-table th,.exam-table td{padding:16px 10px;text-align:center;border-bottom:1px solid rgba(0,0,0,.05)}.exam-table th{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;font-weight:bold;font-size:1.15em}.exam-cell{transform:translateY(15px);opacity:0;font-weight:bold}@keyframes pop{to{opacity:1;transform:translateY(0)}}.pop{animation:pop .5s ease-out forwards}.event-col{text-align:left!important;font-size:.85em;color:#ef4444;line-height:1.6}</style></head><body><div class=container><h1>🎓 2026届 高考成绩榜 🎓</h1><table class=exam-table>${tH}</table></div><script>window.onload=()=>{document.querySelectorAll('.exam-cell').forEach(c=>c.classList.remove('pop'));let r=document.querySelectorAll('tr'),d=0;for(let i=1;i<r.length;i++){r[i].querySelectorAll('.exam-cell').forEach(c=>setTimeout(()=>c.classList.add('pop'),d));d+=150}}<\/script></body></html>`; let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([tm], { type: "text/html;charset=utf-8" })); a.download = "2026届高考成绩单.html"; a.click(); this.log("已成功导出高考成绩单至本地。", "[文件导出]") },
-            log(m, e = "") { const a = $('log-area'); a.innerHTML = `<div class=log-entry><span style="color:#94a3b8;font-size:.9em">[${State.year}届 ${State.month}月W${State.week}]</span> ${m} ${e ? `<span class=log-eff>${e}</span>` : ''}</div>` + a.innerHTML },
-            uUI() { let l = State.diff === 'hard' ? 150 : 180, wL = l - 30, skC = 0, stC = 0; for (let i = 0; i < State.stu.length; i++) { let s = State.stu[i]; if (s.st >= l) { alert(`【重大事故】${s.name} 压力达到 ${O(s.st)}%，承受不住选择了跳楼！\n\n发生严重校园安全事故，你的教师资格证被吊销，游戏强制结束。`); return location.reload() } if (s.sk > 0) skC++; if (s.st >= wL) stC++ } let bC = $('badge-classroom'); if (bC) { bC.innerHTML = `🤒 ${skC}  🤯 ${stC}`; bC.className = skC > 0 || stC > 0 ? 'status-badge danger' : 'status-badge' } $('ui-time').innerText = `${State.year}年 ${State.month}月 W${State.week}`; $('ui-money').innerText = State.money; if (!State.isGraduated) { $('ui-ap').innerText = State.ap; $('ap-max-txt').innerText = `/${State.maxAp}` } $('ui-weather').innerText = State.weather.i; $('ui-weather-txt').innerText = State.weather.n; $('ui-season').innerText = State.season + "季"; State.month === 5 && State.year === 2026 ? $('sprint-tag').classList.remove('hidden') : $('sprint-tag').classList.add('hidden'); UI.rCls(); UI.rFac(); UI.rATbs() }
+            eGK() { let tH = $('exam-table').innerHTML; let tm = `<!DOCTYPE html><html lang=zh-CN><head><meta charset=UTF-8><title>2026届 高考成绩单 - whk班主任模拟器</title><style>*{scrollbar-width:none!important;-ms-overflow-style:none!important;}::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}body{background:radial-gradient(circle at 50% 0,#fef2f2,#f1f5f9);font-family:'Segoe UI',sans-serif;padding:40px;color:#1e293b;margin:0}.container{background:rgba(255,255,255,.95);border:2px solid #e2e8f0;border-radius:24px;padding:40px;box-shadow:0 20px 50px rgba(0,0,0,.1);max-width:1400px;margin:0 auto;backdrop-filter:blur(10px)}h1{color:#e63946;text-align:center;font-size:2.8em;margin:0 0 30px 0;letter-spacing:2px;text-shadow:0 2px 10px rgba(230,57,70,.2)}.exam-table{width:100%;border-collapse:separate;border-spacing:0;font-size:1.05em;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.05);background:rgba(255,255,255,.6)}.exam-table th,.exam-table td{padding:16px 10px;text-align:center;border-bottom:1px solid rgba(0,0,0,.05)}.exam-table th{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;font-weight:bold;font-size:1.15em}.exam-cell{transform:translateY(15px);opacity:0;font-weight:bold}@keyframes pop{to{opacity:1;transform:translateY(0)}}.pop{animation:pop .5s ease-out forwards}.event-col{text-align:left!important;font-size:.85em;color:#ef4444;line-height:1.6}</style></head><body><div class=container><h1>🎓 2026届 高考成绩榜 🎓</h1><table class=exam-table>${tH}</table></div><script>window.onload=()=>{document.querySelectorAll('.exam-cell').forEach(c=>c.classList.remove('pop'));let r=document.querySelectorAll('tr'),d=0;for(let i=1;i<r.length;i++){r[i].querySelectorAll('.exam-cell').forEach(c=>setTimeout(()=>c.classList.add('pop'),d));d+=150}}<\/script></body></html>`; let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([tm], { type: "text/html;charset=utf-8" })); a.download = "2026届高考成绩单.html"; a.click(); this.log("已成功导出高考成绩单至本地。", "[文件导出]") },
+            log(m, e = "") { if (!State.logs) State.logs = []; let entryHtml = `<div class=log-entry><span style="color:#94a3b8;font-size:.9em">[${State.year}届 ${State.month}月W${State.week}]</span> ${m} ${e ? `<span class=log-eff>${e}</span>` : ''}</div>`; State.logs.unshift(entryHtml); if (State.logs.length > 100) State.logs.pop(); $('log-area').innerHTML = State.logs.join(''); },
+            uUI() { let l = State.diff === 'hard' ? 150 : 180, wL = l - 30, skC = 0, stC = 0; for (let i = 0; i < State.stu.length; i++) { let s = State.stu[i]; if (s.st >= l) { localStorage.removeItem('whk-save-state'); UI.showAlert(`【重大事故】${s.name} 压力达到 ${O(s.st)}%，承受不住选择了跳楼！\n\n发生严重校园安全事故，你的教师资格证被吊销，游戏强制结束。`, "red", "游戏结束"); setTimeout(() => location.reload(), 3000); return } if (s.sk > 0) skC++; if (s.st >= wL) stC++ } let bC = $('badge-classroom'); if (bC) { bC.innerHTML = `🤒 ${skC}  🤯 ${stC}`; bC.className = skC > 0 || stC > 0 ? 'status-badge danger' : 'status-badge' } $('ui-time').innerText = `${State.year}年 ${State.month}月 W${State.week}`; $('ui-money').innerText = State.money; if (!State.isGraduated) { $('ui-ap').innerText = State.ap; $('ap-max-txt').innerText = `/${State.maxAp}` } $('ui-weather').innerText = State.weather.i; $('ui-weather-txt').innerText = State.weather.n; $('ui-season').innerText = State.season + "季"; State.month === 5 && State.year === 2026 ? $('sprint-tag').classList.remove('hidden') : $('sprint-tag').classList.add('hidden'); UI.rCls(); UI.rFac(); UI.rATbs(); if (!$('view-seating').classList.contains('hidden')) UI.rSeat() }
         };
         const UI = {
+            // 统一弹出自定义 Alert Modal
+            showAlert(msg, type = 'purple', title = '') {
+                if (!type) {
+                    if (/不足|事故|病假|跳楼|失败|崩溃|错误/.test(msg)) type = 'red';
+                    else if (/请|毕业|注意|警告|没有学生/.test(msg)) type = 'yellow';
+                    else type = 'purple';
+                }
+
+                const modal = $('alert-modal');
+                const box = $('alert-box');
+                const titleEl = $('alert-title');
+                const msgEl = $('alert-msg');
+                const btn = $('alert-btn');
+
+                let themeColor = 'var(--accent)';
+                let defaultTitle = '';
+                let btnGrad = 'linear-gradient(135deg, var(--accent), #3730a3)';
+
+                if (type === 'red' || type === 'danger' || type === 'error') {
+                    themeColor = 'var(--danger)';
+                    defaultTitle = '警告';
+                    btnGrad = 'linear-gradient(135deg, var(--danger), #be123c)';
+                } else if (type === 'yellow' || type === 'warning' || type === 'warn') {
+                    themeColor = 'var(--warning)';
+                    defaultTitle = '警告';
+                    btnGrad = 'linear-gradient(135deg, var(--warning), #d97706)';
+                } else {
+                    themeColor = 'var(--accent)';
+                    defaultTitle = '提示';
+                    btnGrad = 'linear-gradient(135deg, var(--accent), #3730a3)';
+                }
+
+                box.style.borderTop = `6px solid ${themeColor}`;
+                titleEl.style.color = themeColor;
+                titleEl.innerText = title || defaultTitle;
+                msgEl.innerText = msg;
+                btn.style.background = btnGrad;
+
+                modal.classList.remove('hidden');
+            },
+            cAlert() {
+                $('alert-modal').classList.add('hidden');
+            },
             tThm() { let isD = document.body.classList.toggle('dark-mode'); localStorage.setItem('whk-thm', isD ? 'd' : 'l'); $('theme-icon').innerHTML = isD ? `<svg viewBox="0 0 24 24" width=22 height=22 stroke=currentColor stroke-width=2 fill=none stroke-linecap=round stroke-linejoin=round><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>` : `<svg viewBox="0 0 24 24" width=22 height=22 stroke=currentColor stroke-width=2 fill=none stroke-linecap=round stroke-linejoin=round><circle cx=12 cy=12 r=5></circle><line x1=12 y1=1 x2=12 y2=3></line><line x1=12 y1=21 x2=12 y2=23></line><line x1=4.22 y1=4.22 x2=5.64 y2=5.64></line><line x1=18.36 y1=18.36 x2=19.78 y2=19.78></line><line x1=1 y1=12 x2=3 y2=12></line><line x1=21 y1=12 x2=23 y2=12></line><line x1=4.22 y1=19.78 x2=5.64 y2=18.36></line><line x1=18.36 y1=5.64 x2=19.78 y2=4.22></line></svg>` },
+            setGender(i, g, el) { window.stuGenders = window.stuGenders || ['M', 'F', 'M', 'F', 'M', 'F']; window.stuGenders[i] = g; el.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); el.classList.add('active') },
             sTab(id) { $$('.panel-content').forEach(e => { e.classList.remove('active'); e.querySelectorAll('.animate-up').forEach(c => { c.style.animation = 'none'; c.offsetHeight; c.style.animation = null }) }); $$('.sidebar .tab-btn').forEach(e => e.classList.remove('active')); $(`panel-${id}`).classList.add('active'); event.target.classList.add('active') },
-            sMain(id) { $('view-classroom').classList.add('hidden'); $('view-archive').classList.add('hidden'); $(`view-${id}`).classList.remove('hidden'); $('btn-classroom').classList.remove('active'); $('btn-archive').classList.remove('active'); $(`btn-${id}`).classList.add('active'); $(`view-${id}`).querySelectorAll('.animate-up').forEach(c => { c.style.animation = 'none'; c.offsetHeight; c.style.animation = null }) },
+            sMain(id) { ['classroom','seating','archive'].forEach(v => { $(`view-${v}`).classList.add('hidden'); $(`btn-${v}`).classList.remove('active') }); $(`view-${id}`).classList.remove('hidden'); $(`btn-${id}`).classList.add('active'); if (id === 'seating') UI.rSeat(); $(`view-${id}`).querySelectorAll('.animate-up').forEach(c => { c.style.animation = 'none'; c.offsetHeight; c.style.animation = null }) },
             tMnu(id) { let e = $(id); e.classList.toggle('active') }, hAM() { $$('.sub-menu').forEach(e => e.classList.remove('active')) }, cMod(id) { $(id).classList.add('hidden') },
             cExm() { $('exam-modal').classList.add('hidden'); if (!State.isMockExam) Game.fTL(); else { State.isMockExam = !1; Game.uUI() } },
             sCMod(ev) { $('choice-desc').innerText = ev.t; let b1 = `<button class=btn-choice onclick=UI.hCh(1)>${ev.c1.n}</button>`, b2 = `<button class=btn-choice onclick=UI.hCh(2)>${ev.c2.n}</button>`; $('choice-btns').innerHTML = R() > .5 ? b2 + b1 : b1 + b2; $('choice-modal').classList.remove('hidden') },
             hCh(id) { UI.cMod('choice-modal'); id === 1 ? window.currEv.c1.f() : window.currEv.c2.f(); Game.uUI() },
             sHPMod() { if (State.isGraduated) return Game.cHP(); $('hotpot-modal').classList.remove('hidden') },
-            sDMod() { let ss = State.stu.map((s, i) => ({ s, i })).filter(x => x.s.sk > 0); if (ss.length === 0) return alert("当前没有学生生病！"); $('doctor-list').innerHTML = ss.map(x => `<div class="g-cd1 g-flx"><div><b style=color:var(--primary)>${x.s.name}</b> <span style="color:var(--danger);font-size:.85em;font-weight:bold">(病假剩余 ${x.s.sk} 周)</span></div><button style="padding:10px 20px;background:linear-gradient(135deg,var(--success),#047857);color:#fff" onclick=Game.healD(${x.i})>立刻治愈 (¥1000)</button></div>`).join(''); $('doctor-modal').classList.remove('hidden') },
+            sDMod() { let ss = State.stu.map((s, i) => ({ s, i })).filter(x => x.s.sk > 0); if (ss.length === 0) return UI.showAlert("当前没有学生生病！", "yellow"); $('doctor-list').innerHTML = ss.map(x => `<div class="g-cd1 g-flx"><div><b style=color:var(--primary)>${x.s.name}</b> <span style="color:var(--danger);font-size:.85em;font-weight:bold">(病假剩余 ${x.s.sk} 周)</span></div><button style="padding:10px 20px;background:linear-gradient(135deg,var(--success),#047857);color:#fff" onclick=Game.healD(${x.i})>立刻治愈 (¥1000)</button></div>`).join(''); $('doctor-modal').classList.remove('hidden') },
             sWMod() { State.tempAlloc = { chi: 0, mat: 0, eng: 0, phy: 0, che: 0, bio: 0 }; this.rWkAl(); $('weekly-modal').classList.remove('hidden') },
             rWkAl() { $('weekly-pts').innerText = 3 - Object.values(State.tempAlloc).reduce((a, b) => a + b, 0); $('weekly-alloc').innerHTML = CONFIG.SUB.map(sb => `<div class="g-cd1 g-flx"><b style=color:var(--primary)>${sb.n}</b><div><button style="padding:4px 12px;background:var(--dash-bd)" onclick="UI.mWk('${sb.id}',-1)">-</button> <span style="display:inline-block;width:25px;text-align:center;font-weight:bold;color:var(--accent)">${State.tempAlloc[sb.id]}</span> <button style="padding:4px 12px;background:var(--accent);color:#fff" onclick="UI.mWk('${sb.id}',1)">+</button></div></div>`).join('') },
             mWk(s, v) { let u = Object.values(State.tempAlloc).reduce((a, b) => a + b, 0); if ((v > 0 && u >= 3) || (v < 0 && State.tempAlloc[s] <= 0)) return; State.tempAlloc[s] += v; this.rWkAl() },
             gSCol(v, c) { let r = v / c; if (r >= .95) return 'linear-gradient(135deg,#a855f7,#7e22ce)'; if (r >= .9) return 'linear-gradient(135deg,#fb7185,#e11d48)'; if (r >= .8) return 'linear-gradient(135deg,#fb923c,#ea580c)'; if (r >= .65) return 'linear-gradient(135deg,#4ade80,#16a34a)'; if (r >= .5) return 'linear-gradient(135deg,#60a5fa,#2563eb)'; return 'var(--bg-w-90)' },
             gRTg(v, c) { return (CONFIG.GRD.find(x => (v / c) >= x.v / 150) || CONFIG.GRD[9]).l },
-            rCls() { const ct = $('view-classroom'); let l = State.diff === 'hard' ? 150 : 180, wL = l - 30; if (ct.children.length !== State.stu.length) { ct.innerHTML = State.stu.map((s, i) => `<div class="stu-card animate-up" id=stu-card-${i} style=animation-delay:${i * .1}s><div class=stu-header><span class=stu-name><span id=stu-name-txt-${i}>${s.name}</span><span id=stu-sick-${i} class=hidden style="font-size:.5em;background:var(--danger);color:#fff;padding:4px 8px;border-radius:6px;vertical-align:middle"></span></span><span style="font-size:.85em;font-weight:bold;color:var(--text-light);background:var(--sd-05);padding:4px 10px;border-radius:12px">预估: <span id=stu-est-${i} style=color:var(--accent)>0</span></span></div><div class=tag-pool id=stu-tags-${i}></div><div class=sub-grid id=stu-subs-${i}>${CONFIG.SUB.map(sb => `<div class=sub-box><span class=sub-label>${sb.n}</span><div class=sub-val id=stu-sub-${i}-${sb.id}></div></div>`).join('')}</div><div style="font-size:.75em;margin-top:18px;display:flex;justify-content:space-between;font-weight:bold"><span style=color:var(--text-light)>心理防线</span> <span id=stu-stress-txt-${i}>0%</span></div><div class=stress-bar><div class=stress-fill id=stu-stress-bar-${i} style=width:0%></div></div></div>`).join('') } State.stu.forEach((s, i) => { let cd = $(`stu-card-${i}`), nT = $(`stu-name-txt-${i}`), skE = $(`stu-sick-${i}`), stB = $(`stu-stress-bar-${i}`), isD = s.st >= wL, isH = s.st > 100 || isD; if (s.sk > 0) { cd.classList.add('sick'); skE.innerText = `病假 ${s.sk}周`; skE.classList.remove('hidden') } else { cd.classList.remove('sick'); skE.classList.add('hidden') } $(`stu-est-${i}`).innerText = O(Object.values(s.m).reduce((a, b) => a + b, 0)); $(`stu-tags-${i}`).innerHTML = s.tl.map(t => `<span class="tag ${t.t === 'neg' ? 'tag-neg' : 'tag-pos'}" title="${t.d}">${t.n}</span>`).join(''); CONFIG.SUB.forEach(sb => { let el = $(`stu-sub-${i}-${sb.id}`), v = s.m[sb.id]; el.className = (v / sb.c < .65) ? 'sub-val dark-text' : 'sub-val'; el.innerText = this.gRTg(v, sb.c); el.style.background = this.gSCol(v, sb.c) }); nT.style.color = isH ? 'var(--danger)' : ''; nT.style.textShadow = isH ? '0 0 10px rgba(239,68,68,.4)' : ''; $(`stu-stress-txt-${i}`).innerText = `${O(s.st)}%`; $(`stu-stress-txt-${i}`).style.color = isH || s.st > 85 ? 'var(--danger)' : 'var(--primary)'; stB.style.width = `${M_N(100, s.st)}%`; stB.style.background = s.st > 85 || isD ? 'linear-gradient(90deg,#f87171,#ef4444)' : 'linear-gradient(90deg,#818cf8,#4f46e5)'; stB.style.boxShadow = s.st > 85 || isD ? '0 0 10px rgba(239,68,68,.5)' : '0 0 10px rgba(79,70,229,.5)'; isD ? (stB.classList.add('stress-blink'), nT.classList.add('stress-blink')) : (stB.classList.remove('stress-blink'), nT.classList.remove('stress-blink')) }) },
+            rCls() { const ct = $('view-classroom'); let l = State.diff === 'hard' ? 150 : 180, wL = l - 30; if (ct.children.length !== State.stu.length) { ct.innerHTML = State.stu.map((s, i) => `<div class="stu-card animate-up" id=stu-card-${i} style=animation-delay:${i * .1}s><div class=stu-header><span class=stu-name><span id=stu-name-txt-${i}>${s.name}</span><span id=stu-sick-${i} class=hidden style="font-size:.5em;background:var(--danger);color:#fff;padding:4px 8px;border-radius:6px;vertical-align:middle"></span></span><span style="font-size:.85em;font-weight:bold;color:var(--text-light);background:var(--sd-05);padding:4px 10px;border-radius:12px">预估: <span id=stu-est-${i} style=color:var(--accent)>0</span></span></div><div class=tag-pool id=stu-tags-${i}></div><div class=sub-grid id=stu-subs-${i}>${CONFIG.SUB.map(sb => `<div class=sub-box><span class=sub-label>${sb.n}</span><div class=sub-val id=stu-sub-${i}-${sb.id}></div></div>`).join('')}</div><div style="font-size:.75em;margin-top:18px;display:flex;justify-content:space-between;font-weight:bold"><span style=color:var(--text-light)>心理防线</span> <span id=stu-stress-txt-${i}>0%</span></div><div class=stress-bar><div class=stress-fill id=stu-stress-bar-${i} style=width:0%></div></div></div>`).join('') } State.stu.forEach((s, i) => { let cd = $(`stu-card-${i}`), nT = $(`stu-name-txt-${i}`), skE = $(`stu-sick-${i}`), stB = $(`stu-stress-bar-${i}`), isD = s.st >= wL, isH = s.st > 100 || isD; if (s.sk > 0) { cd.classList.add('sick'); skE.innerText = `病假 ${s.sk}周`; skE.classList.remove('hidden') } else { cd.classList.remove('sick'); skE.classList.add('hidden') } $(`stu-est-${i}`).innerText = O(Object.values(s.m).reduce((a, b) => a + b, 0)); $(`stu-tags-${i}`).innerHTML = (s.qjBonus ? `<span class="tag tag-pos" style="background:linear-gradient(135deg, #e0e7ff, #c7d2fe); color:#3730a3; border:1px solid #818cf8;">🏛️ 强基+${s.qjBonus}</span>` : '') + (s.romanceState === 'crush' ? `<span class="tag tag-pos" style="background:#fbcfe8;color:#9d174d;border:1px solid #f472b6;">💕 好感:${s.crushWith}</span>` : '') + (s.romanceState === 'dating' ? `<span class="tag tag-neg" style="background:#ffe4e6;color:#be123c;border:1px solid #fda4af;">💔 早恋中</span>` : '') + s.tl.map(t => `<span class="tag ${t.t === 'neg' ? 'tag-neg' : 'tag-pos'}" title="${t.d}">${t.n}</span>`).join(''); CONFIG.SUB.forEach(sb => { let el = $(`stu-sub-${i}-${sb.id}`), v = s.m[sb.id]; el.className = (v / sb.c < .65) ? 'sub-val dark-text' : 'sub-val'; el.innerText = this.gRTg(v, sb.c); el.style.background = this.gSCol(v, sb.c) }); nT.style.color = isH ? 'var(--danger)' : ''; nT.style.textShadow = isH ? '0 0 10px rgba(239,68,68,.4)' : ''; $(`stu-stress-txt-${i}`).innerText = `${O(s.st)}%`; $(`stu-stress-txt-${i}`).style.color = isH || s.st > 85 ? 'var(--danger)' : 'var(--primary)'; stB.style.width = `${M_N(100, s.st)}%`; stB.style.background = s.st > 85 || isD ? 'linear-gradient(90deg,#f87171,#ef4444)' : 'linear-gradient(90deg,#818cf8,#4f46e5)'; stB.style.boxShadow = s.st > 85 || isD ? '0 0 10px rgba(239,68,68,.5)' : '0 0 10px rgba(79,70,229,.5)'; isD ? (stB.classList.add('stress-blink'), nT.classList.add('stress-blink')) : (stB.classList.remove('stress-blink'), nT.classList.remove('stress-blink')) }) },
+            
+            rSeat() {
+                if (!State.stu.some(s => typeof s.seat === 'number')) State.stu.forEach((s, i) => s.seat = i);
+                let grid = $('seat-grid');
+                let rows = [['前排', 0, 1], ['中排', 2, 3], ['后排', 4, 5]];
+                let html = '';
+                rows.forEach(row => {
+                    html += `<div class="seat-row-label">${row[0]}</div>`;
+                    for (let c = 1; c < row.length; c++) {
+                        let seatIdx = row[c];
+                        let si = State.stu.findIndex(s => s.seat === seatIdx);
+                        if (si === -1) { html += `<div class="seat-slot" data-seat="${seatIdx}"></div>`; continue }
+                        let s = State.stu[si];
+                        let buffs = Game.gSeatBuffs(si);
+                        html += `<div class="seat-slot" draggable="true" data-seat="${seatIdx}" data-idx="${si}">
+                            <div class="seat-name"><span class="seat-gender g-${s.gender || 'M'}">${s.gender === 'F' ? '♀' : '♂'}</span>${s.name}${s.sk > 0 ? ' 🤒' : ''}</div>
+                            <div class="seat-meta">${buffs.map(b => `<span class="seat-buff ${b.t === 'neg' ? 'buff-neg' : 'buff-pos'}">${b.n}</span>`).join('') || '<span style="color:var(--text-light)">无特殊羁绊</span>'}</div>
+                        </div>`;
+                    }
+                });
+                grid.innerHTML = html;
+                grid.querySelectorAll('.seat-slot[draggable=true]').forEach(el => {
+                    el.addEventListener('dragstart', e => { window.dragSeat = el.dataset.seat; el.classList.add('dragging') });
+                    el.addEventListener('dragend', e => { el.classList.remove('dragging') });
+                });
+                grid.querySelectorAll('.seat-slot').forEach(el => {
+                    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over') });
+                    el.addEventListener('dragleave', e => { el.classList.remove('drag-over') });
+                    el.addEventListener('drop', e => {
+                        e.preventDefault(); el.classList.remove('drag-over');
+                        let fromSeat = parseInt(window.dragSeat), toSeat = parseInt(el.dataset.seat);
+                        if (isNaN(fromSeat) || isNaN(toSeat) || fromSeat === toSeat) return;
+                        let a = State.stu.find(s => s.seat === fromSeat), b = State.stu.find(s => s.seat === toSeat);
+                        if (a) a.seat = toSeat;
+                        if (b) b.seat = fromSeat;
+                        Game.saveState();
+                        UI.rSeat();
+                    });
+                });
+            },
             rFac() { $('fac-container').innerHTML = CONFIG.FAC.map((f, i) => `<div class="g-cd2 animate-up g-flx" style=margin-bottom:12px;animation-delay:${i * .1}s><div><h4 style="margin:0;color:var(--primary);font-size:1.1em">${f.n} <span style="font-size:.8em;color:var(--accent);background:rgba(79,70,229,.1);padding:2px 6px;border-radius:6px">Lv.${State.fac[f.id]}</span></h4><p style="margin:8px 0 0 0;font-size:.8em;color:var(--text-light)">${f.d}</p></div><button style="padding:10px 18px;background:linear-gradient(135deg,var(--accent),#4338ca);color:#fff" ${State.fac[f.id] >= 2 ? 'disabled' : ''} onclick="Game.buyF('${f.id}')">${State.fac[f.id] >= 2 ? '已满级' : '¥' + f.p[State.fac[f.id] + 1]}</button></div>`).join('') },
             rATbs() { $('arc-tabs').innerHTML = State.stu.map((s, i) => `<div class="arc-tab ${i === 0 ? 'active' : ''}" onclick="UI.sADtl(${i},this)">${s.name}</div>`).join(''); if (State.stu.length > 0) this.sADtl(0, document.querySelector('.arc-tab')) },
-            sADtl(i, el) { $$('.arc-tab').forEach(e => e.classList.remove('active')); if (el) el.classList.add('active'); let s = State.stu[i]; $('arc-detail').innerHTML = `<h2 style="margin-top:0;color:var(--primary);border-bottom:2px solid rgba(79,70,229,.2);padding-bottom:10px">${s.name} <span style="font-size:.5em;color:var(--text-light);font-weight:normal">核心档案</span></h2><h4 style=color:var(--text-light)>📊 总分历程 (满分750)</h4><div class=chart-container>${this.dBCht(s.h.scores, 750, 'var(--accent)')}</div><h4 style="color:var(--text-light);margin-top:25px">📈 排名历程 (市级)</h4><div class=chart-container>${this.dBCht(s.h.ranks, 140000, '#6366f1', !0)}</div>`; $('arc-detail').classList.remove('animate-up'); void $('arc-detail').offsetWidth; $('arc-detail').classList.add('animate-up') },
-            dBCht(dt, mV, c, r = !1) { if (!dt || dt.length < 1) return '<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;color:var(--text-light);font-weight:bold;font-size:1.1em">暂无大考数据</div>'; let tS = M_M(10, dt.length), bW = 100 / tS - 3, h = `<svg viewBox="0 0 100 100" preserveAspectRatio=none style="width:100%;height:100%;overflow:visible">`; dt.forEach((v, i) => { let hh = M_M(5, M_N(100, r ? (1 - v / mV) * 100 : (v / mV) * 100)); h += `<rect x="${i * (100 / tS)}" y="${100 - hh}" width="${bW}" height="${hh}" fill="${c}" rx="1.5" style="filter:drop-shadow(0 -2px 4px ${c}88)"/><text x="${i * (100 / tS) + bW / 2}" y="${100 - hh - 3}" font-size="3.5" font-weight="bold" fill="var(--primary)" text-anchor="middle">${v}</text>` }); return h + `</svg>` },
-            iNms() { $('import-input').click() }, hFS(e) { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = (ev) => { const ls = ev.target.result.split(/\r?\n/); for (let i = 0; i < 6; i++)if (ls[i] !== undefined) $(`name-${i}`).value = ls[i].trim() }; rd.readAsText(f) },
-            eNms() { let t = ""; for (let i = 0; i < 6; i++)t += $(`name-${i}`).value.trim() + "\n"; let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([t], { type: "text/plain" })); a.download = "student_names.txt"; a.click() }
+            sADtl(i, el) { 
+                $$('.arc-tab').forEach(e => e.classList.remove('active')); 
+                if (el) el.classList.add('active'); 
+                let s = State.stu[i]; 
+                $('arc-detail').innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid rgba(79,70,229,.2);padding-bottom:10px;margin-bottom:15px">
+                        <h2 style="margin:0;color:var(--primary)">${s.name} <span style="font-size:.5em;color:var(--text-light);font-weight:normal">核心档案</span></h2>
+                        <div class="tag-pool" style="margin:0">
+                            ${s.qjBonus ? `<span class="tag tag-pos" style="background:linear-gradient(135deg, #e0e7ff, #c7d2fe); color:#3730a3; border:1px solid #818cf8;">🏛️ 强基优惠 +${s.qjBonus}分</span>` : ''}
+                            ${s.romanceState === 'crush' ? `<span class="tag tag-pos" style="background:#fbcfe8;color:#9d174d;border:1px solid #f472b6;">💕 好感:${s.crushWith}</span>` : ''}
+                            ${s.romanceState === 'dating' ? `<span class="tag tag-neg" style="background:#ffe4e6;color:#be123c;border:1px solid #fda4af;">💔 早恋中</span>` : ''}
+                            ${s.tl.map(t => `<span class="tag ${t.t === 'neg' ? 'tag-neg' : 'tag-pos'}" title="${t.d}">${t.n}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px">
+                        <div>
+                            <h4 style="color:var(--text-light);margin:0 0 10px 0">🕸️ 六维能力均衡度</h4>
+                            <div class=chart-container style="height:250px">${this.dRdCht(s.m)}</div>
+                        </div>
+                        <div>
+                            <h4 style="color:var(--text-light);margin:0 0 10px 0">📊 总分历程趋势 (满分750)</h4>
+                            <div class=chart-container style="height:250px">${this.dLCht(s.h.scores, 750, 'var(--accent)')}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:20px">
+                        <h4 style="color:var(--text-light);margin:0 0 10px 0">📈 市级排名变化趋势</h4>
+                        <div class=chart-container style="height:220px">${this.dLCht(s.h.ranks, 140000, '#6366f1', !0)}</div>
+                    </div>
+                `; 
+                $('arc-detail').classList.remove('animate-up'); 
+                void $('arc-detail').offsetWidth; 
+                $('arc-detail').classList.add('animate-up') 
+            },
+            // SVG 折线图组件 (采用 500x200 ViewBox 解决变形拉伸)
+            dLCht(dt, mV, c, r = !1) {
+                if (!dt || dt.length < 1) return '<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;color:var(--text-light);font-weight:bold;font-size:1.1em">暂无大考数据</div>';
+                const pX = 45, pYtop = 35, pYbot = 35;
+                const W = 500, H = 200;
+                const h = H - pYtop - pYbot;
+                const len = dt.length;
+
+                let pts = dt.map((v, i) => {
+                    let x = len === 1 ? W / 2 : pX + i * ((W - 2 * pX) / (len - 1));
+                    let ratio = r ? (1 - M_N(v, mV) / mV) : (M_N(v, mV) / mV);
+                    let y = (H - pYbot) - ratio * h;
+                    return { x: O(x * 10) / 10, y: O(y * 10) / 10, v };
+                });
+
+                let pathD = pts.map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`)).join(' ');
+                let areaD = pathD + ` L ${pts[pts.length - 1].x} ${H - pYbot} L ${pts[0].x} ${H - pYbot} Z`;
+                let gradId = 'grad-' + Math.random().toString(36).substr(2, 6);
+
+                return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:100%;overflow:visible">
+                    <defs>
+                        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="${c}" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="${c}" stop-opacity="0.0"/>
+                        </linearGradient>
+                    </defs>
+                    <line x1="${pX}" y1="${pYtop}" x2="${W - pX}" y2="${pYtop}" stroke="var(--bd-w-30)" stroke-dasharray="4,4" stroke-width="1"/>
+                    <line x1="${pX}" y1="${pYtop + h/2}" x2="${W - pX}" y2="${pYtop + h/2}" stroke="var(--bd-w-30)" stroke-dasharray="4,4" stroke-width="1"/>
+                    <line x1="${pX}" y1="${H - pYbot}" x2="${W - pX}" y2="${H - pYbot}" stroke="var(--bd-w-30)" stroke-dasharray="4,4" stroke-width="1"/>
+                    <path d="${areaD}" fill="url(#${gradId})" />
+                    <path d="${pathD}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 3px 6px ${c}88)"/>
+                    ${pts.map(p => `
+                        <circle cx="${p.x}" cy="${p.y}" r="5" fill="var(--bg-w-100)" stroke="${c}" stroke-width="2.5"/>
+                        <text x="${p.x}" y="${p.y - 9}" font-size="12" font-weight="bold" fill="var(--primary)" text-anchor="middle">${p.v}${r ? '名' : ''}</text>
+                    `).join('')}
+                </svg>`;
+            },
+            // SVG 六维能力雷达图组件
+            dRdCht(mObj) {
+                if (!mObj) return '';
+                const subs = CONFIG.SUB;
+                const num = subs.length;
+                const cx = 50, cy = 52, R = 32;
+
+                const getPolyPoints = (rRatio) => {
+                    let pts = [];
+                    for (let i = 0; i < num; i++) {
+                        let angle = -Math.PI / 2 + (i * 2 * Math.PI / num);
+                        let x = cx + R * rRatio * Math.cos(angle);
+                        let y = cy + R * rRatio * Math.sin(angle);
+                        pts.push(`${O(x * 10) / 10},${O(y * 10) / 10}`);
+                    }
+                    return pts.join(' ');
+                };
+
+                let gridHtml = [0.25, 0.5, 0.75, 1.0].map(ratio => 
+                    `<polygon points="${getPolyPoints(ratio)}" fill="none" stroke="var(--bd-w-30)" stroke-width="0.6" stroke-dasharray="${ratio < 1 ? '1.5,1.5' : 'none'}"/>`
+                ).join('');
+
+                let axisHtml = '';
+                let labelHtml = '';
+                let dataPts = [];
+
+                for (let i = 0; i < num; i++) {
+                    let angle = -Math.PI / 2 + (i * 2 * Math.PI / num);
+                    let cosA = Math.cos(angle);
+                    let sinA = Math.sin(angle);
+
+                    let ax = cx + R * cosA;
+                    let ay = cy + R * sinA;
+                    axisHtml += `<line x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}" stroke="var(--bd-w-30)" stroke-width="0.6"/>`;
+
+                    let sub = subs[i];
+                    let val = mObj[sub.id] || 0;
+                    let valRatio = M_N(1, M_M(0, val / sub.c));
+
+                    let dx = cx + R * valRatio * cosA;
+                    let dy = cy + R * valRatio * sinA;
+                    dataPts.push(`${O(dx * 10) / 10},${O(dy * 10) / 10}`);
+
+                    let lx = cx + (R + 10) * cosA;
+                    let ly = cy + (R + 10) * sinA;
+                    
+                    let anchor = 'middle';
+                    if (cosA > 0.3) anchor = 'start';
+                    else if (cosA < -0.3) anchor = 'end';
+
+                    labelHtml += `
+                        <text x="${lx}" y="${ly}" font-size="3.6" font-weight="bold" fill="var(--primary)" text-anchor="${anchor}">${sub.n}</text>
+                        <text x="${lx}" y="${ly + 4}" font-size="3.0" fill="var(--accent)" font-weight="bold" text-anchor="${anchor}">${val}/${sub.c}</text>
+                    `;
+                }
+
+                let dataPoly = dataPts.join(' ');
+                let gradId = 'radarGrad-' + Math.random().toString(36).substr(2, 6);
+
+                return `<svg viewBox="0 0 100 100" style="width:100%;height:100%;overflow:visible">
+                    <defs>
+                        <radialGradient id="${gradId}">
+                            <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.6"/>
+                            <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.2"/>
+                        </radialGradient>
+                    </defs>
+                    ${gridHtml}
+                    ${axisHtml}
+                    <polygon points="${dataPoly}" fill="url(#${gradId})" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" style="filter:drop-shadow(0 2px 6px var(--accent-glow))"/>
+                    ${dataPts.map(pt => {
+                        let [x, y] = pt.split(',');
+                        return `<circle cx="${x}" cy="${y}" r="2" fill="var(--bg-w-100)" stroke="var(--accent)" stroke-width="1.5"/>`;
+                    }).join('')}
+                    ${labelHtml}
+                </svg>`;
+            },
+            flashBtn(btn) {
+                if (!btn) return;
+                const target = btn.querySelector('h5') || btn;
+                const oldHtml = target.innerHTML;
+                target.innerHTML = "✅ 成功！";
+                setTimeout(() => {
+                    target.innerHTML = oldHtml;
+                }, 2000);
+            },
+            // 加载偏好名单
+            loadPref(id, btn) {
+                try {
+                    let raw = localStorage.getItem('whk-pref-' + id);
+                    if (!raw) {
+                        UI.showAlert(`偏好 ${id} 暂无保存的名单！`, "yellow");
+                        return;
+                    }
+                    let data = JSON.parse(raw);
+                    
+                    // 兼容旧格式（仅存名字数组）与新格式（包含名字和性别）
+                    let names = Array.isArray(data) ? data : (data.names || []);
+                    let defaultGenders = ['M', 'F', 'M', 'F', 'M', 'F'];
+                    let genders = Array.isArray(data) ? defaultGenders : (data.genders || defaultGenders);
+
+                    if (names.length === 6) {
+                        window.stuGenders = window.stuGenders || [...defaultGenders];
+                        for (let i = 0; i < 6; i++) {
+                            // 还原名字
+                            $(`name-${i}`).value = names[i] || "";
+                            
+                            // 还原性别数据
+                            let g = genders[i] || defaultGenders[i];
+                            window.stuGenders[i] = g;
+                            
+                            // 还原性别按钮高亮状态
+                            let gBox = $(`gender-${i}`);
+                            if (gBox) {
+                                let btns = gBox.querySelectorAll('button');
+                                btns.forEach(b => {
+                                    if ((g === 'M' && b.innerText.includes('男')) || (g === 'F' && b.innerText.includes('女'))) {
+                                        b.classList.add('active');
+                                    } else {
+                                        b.classList.remove('active');
+                                    }
+                                });
+                            }
+                        }
+                        this.flashBtn(btn);
+                    } else {
+                        UI.showAlert(`偏好 ${id} 暂无保存的名单！`, "yellow");
+                    }
+                } catch (e) {
+                    UI.showAlert(`偏好 ${id} 读取失败！`, "red");
+                }
+            },
+            // 保存偏好名单按钮处理
+            savePref(id, btn) {
+                window.stuGenders = window.stuGenders || ['M', 'F', 'M', 'F', 'M', 'F'];
+                let names = [];
+                let genders = [];
+                for (let i = 0; i < 6; i++) {
+                    names.push($(`name-${i}`).value.trim());
+                    genders.push(window.stuGenders[i] || 'M');
+                }
+                let data = { names, genders };
+                localStorage.setItem('whk-pref-' + id, JSON.stringify(data));
+                this.flashBtn(btn);
+            }
         };
-        Game.buyF = function (id) { let f = CONFIG.FAC.find(x => x.id === id), lv = State.fac[id], cs = f.p[lv + 1]; if (State.money >= cs) { State.money -= cs; State.fac[id]++; this.uUI(); this.log(`升级了：${f.n}`, `[资金-${cs}]`) } else alert("班费不足！") };
+
+        // 覆盖原生 alert
+        window.alert = function(msg, type) {
+            UI.showAlert(msg, type);
+        };
+
+        Game.buyF = function (id) { let f = CONFIG.FAC.find(x => x.id === id), lv = State.fac[id], cs = f.p[lv + 1]; if (State.money >= cs) { State.money -= cs; State.fac[id]++; this.uUI(); this.log(`升级了：${f.n}`, `[资金-${cs}]`) } else UI.showAlert("班费不足！", "red") };
         if (localStorage.getItem('whk-thm') === 'd') { document.body.classList.add('dark-mode'); $('theme-icon').innerHTML = `<svg viewBox="0 0 24 24" width=22 height=22 stroke=currentColor stroke-width=2 fill=none stroke-linecap=round stroke-linejoin=round><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`; }
-        try {
-            let sn = JSON.parse(localStorage.getItem('whk-names'));
-            const def = ["Double10", "_Sparktasia_", "paper_", "GoldSpade", "xxxxxzy", "_Communist"];
-            if (sn && sn.length === 6) { for (let i = 0; i < 6; i++) { if (sn[i] !== def[i]) { $(`name-${i}`).value = sn[i]; } } }
-        } catch (e) { }
+        
+        // 页面初始化：检测偏好与未完成存档
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                let sn = JSON.parse(localStorage.getItem('whk-names'));
+                const def = ["Double10", "_Sparktasia_", "paper_", "GoldSpade", "xxxxxzy", "_Communist"];
+                if (sn && sn.length === 6) { for (let i = 0; i < 6; i++) { if (sn[i] !== def[i]) { $(`name-${i}`).value = sn[i]; } } }
+            } catch (e) { }
+
+            // 检测是否存在未完结的游戏存档
+            try {
+                let savedRaw = localStorage.getItem('whk-save-state');
+                if (savedRaw) {
+                    let saved = JSON.parse(savedRaw);
+                    if (saved && !saved.isGraduated && saved.stu && saved.stu.length > 0) {
+                        $('save-info-text').innerText = `${saved.year}年 ${saved.month}月 第${saved.week}周 (${saved.diff === 'easy' ? '稳健带班' : '地狱开局'})`;
+                        $('continue-modal').classList.remove('hidden');
+                    }
+                }
+            } catch(e) { }
+        });
     </script>
 </body>
 
