@@ -263,8 +263,23 @@
             width: 100%;
         }
 
+        /* 设置与二级弹窗之间的蒙版遮罩 */
+        #sub-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            display: none;
+            pointer-events: auto;
+        }
+
         #import-confirm-modal,
-        #clear-confirm-modal {
+        #clear-confirm-modal,
+        #alert-modal {
             min-width: 340px;
             max-width: 420px;
             padding: 16px;
@@ -276,9 +291,14 @@
             box-shadow: 0 0 25px rgba(250, 204, 21, 0.25);
         }
 
-        #clear-confirm-modal {
+        #clear-confirm-modal,
+        #alert-modal {
             border-color: #ef4444;
             box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);
+        }
+
+        #alert-modal {
+            z-index: 70;
         }
 
         .import-diff-box {
@@ -932,6 +952,9 @@
             </div>
         </div>
 
+        <!-- 弹窗与设置/主界面之间的二级蒙版遮罩 -->
+        <div id="sub-overlay" onclick="handleSubOverlayClick()"></div>
+
         <!-- 导入图鉴记录：合并或覆盖选择 -->
         <div id="import-confirm-modal" class="panel modal-base">
             <div class="modal-header" style="color: #facc15;">
@@ -966,6 +989,17 @@
                 <button class="craft-btn btn-red" style="flex:1;" onclick="confirmClearCodexData()">确认删除</button>
             </div>
         </div>
+
+        <!-- 游戏内通用提示/警告弹窗 -->
+        <div id="alert-modal" class="panel modal-base">
+            <div class="modal-header" style="color: #ef4444;">
+                ⚠️ 提示
+                <span class="close-btn" onclick="closeAlertModal()">✕</span>
+            </div>
+            <div id="alert-modal-msg" style="font-size: 13px; margin: 12px 0; color: #cbd5e1; text-align: center; line-height: 1.5; font-weight: bold; width: 100%;">
+            </div>
+            <button class="craft-btn btn-blue" style="width: 100%; font-weight: bold; font-size: 13px;" onclick="closeAlertModal()">确 认</button>
+        </div>
     </div>
     <div id="drag-ghost"></div>
     <div id="tooltip-card"></div>
@@ -996,6 +1030,7 @@
         let showSettings = false;
         let showImportConfirmModal = false;
         let showClearConfirmModal = false;
+        let showAlertModal = false;
         let pendingCodexImport = null;
         let showLevelUpModal = false;
         let pendingLevelUps = 0;
@@ -1038,8 +1073,8 @@
                 id: 'pickupRadius',
                 title: '万有引力',
                 icon: '🧲',
-                desc: '物品吸附范围 +20%',
-                apply: () => { playerBuffs.pickupRadius *= 1.20; }
+                desc: '物品吸附范围 +30%',
+                apply: () => { playerBuffs.pickupRadius *= 1.30; }
             },
             {
                 id: 'cdReduction',
@@ -1052,7 +1087,7 @@
                 id: 'critRate',
                 title: '致命一击',
                 icon: '🎯',
-                desc: '暴击概率 +7% (双倍伤害)',
+                desc: '暴击概率 +7%',
                 apply: () => { playerBuffs.critRate += 0.07; }
             },
             {
@@ -1073,18 +1108,15 @@
                 id: 'maxHp',
                 title: '强健体魄',
                 icon: '💖',
-                desc: '最大血量 +20 并回复 30',
-                apply: () => {
-                    player.maxHp += 20;
-                    player.hp = Math.min(player.maxHp, player.hp + 30);
-                }
+                desc: '最大血量 +10',
+                apply: () => { player.maxHp += 10; }
             },
             {
                 id: 'hpRegen',
                 title: '自然愈合',
                 icon: '🩹',
-                desc: '每秒回复血量 +1',
-                apply: () => { playerBuffs.hpRegen += 1; }
+                desc: '每秒回复血量 +0.2',
+                apply: () => { playerBuffs.hpRegen += 0.2; }
             }
         ];
 
@@ -1150,7 +1182,7 @@
             if (e.key === 'Shift') shiftPressed = true;
             if (e.key.toLowerCase() === 'z') {
                 if (e.repeat) return;
-                if (importConfirmVisible() || clearConfirmVisible()) return;
+                if (importConfirmVisible() || clearConfirmVisible() || showAlertModal) return;
                 if (showDevMode) toggleDevMode();
                 if (showCodex) toggleCodex();
                 if (showSettings) toggleSettings();
@@ -1159,7 +1191,7 @@
             if (e.key === 'F12') {
                 e.preventDefault();
                 if (e.repeat) return;
-                if (importConfirmVisible() || clearConfirmVisible()) return;
+                if (importConfirmVisible() || clearConfirmVisible() || showAlertModal) return;
                 if (showInventory) toggleInventory();
                 if (showCodex) toggleCodex();
                 if (showSettings) toggleSettings();
@@ -1167,8 +1199,10 @@
             }
             if (e.key === 'Escape' || e.key === 'Esc') {
                 if (e.repeat) return;
-                if (showDevWarnModal) closeDevWarn(); // 支持按 Esc 键关闭警告弹窗
-                else if (importConfirmVisible() || clearConfirmVisible()) { /* 二次确认弹窗中 Esc 不处理，避免误操作 */ }
+                if (showAlertModal) closeAlertModal();
+                else if (showDevWarnModal) closeDevWarn(); // 支持按 Esc 键关闭警告弹窗
+                else if (importConfirmVisible()) closeImportConfirm();
+                else if (clearConfirmVisible()) closeClearCodexConfirm();
                 else if (showSettings) toggleSettings();
                 else if (showDevMode) toggleDevMode();
                 else if (showInventory) toggleInventory();
@@ -1176,7 +1210,10 @@
             }
             if (e.key === ' ' || e.code === 'Space') {
                 if (e.repeat) return;
-                if (showDevWarnModal) closeDevWarn(); // 👈 只有非打字状态下按空格，才会关闭警告弹窗并恢复游戏
+                if (showAlertModal) closeAlertModal();
+                else if (showDevWarnModal) closeDevWarn(); // 👈 只有非打字状态下按空格，才会关闭警告弹窗并恢复游戏
+                else if (importConfirmVisible()) closeImportConfirm();
+                else if (clearConfirmVisible()) closeClearCodexConfirm();
                 else if (showSettings) toggleSettings();
                 else if (showDevMode) toggleDevMode();
                 else if (showInventory) toggleInventory();
@@ -1188,7 +1225,7 @@
             }
             if (e.key.toLowerCase() === 's') {
                 if (e.repeat) return;
-                if (importConfirmVisible() || clearConfirmVisible()) return; // 二次确认弹窗中不响应 S
+                if (importConfirmVisible() || clearConfirmVisible() || showAlertModal) return; // 二次确认与提示弹窗中不响应 S
                 toggleSettings();
             }
         });
@@ -1317,7 +1354,7 @@
 
         // ==================== 设置面板 ====================
         function toggleSettings() {
-            if (importConfirmVisible() || clearConfirmVisible()) return; // 二次确认弹窗打开时不允许切换设置面板
+            if (importConfirmVisible() || clearConfirmVisible() || showAlertModal) return; // 二次确认与提示弹窗打开时不允许切换设置面板
             showSettings = !showSettings;
             if (showSettings) {
                 isPausedBySpace = false;
@@ -1332,6 +1369,35 @@
         }
         function importConfirmVisible() { return showImportConfirmModal; }
         function clearConfirmVisible() { return showClearConfirmModal; }
+
+        // ---- 提示弹窗控制 ----
+        function showAlert(msg) {
+            document.getElementById('alert-modal-msg').textContent = msg;
+            showAlertModal = true;
+            document.getElementById('alert-modal').style.display = 'flex';
+            hideTooltip();
+            updatePauseState();
+        }
+        function closeAlertModal() {
+            showAlertModal = false;
+            document.getElementById('alert-modal').style.display = 'none';
+            updatePauseState();
+        }
+
+        // ---- 蒙版与二级遮罩控制 ----
+        function updateSubOverlay() {
+            const subOverlay = document.getElementById('sub-overlay');
+            const needsSubOverlay = showImportConfirmModal || showClearConfirmModal || showAlertModal || showDevWarnModal;
+            if (subOverlay) {
+                subOverlay.style.display = needsSubOverlay ? 'block' : 'none';
+            }
+        }
+        function handleSubOverlayClick() {
+            if (showAlertModal) closeAlertModal();
+            else if (showDevWarnModal) closeDevWarn();
+            else if (showImportConfirmModal) closeImportConfirm();
+            else if (showClearConfirmModal) closeClearCodexConfirm();
+        }
 
         // ---- 导出图鉴记录 ----
         const CODEX_SAVE_SALT = 'FLOOR_OI_CODEX_V1';
@@ -1394,13 +1460,13 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
                             };
                             showImportConfirm();
                         } else {
-                            alert('存档验证失败！');
+                            showAlert('存档验证失败！');
                         }
                     } catch (err) {
-                        alert('存档解析失败！');
+                        showAlert('存档解析失败！');
                     }
                 } else {
-                    alert('无效的图鉴文件！');
+                    showAlert('无效的图鉴文件！');
                 }
             };
             reader.readAsText(file);
@@ -1420,7 +1486,6 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
             document.getElementById('diff-monsters-new').innerText = newMonsters;
             document.getElementById('diff-kills-old').innerText = oldKills;
             document.getElementById('diff-kills-new').innerText = newKills;
-            if (showSettings) { showSettings = false; document.getElementById('settings-modal').style.display = 'none'; }
             showImportConfirmModal = true;
             document.getElementById('import-confirm-modal').style.display = 'flex';
             updatePauseState();
@@ -1460,7 +1525,6 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
         // ---- 清除所有数据 ----
         function showClearCodexConfirm() {
             document.getElementById('clear-confirm-input').value = '';
-            if (showSettings) { showSettings = false; document.getElementById('settings-modal').style.display = 'none'; }
             showClearConfirmModal = true;
             document.getElementById('clear-confirm-modal').style.display = 'flex';
             updatePauseState();
@@ -1730,7 +1794,8 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
         }
         function updatePauseState() {
             // 升级不暂停游戏，不再将 showLevelUpModal 计入暂停状态
-            isPaused = showInventory || showDevMode || showCodex || isPausedBySpace || showDevWarnModal || showSettings || showImportConfirmModal || showClearConfirmModal;
+            isPaused = showInventory || showDevMode || showCodex || isPausedBySpace || showDevWarnModal || showSettings || showImportConfirmModal || showClearConfirmModal || showAlertModal;
+            updateSubOverlay();
             const overlay = document.getElementById('pause-overlay');
             const content = document.getElementById('pause-content');
             const equipBar = document.getElementById('equip-bar');
@@ -1745,7 +1810,7 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
                 } else {
                     equipBar.style.zIndex = '35';
                 }
-                if (isPausedBySpace && !showInventory && !showDevMode && !showCodex && !showSettings && !showImportConfirmModal && !showClearConfirmModal) {
+                if (isPausedBySpace && !showInventory && !showDevMode && !showCodex && !showSettings && !showImportConfirmModal && !showClearConfirmModal && !showAlertModal) {
                     content.classList.add('visible');
                 } else {
                     content.classList.remove('visible');
@@ -1762,7 +1827,8 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
         }
         function handleOverlayClick() {
             if (showImportConfirmModal || showClearConfirmModal) return; // 二次确认弹窗需要显式点击按钮，避免误触关闭
-            if (showDevMode) toggleDevMode();
+            if (showAlertModal) closeAlertModal();
+            else if (showDevMode) toggleDevMode();
             else if (showInventory) toggleInventory();
             else if (showCodex) toggleCodex();
             else if (showSettings) toggleSettings();
@@ -1824,8 +1890,8 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
             let total = weights.reduce((a, b) => a + b, 0);
             let r = Math.random() * total;
             for (let i = 0; i < kinds.length; i++) {
-                if (r < weights[i]) return kinds[i];
-                r -= weights[i];
+                if (r < kinds[i]) return kinds[i];
+                r -= kinds[i];
             }
             return 'melee';
         };
@@ -1956,7 +2022,7 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
         }
 
         function renderUINow() {
-            document.getElementById('lvl').textContent = player.lvl; document.getElementById('hp').textContent = Math.ceil(player.hp);
+            document.getElementById('lvl').textContent = player.lvl; document.getElementById('hp').textContent = Number(player.hp.toFixed(1));
             document.getElementById('maxHp').textContent = player.maxHp;
             document.getElementById('xp').textContent = player.xp;
             document.getElementById('xpMax').textContent = player.xpMax;

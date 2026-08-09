@@ -420,6 +420,10 @@
           <span>暂停 / 继续</span>
           <button id="bindPauseBtn" class="key-bind-btn" onclick="listenPauseKey()">SPACE</button>
         </div>
+        <div class="setting-row">
+          <span>打开 / 关闭设置</span>
+          <button id="bindSettingsBtn" class="key-bind-btn" onclick="listenSettingsKey()">S</button>
+        </div>
       </div>
 
       <!-- 游戏偏好设置卡片 -->
@@ -471,6 +475,19 @@
       <div style="display: flex; gap: 10px; justify-content: flex-end;">
         <button class="control-btn-sub" onclick="closeClearConfirm()">取消</button>
         <button class="control-btn-sub" style="background: #ff4060; border-color: #ff4060; color: #fff;" onclick="confirmClearData()">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏通用警告/提示弹窗 -->
+  <div id="alertOverlay" class="modal-overlay" style="z-index: 140;" onclick="onAlertOverlayClick(event)">
+    <div class="glass-panel modal-box" style="width: 380px; text-align: center; padding: 28px 24px;">
+      <h2 id="alertTitle" style="color: #ff4060; margin-bottom: 12px; font-size: 20px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        ⚠️ 提示
+      </h2>
+      <p id="alertMsg" style="color: #e0e0e0; font-size: 14px; margin-bottom: 24px; line-height: 1.5;"></p>
+      <div style="display: flex; justify-content: center;">
+        <button class="control-btn-sub" style="padding: 8px 32px; background: rgba(21, 190, 252, 0.2); border-color: #15befc; color: #15befc;" onclick="closeAlert()">确定</button>
       </div>
     </div>
   </div>
@@ -1416,11 +1433,16 @@
     const pauseKeyTip  = document.getElementById('pauseKeyTip');
     let isPaused = false;
     let wasPausedBeforeSettings = false; // 记录在打开设置面板前是否本就处于暂停状态
+    
+    // 快捷键绑定变量
     let currentPauseKey = ' ';
+    let currentSettingsKey = 's';
+    let listeningTarget = null; // 'pause' | 'settings' | null
 
-    function updatePauseKeyTipUI() {
+    function updateKeyTipsUI() {
       pauseKeyTip.textContent = currentPauseKey === ' ' ? 'Space' : currentPauseKey.toUpperCase();
       document.getElementById('bindPauseBtn').textContent = currentPauseKey === ' ' ? 'SPACE' : currentPauseKey.toUpperCase();
+      document.getElementById('bindSettingsBtn').textContent = currentSettingsKey === ' ' ? 'SPACE' : currentSettingsKey.toUpperCase();
     }
 
     function isGameOverVisible() {
@@ -1451,9 +1473,25 @@
       }
     });
 
-    // ===== 设置与弹窗逻辑 =====
-    let isListeningKey = false;
+    // ===== 通用警告/提示弹窗接口 =====
+    window.showAlert = function(msg, title = '⚠️ 提示') {
+      const alertOverlay = document.getElementById('alertOverlay');
+      document.getElementById('alertTitle').innerHTML = title;
+      document.getElementById('alertMsg').textContent = msg;
+      alertOverlay.style.display = 'flex';
+    };
 
+    window.closeAlert = function() {
+      document.getElementById('alertOverlay').style.display = 'none';
+    };
+
+    window.onAlertOverlayClick = function(e) {
+      if (e.target === document.getElementById('alertOverlay')) {
+        closeAlert();
+      }
+    };
+
+    // ===== 设置与弹窗逻辑 =====
     window.openSettings = function() {
       if (isGameOverVisible()) return;
       const settingsModal = document.getElementById('settingsModalOverlay');
@@ -1473,7 +1511,7 @@
     window.closeSettings = function() {
       const settingsModal = document.getElementById('settingsModalOverlay');
       settingsModal.style.display = 'none';
-      if (isListeningKey) cancelKeyListening();
+      if (listeningTarget) cancelKeyListening();
       setPaused(false);
     };
 
@@ -1491,18 +1529,28 @@
       }
     };
 
+    // 快捷键绑定监听
     window.listenPauseKey = function() {
-      isListeningKey = true;
+      if (listeningTarget) cancelKeyListening();
+      listeningTarget = 'pause';
       const btn = document.getElementById('bindPauseBtn');
       btn.textContent = '按下按键...';
       btn.classList.add('listening');
     };
 
+    window.listenSettingsKey = function() {
+      if (listeningTarget) cancelKeyListening();
+      listeningTarget = 'settings';
+      const btn = document.getElementById('bindSettingsBtn');
+      btn.textContent = '按下按键...';
+      btn.classList.add('listening');
+    };
+
     function cancelKeyListening() {
-      isListeningKey = false;
-      const btn = document.getElementById('bindPauseBtn');
-      btn.classList.remove('listening');
-      updatePauseKeyTipUI();
+      listeningTarget = null;
+      document.getElementById('bindPauseBtn').classList.remove('listening');
+      document.getElementById('bindSettingsBtn').classList.remove('listening');
+      updateKeyTipsUI();
     }
 
     window.changeGameSpeed = function(val) {
@@ -1562,9 +1610,9 @@ h1{color:#ff4060;}
                 bestScoreValueEl.textContent = bestScore;
                 setBestScore(bestScore);
               }
-            } else { alert('存档验证失败！'); }
-          } catch { alert('存档解析失败！'); }
-        } else { alert('无效的战绩证明文件！'); }
+            } else { showAlert('存档验证失败！'); }
+          } catch { showAlert('存档解析失败！'); }
+        } else { showAlert('无效的战绩证明文件！'); }
       };
       reader.readAsText(file);
       event.target.value = '';
@@ -1591,17 +1639,35 @@ h1{color:#ff4060;}
       }
     };
 
-    // 全局 Keydown 事件
+    // 全局 Keydown 事件处理
     document.addEventListener('keydown', (e) => {
-      if (isListeningKey) {
+      // 捕获绑定快捷键过程
+      if (listeningTarget) {
         e.preventDefault();
-        currentPauseKey = e.key === ' ' ? ' ' : e.key;
+        const pressedKey = e.key === ' ' ? ' ' : e.key;
+        if (listeningTarget === 'pause') {
+          currentPauseKey = pressedKey;
+        } else if (listeningTarget === 'settings') {
+          currentSettingsKey = pressedKey;
+        }
         cancelKeyListening();
         return;
       }
 
+      // 文本框输入防误触：在输入框打字时不触发游戏快捷键
+      if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'TEXTAREA')) {
+        if (e.key !== 'Escape' && e.key !== 'Esc') {
+          return;
+        }
+      }
+
+      // Esc 键优先逻辑：按顺序退出最上层的弹窗
       if (e.key === 'Escape' || e.key === 'Esc') {
         e.preventDefault();
+        if (document.getElementById('alertOverlay').style.display === 'flex') {
+          closeAlert();
+          return;
+        }
         if (document.getElementById('clearConfirmOverlay').style.display === 'flex') {
           closeClearConfirm();
           return;
@@ -1615,7 +1681,24 @@ h1{color:#ff4060;}
         return;
       }
 
-      if (e.key === currentPauseKey || (currentPauseKey === ' ' && e.code === 'Space')) {
+      const keyLower = e.key.toLowerCase();
+      const settingsKeyLower = currentSettingsKey.toLowerCase();
+      const pauseKeyLower = currentPauseKey.toLowerCase();
+
+      // 响应“设置”快捷键
+      if (keyLower === settingsKeyLower || (currentSettingsKey === ' ' && e.code === 'Space')) {
+        e.preventDefault();
+        const modal = document.getElementById('settingsModalOverlay');
+        if (modal.style.display === 'flex') {
+          closeSettings();
+        } else {
+          openSettings();
+        }
+        return;
+      }
+
+      // 响应“暂停/继续”快捷键
+      if (keyLower === pauseKeyLower || (currentPauseKey === ' ' && e.code === 'Space')) {
         e.preventDefault();
         if (document.getElementById('settingsModalOverlay').style.display === 'flex') {
           closeSettings();
@@ -1694,6 +1777,7 @@ h1{color:#ff4060;}
     }
     syncScoreColor();
     updateSpeedDisplayUI();
+    updateKeyTipsUI();
 
     let lastTime = performance.now() / 1000;
     let t = 0;

@@ -74,7 +74,7 @@
     <link rel="stylesheet" href="files/css/shaihai-theme.css">
     <style>
         /* 设置与确认弹窗高优先级层级与样式 */
-        #settings-modal, #import-confirm-modal, #clear-confirm-modal {
+        #settings-modal, #import-confirm-modal, #clear-confirm-modal, #invalid-file-modal {
             z-index: 1000;
         }
         .settings-action-group {
@@ -402,6 +402,19 @@
         </div>
     </div>
 
+    <!-- 无效文件警告模态框 -->
+    <div class="modal" id="invalid-file-modal" style="display:none;">
+        <div class="modal-content" style="max-width: 420px; padding: 24px; text-align: center;">
+            <h2 style="margin-top: 0; color: #ef4444;">导入失败</h2>
+            <p style="margin: 16px 0; font-size: 14px; line-height: 1.6; opacity: 0.9;">
+                无效的战绩存档文件！
+            </p>
+            <div style="display: flex; justify-content: center; margin-top: 20px;">
+                <button class="btn btn-primary" id="invalid-file-close-btn" style="width: 100%;">我知道了</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 竞速模式模态框 -->
     <div class="modal" id="race-modal" style="display:none;">
         <div class="modal-content campaign-modal-content" style="max-width: 900px;">
@@ -687,6 +700,9 @@
             const clearModalTitle = document.getElementById('clear-modal-title');
             const clearModalMsg = document.getElementById('clear-modal-msg');
 
+            const invalidFileModal = document.getElementById('invalid-file-modal');
+            const invalidFileCloseBtn = document.getElementById('invalid-file-close-btn');
+
             let pendingImportData = null;
             let importStep = 1;
             let clearStep = 1;
@@ -700,6 +716,15 @@
             if (closeSettingsBtn) {
                 closeSettingsBtn.addEventListener('click', () => {
                     settingsModal.style.display = 'none';
+                });
+            }
+
+            // 无效文件警告弹窗关闭按钮
+            if (invalidFileCloseBtn) {
+                invalidFileCloseBtn.addEventListener('click', () => {
+                    if (invalidFileModal) {
+                        invalidFileModal.style.display = 'none';
+                    }
                 });
             }
 
@@ -956,7 +981,7 @@ h1 { color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5); }
                         const targetStorage = jsonPayload ? (jsonPayload.localStorage || (jsonPayload.version ? null : jsonPayload)) : null;
 
                         if (!targetStorage || typeof targetStorage !== 'object') {
-                            alert('无效的战绩存档文件！');
+                            invalidFileModal.style.display = 'flex';
                             fileInput.value = '';
                             return;
                         }
