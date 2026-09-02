@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!--合成水果&2048 - v1.1-->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -44,13 +43,13 @@
   #side-panel{
     display:flex;
     flex-direction:column;
-    gap:16px;
+    gap:12px;
     width:140px;
   }
   .panel-box{
     background:rgba(255,255,255,0.7);
     border-radius:18px;
-    padding:14px 16px;
+    padding:10px 14px;
     box-shadow:0 4px 16px rgba(180,120,0,0.13);
     text-align:center;
   }
@@ -60,24 +59,30 @@
     font-weight:700;
     letter-spacing:1px;
     text-transform:uppercase;
-    margin-bottom:6px;
+    margin-bottom:4px;
   }
   #score-val{
-    font-size:32px;
+    font-size:30px;
     font-weight:900;
     color:#c04010;
     line-height:1;
   }
   #best-val{
-    font-size:20px;
+    font-size:18px;
     font-weight:700;
     color:#806020;
+  }
+  #fruit-time-val{
+    font-size:20px;
+    font-weight:900;
+    color:#2e7d32;
+    font-family:monospace;
   }
   #next-preview{
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap:8px;
+    gap:4px;
   }
   #next-canvas{
     border-radius:50%;
@@ -85,20 +90,20 @@
   #legend{
     background:rgba(255,255,255,0.6);
     border-radius:18px;
-    padding:12px;
+    padding:10px;
     box-shadow:0 4px 16px rgba(180,120,0,0.1);
   }
   .legend-row{
     display:flex;
     align-items:center;
-    gap:8px;
-    margin-bottom:5px;
+    gap:6px;
+    margin-bottom:3px;
     font-size:11px;
     font-weight:700;
     color:#604010;
   }
   .legend-dot{
-    width:14px;height:14px;border-radius:50%;flex-shrink:0;
+    width:12px;height:12px;border-radius:50%;flex-shrink:0;
     box-shadow:inset -2px -2px 4px rgba(0,0,0,0.15);
   }
   #canvas-wrap{
@@ -114,12 +119,13 @@
     justify-content:center;
     background:rgba(255,240,200,0.88);
     border-radius:24px;
-    gap:12px;
+    gap:8px;
     display:none;
   }
   #overlay h2{font-size:36px;font-weight:900;color:#c04010;}
-  #overlay p{font-size:18px;color:#806030;font-weight:700;}
+  #overlay p{font-size:16px;color:#806030;font-weight:700;}
   #overlay .final-score{font-size:28px;font-weight:900;color:#c04010;}
+  #overlay .final-time{font-size:20px;font-weight:900;color:#2e7d32;font-family:monospace;}
   #restart-btn{
     margin-top:8px;
     padding:12px 32px;
@@ -145,7 +151,7 @@
   }
   #game2048-header{
     display:flex;
-    gap:12px;
+    gap:16px;
     align-items:flex-end;
   }
   #game2048-title{
@@ -155,25 +161,31 @@
   }
   #game2048-scores{
     display:flex;
-    gap:12px;
+    gap:8px;
   }
-  #game2048-score-box,#game2048-best-box{
+  #game2048-score-box,#game2048-best-box,#game2048-time-box{
     background:#bbada0;
     border-radius:10px;
-    padding:10px 20px;
+    padding:8px 12px;
     text-align:center;
-    min-width:80px;
+    min-width:70px;
   }
-  #game2048-score-label,#game2048-best-label{
+  #game2048-score-label,#game2048-best-label,#game2048-time-label{
     font-size:11px;
     font-weight:700;
     color:#eee4da;
     text-transform:uppercase;
   }
   #game2048-score-val,#game2048-best-val{
-    font-size:24px;
+    font-size:20px;
     font-weight:900;
     color:#fff;
+  }
+  #game2048-time-val{
+    font-size:20px;
+    font-weight:900;
+    color:#fff;
+    font-family:monospace;
   }
   #game2048-board{
     position:relative;
@@ -229,20 +241,8 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
+    margin-top:10px;
   }
-  #game2048-restart{
-    padding:10px 24px;
-    font-size:16px;
-    font-weight:700;
-    font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-    background:#8f7a66;
-    color:#fff;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    transition:background 0.1s;
-  }
-  #game2048-restart:hover{background:#9f8b77;}
   #game2048-overlay{
     position:absolute;
     inset:0;
@@ -250,22 +250,24 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    background:rgba(238,228,218,0.73);
+    background:rgba(238,228,218,0.85);
     border-radius:10px;
-    gap:12px;
+    gap:10px;
     display:none;
   }
   #game2048-overlay h2{font-size:36px;font-weight:900;color:#776e65;}
+  .game2048-final-time{font-size:20px;font-weight:900;color:#8f7a66;font-family:monospace;}
+  
   /* 水果游戏控制区域 */
   #fruit-game-controls{
     display:flex;
     flex-direction:column;
-    gap:16px;
-    margin-top:16px;
+    gap:10px;
+    margin-top:4px;
   }
   .new-game-btn{
-    padding:12px 24px;
-    font-size:16px;
+    padding:10px 20px;
+    font-size:15px;
     font-weight:700;
     font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
     color:#fff;
@@ -281,14 +283,6 @@
     background:#e74c3c;
   }
   .fruit-new-game:hover{background:#c0392b;}
-  /* 优化2048控制区域 */
-  #game2048-controls{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-top:20px;
-    gap:20px;
-  }
 </style>
 </head>
 <body>
@@ -303,12 +297,16 @@
         <div class="panel-label">最高</div>
         <div id="best-val">0</div>
       </div>
+      <div class="panel-box">
+        <div class="panel-label">用时</div>
+        <div id="fruit-time-val">00:00</div>
+      </div>
       <div class="panel-box" id="next-preview">
         <div class="panel-label">下一个</div>
         <canvas id="next-canvas" width="80" height="80"></canvas>
       </div>
       <div id="legend">
-        <div class="panel-label" style="text-align:center;margin-bottom:8px;">水果图鉴</div>
+        <div class="panel-label" style="text-align:center;margin-bottom:6px;">水果图鉴</div>
       </div>
       <div id="fruit-game-controls">
         <button class="new-game-btn fruit-new-game" id="fruit-new-game-btn">新游戏</button>
@@ -320,6 +318,8 @@
         <h2>游戏结束！</h2>
         <p>得分</p>
         <div class="final-score" id="final-score-val">0</div>
+        <p>总用时</p>
+        <div class="final-time" id="final-time-val">00:00</div>
         <button id="restart-btn">再来一局</button>
       </div>
     </div>
@@ -336,6 +336,10 @@
         <div id="game2048-best-box">
           <div id="game2048-best-label">最高</div>
           <div id="game2048-best-val">0</div>
+        </div>
+        <div id="game2048-time-box">
+          <div id="game2048-time-label">用时</div>
+          <div id="game2048-time-val">00:00</div>
         </div>
       </div>
     </div>
@@ -361,7 +365,8 @@
       <div id="game2048-tiles"></div>
       <div id="game2048-overlay">
         <h2>游戏结束！</h2>
-        <button class="new-game-btn" style="background:#8f7a66;" onclick="init2048()">再来一局</button>
+        <p style="font-size:16px;color:#776e65;font-weight:700;">用时：<span class="game2048-final-time" id="game2048-final-time-val">00:00</span></p>
+        <button class="new-game-btn" style="background:#8f7a66;margin-top:6px;" onclick="init2048()">再来一局</button>
       </div>
     </div>
     <div id="game2048-controls">
@@ -372,6 +377,13 @@
 </div>
 
 <script>
+// 时间格式化辅助函数
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
 const FRUITS = [
   {name:'樱桃',color:'#FF3333',r:14,score:1,  mass:1},
   {name:'草莓',color:'#FF6688',r:20,score:3,  mass:2},
@@ -385,9 +397,7 @@ const FRUITS = [
   {name:'西瓜',color:'#33BB33',r:108,score:55,mass:100},
 ];
 
-const GRAVITY = 3800;
-const DAMPING = 0.08;
-const FRICTION = 0.38;
+const GRAVITY = 3200;
 const WALL_LEFT = 10;
 const WALL_RIGHT = 410;
 const FLOOR = 565;
@@ -401,14 +411,19 @@ const nextCanvas = document.getElementById('next-canvas');
 const nCtx = nextCanvas.getContext('2d');
 const scoreEl = document.getElementById('score-val');
 const bestEl = document.getElementById('best-val');
+const fruitTimeEl = document.getElementById('fruit-time-val');
 const finalEl = document.getElementById('final-score-val');
+const finalTimeEl = document.getElementById('final-time-val');
 const overlay = document.getElementById('overlay');
 
 let fruits=[], score=0, best=0, mouseX=210, canDrop=true, dropCooldown=0;
 let currentLevel=0, nextLevel=0, gameOver=false;
 let particles=[], scorePopups=[];
 let lastTime=0;
-let dangerTimer=0; // 水果在危险线以上的累计时间
+let dangerTimer=0;
+
+// 水果游戏计时变量
+let fruitElapsedSeconds = 0;
 
 function randLevel(){return Math.floor(Math.random()*MAX_LEVEL);}
 
@@ -419,6 +434,8 @@ function initGame(){
   overlay.style.display='none';
   scoreEl.textContent='0';
   dangerTimer=0;
+  fruitElapsedSeconds = 0;
+  fruitTimeEl.textContent = '00:00';
   updateLegend();
   drawNext();
 }
@@ -430,23 +447,8 @@ class Fruit{
     this.mass=FRUITS[level].mass;
     this.vx=vx;this.vy=vy;
     this.toRemove=false;this.merged=false;
-    this.age=0;this.born=performance.now();
+    this.age=0;
     this.scale=0.3;
-  }
-  update(dt){
-    if(this.toRemove)return;
-    this.age+=dt;
-    if(this.scale<1){this.scale=Math.min(1,this.scale+dt*8);}
-    this.vy+=GRAVITY*dt;
-    this.x+=this.vx*dt;
-    this.y+=this.vy*dt;
-    
-    // 墙壁基础碰撞与摩擦
-    if(this.x-this.r<WALL_LEFT){this.x=WALL_LEFT+this.r;this.vx=Math.abs(this.vx)*DAMPING;}
-    if(this.x+this.r>WALL_RIGHT){this.x=WALL_RIGHT-this.r;this.vx=-Math.abs(this.vx)*DAMPING;}
-    if(this.y+this.r>FLOOR){this.y=FLOOR-this.r;this.vy=-Math.abs(this.vy)*DAMPING;this.vx*=FRICTION;}
-    
-    this.vx*=0.995;
   }
   draw(c){
     if(this.toRemove)return;
@@ -512,65 +514,133 @@ function spawnMergeParticles(x,y,color){
   for(let i=0;i<12;i++) particles.push(new Particle(x,y,color));
 }
 
-function checkCollisions(iter){
-  const n=fruits.length;
-  for(let i=0;i<n;i++){
-    for(let j=i+1;j<n;j++){
-      const a=fruits[i],b=fruits[j];
-      if(a.toRemove||b.toRemove)continue;
-      const dx=b.x-a.x,dy=b.y-a.y;
-      const dist=Math.sqrt(dx*dx+dy*dy);
-      const minDist=a.r+b.r;
+function updatePhysics(dt){
+  const SUB_STEPS = 8;
+  const subDt = dt / SUB_STEPS;
+
+  for(let step = 0; step < SUB_STEPS; step++){
+    for(let i = 0; i < fruits.length; i++){
+      const f = fruits[i];
+      if(f.toRemove) continue;
       
-      if(dist<minDist && dist>0.0001){
-        if(iter===0 && a.level===b.level&&!a.merged&&!b.merged&&a.level<FRUITS.length-1){
-          const nx=(a.x+b.x)/2,ny=(a.y+b.y)/2;
-          const newLevel=a.level+1;
-          a.toRemove=true;b.toRemove=true;
-          a.merged=true;b.merged=true;
-          
-          // 给合成的水果一个向上的初速度，更符合物理反馈
-          const nf=new Fruit(nx,ny,newLevel,0,-80);
-          nf.scale=0.5;
-          fruits.push(nf);
-          
-          const pts=FRUITS[newLevel].score;
-          score+=pts;
-          if(score>best)best=score;
-          scoreEl.textContent=score;
-          bestEl.textContent=best;
-          scorePopups.push(new ScorePopup(nx,ny-nf.r-10,pts));
-          spawnMergeParticles(nx,ny,FRUITS[newLevel].color);
-        } else {
-          const overlap=minDist-dist;
-          const nx=dx/dist,ny=dy/dist;
-          
-          // 修复1：完全放弃质量比例，改为0.5强制均摊重叠排斥
-          // 这能保证即便是一个草莓也能在被压扁时将上面的西瓜推开，消除死结
-          const push = overlap * 0.5; 
-          a.x -= nx * push; a.y -= ny * push;
-          b.x += nx * push; b.y += ny * push;
-          
-          const relVx=b.vx-a.vx, relVy=b.vy-a.vy;
-          const relV=relVx*nx+relVy*ny;
-          
-          // 仅当两个水果相互靠近时才处理反弹
-          if(relV<0){
-            // 极小的反弹系数，减小堆叠时的“沸腾”效应
-            const e=0.02; 
-            const imp=-(1+e)*relV/(1/a.mass+1/b.mass);
-            a.vx-=(imp/a.mass)*nx; a.vy-=(imp/a.mass)*ny;
-            b.vx+=(imp/b.mass)*nx; b.vy+=(imp/b.mass)*ny;
-            
-            // 修复2：增加横向碰撞摩擦力，能极大地稳定挤压状态
+      f.age += subDt;
+      if(f.scale < 1){
+        f.scale = Math.min(1, f.scale + subDt * 8);
+      }
+
+      f.vy += GRAVITY * subDt;
+      f.vx *= Math.pow(0.98, subDt * 60);
+      f.vy *= Math.pow(0.998, subDt * 60);
+
+      f.x += f.vx * subDt;
+      f.y += f.vy * subDt;
+    }
+
+    const n = fruits.length;
+    for(let i = 0; i < n; i++){
+      const a = fruits[i];
+      if(a.toRemove) continue;
+
+      for(let j = i + 1; j < n; j++){
+        const b = fruits[j];
+        if(b.toRemove) continue;
+
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        let distSq = dx * dx + dy * dy;
+        let minDist = a.r + b.r;
+
+        if(distSq < minDist * minDist && distSq > 0.00001){
+          let dist = Math.sqrt(distSq);
+
+          if(a.level === b.level && !a.merged && !b.merged && a.level < FRUITS.length - 1){
+            const nx = (a.x + b.x) / 2;
+            const ny = (a.y + b.y) / 2;
+            const newLevel = a.level + 1;
+            a.toRemove = true;
+            b.toRemove = true;
+            a.merged = true;
+            b.merged = true;
+
+            const nf = new Fruit(nx, ny, newLevel, (a.vx + b.vx) * 0.25, -60);
+            nf.scale = 0.5;
+            fruits.push(nf);
+
+            const pts = FRUITS[newLevel].score;
+            score += pts;
+            if(score > best) best = score;
+            scoreEl.textContent = score;
+            bestEl.textContent = best;
+            scorePopups.push(new ScorePopup(nx, ny - nf.r - 10, pts));
+            spawnMergeParticles(nx, ny, FRUITS[newLevel].color);
+            break;
+          }
+
+          const overlap = minDist - dist;
+          const nx = dx / dist;
+          const ny = dy / dist;
+
+          const wA = 1 / Math.sqrt(a.mass);
+          const wB = 1 / Math.sqrt(b.mass);
+          const wSum = wA + wB;
+
+          a.x -= nx * overlap * (wA / wSum);
+          a.y -= ny * overlap * (wA / wSum);
+          b.x += nx * overlap * (wB / wSum);
+          b.y += ny * overlap * (wB / wSum);
+
+          const relVx = b.vx - a.vx;
+          const relVy = b.vy - a.vy;
+          const relV = relVx * nx + relVy * ny;
+
+          if(relV < 0){
+            const e = Math.abs(relV) < 30 ? 0.0 : 0.06;
+            const invMassSum = (1 / a.mass) + (1 / b.mass);
+            const imp = -(1 + e) * relV / invMassSum;
+
+            a.vx -= (imp / a.mass) * nx;
+            a.vy -= (imp / a.mass) * ny;
+            b.vx += (imp / b.mass) * nx;
+            b.vy += (imp / b.mass) * ny;
+
             const tx = -ny, ty = nx;
-            const relT = relVx*tx + relVy*ty;
-            const friction = 0.15; // 横向滑动阻力
-            const fImp = -relT * friction / (1/a.mass+1/b.mass);
-            a.vx-=(fImp/a.mass)*tx; a.vy-=(fImp/a.mass)*ty;
-            b.vx+=(fImp/b.mass)*tx; b.vy+=(fImp/b.mass)*ty;
+            const relT = relVx * tx + relVy * ty;
+            const friction = 0.35;
+            const maxFImp = Math.abs(imp) * friction;
+            let fImp = -relT / invMassSum;
+            fImp = Math.max(-maxFImp, Math.min(maxFImp, fImp));
+
+            a.vx -= (fImp / a.mass) * tx;
+            a.vy -= (fImp / a.mass) * ty;
+            b.vx += (fImp / b.mass) * tx;
+            b.vy += (fImp / b.mass) * ty;
           }
         }
+      }
+    }
+
+    for(let i = 0; i < fruits.length; i++){
+      const f = fruits[i];
+      if(f.toRemove) continue;
+
+      if(f.x - f.r < WALL_LEFT){
+        f.x = WALL_LEFT + f.r;
+        if(f.vx < 0) f.vx = -f.vx * 0.1;
+        if(Math.abs(f.vx) < 10) f.vx = 0;
+      }
+      if(f.x + f.r > WALL_RIGHT){
+        f.x = WALL_RIGHT - f.r;
+        if(f.vx > 0) f.vx = -f.vx * 0.1;
+        if(Math.abs(f.vx) < 10) f.vx = 0;
+      }
+      if(f.y + f.r > FLOOR){
+        f.y = FLOOR - f.r;
+        if(f.vy > 0){
+          f.vy = -f.vy * 0.08;
+          if(Math.abs(f.vy) < 25) f.vy = 0;
+        }
+        f.vx *= Math.pow(0.85, subDt * 60);
+        if(Math.abs(f.vx) < 5) f.vx = 0;
       }
     }
   }
@@ -616,7 +686,7 @@ function drawNext(){
 
 function updateLegend(){
   const leg=document.getElementById('legend');
-  leg.innerHTML='<div class="panel-label" style="text-align:center;margin-bottom:8px;">水果图鉴</div>';
+  leg.innerHTML='<div class="panel-label" style="text-align:center;margin-bottom:6px;">水果图鉴</div>';
   FRUITS.forEach((f,i)=>{
     const row=document.createElement('div');
     row.className='legend-row';
@@ -626,7 +696,6 @@ function updateLegend(){
 }
 
 function drawScene(now){
-  // 限制最大dt=0.02(约50fps的步长)，防网页切后台累积时间导致飞天爆炸
   const dt=Math.min((now-lastTime)/1000,0.02);
   lastTime=now;
 
@@ -635,42 +704,21 @@ function drawScene(now){
     return;
   }
 
+  // 累加游戏时间并刷新UI
+  fruitElapsedSeconds += dt;
+  fruitTimeEl.textContent = formatTime(fruitElapsedSeconds);
+
   if(!canDrop){
     dropCooldown-=dt;
     if(dropCooldown<=0){canDrop=true;}
   }
 
-  fruits.forEach(f=>f.update(dt));
-  
-  // 增加到 8 次迭代进行深度位置纠正，堆叠越深越需要足够的迭代次数
-  const ITERATIONS = 8;
-  for(let iter=0; iter<ITERATIONS; iter++) {
-    checkCollisions(iter);
-    
-    // 修复3：不仅强制修复越界位置，更要将撞墙方向的速度完全“截断”（归零）
-    fruits.forEach(f=>{
-      if(!f.toRemove) {
-        if(f.x-f.r < WALL_LEFT) { 
-            f.x = WALL_LEFT+f.r; 
-            if(f.vx < 0) f.vx = 0; 
-        }
-        if(f.x+f.r > WALL_RIGHT) { 
-            f.x = WALL_RIGHT-f.r; 
-            if(f.vx > 0) f.vx = 0; 
-        }
-        if(f.y+f.r > FLOOR) { 
-            f.y = FLOOR-f.r; 
-            if(f.vy > 0) f.vy = 0; 
-        }
-      }
-    });
-  }
+  updatePhysics(dt);
 
   fruits=fruits.filter(f=>!f.toRemove);
   particles=particles.filter(p=>{p.update(dt);return p.life>0;});
   scorePopups=scorePopups.filter(s=>{s.update(dt);return s.life>0;});
 
-  // 更新危险计时器
   if(hasFruitInDanger()){
     dangerTimer+=dt;
   } else {
@@ -680,6 +728,7 @@ function drawScene(now){
   if(canDrop&&dangerTimer>=3){
     gameOver=true;
     finalEl.textContent=score;
+    finalTimeEl.textContent=formatTime(fruitElapsedSeconds);
     overlay.style.display='flex';
     requestAnimationFrame(drawScene);
     return;
@@ -727,17 +776,13 @@ function drawScene(now){
   ctx.fillRect(WALL_LEFT,0,WALL_RIGHT-WALL_LEFT,DANGER_LINE);
   ctx.restore();
 
-  // 绘制危险倒计时提示
   if(dangerTimer>0&&!gameOver){
     ctx.save();
     const progress=dangerTimer/3;
-    // 背景条
     ctx.fillStyle='rgba(0,0,0,0.4)';
     ctx.fillRect(WALL_LEFT+10,20,WALL_RIGHT-WALL_LEFT-20,20);
-    // 进度条
     ctx.fillStyle='#e74c3c';
     ctx.fillRect(WALL_LEFT+10,20,(WALL_RIGHT-WALL_LEFT-20)*progress,20);
-    // 文字
     ctx.fillStyle='#e74c3c';
     ctx.font='bold 15px "Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
     ctx.textAlign='center';
@@ -778,17 +823,34 @@ initGame();
 lastTime=performance.now();
 requestAnimationFrame(drawScene);
 
-// 2048 游戏逻辑
+// ================= 2048 游戏逻辑 =================
 let grid2048 = [];
 let score2048 = 0;
 let best2048 = parseInt(localStorage.getItem('best2048')) || 0;
+let time2048 = 0;
+let timer2048Id = null;
+let isGameOver2048 = false;
+
+function startTimer2048() {
+  if (timer2048Id) clearInterval(timer2048Id);
+  time2048 = 0;
+  document.getElementById('game2048-time-val').textContent = '00:00';
+  timer2048Id = setInterval(() => {
+    if (!isGameOver2048) {
+      time2048++;
+      document.getElementById('game2048-time-val').textContent = formatTime(time2048);
+    }
+  }, 1000);
+}
 
 function init2048() {
   grid2048 = Array(4).fill(0).map(() => Array(4).fill(0));
   score2048 = 0;
+  isGameOver2048 = false;
   document.getElementById('game2048-score-val').textContent = '0';
   document.getElementById('game2048-best-val').textContent = best2048;
   document.getElementById('game2048-overlay').style.display = 'none';
+  startTimer2048();
   addRandomTile();
   addRandomTile();
   render2048();
@@ -925,6 +987,9 @@ function handleKeyDown(e) {
     }
     render2048();
     if (checkGameOver()) {
+      isGameOver2048 = true;
+      clearInterval(timer2048Id);
+      document.getElementById('game2048-final-time-val').textContent = formatTime(time2048);
       document.getElementById('game2048-overlay').style.display = 'flex';
     }
   }
