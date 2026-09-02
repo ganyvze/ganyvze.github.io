@@ -256,15 +256,21 @@
                 <h2 class="game-title">函数棋</h2>
                 <p class="game-desc">融合数学函数与策略对战的益智游戏。构造函数表达式穿过目标格、避开禁止区，考验极致数学逻辑。</p>
             </div>
+
+            <!-- 游戏6：合成水果 & 2048 -->
+            <div class="game-card animate-up" style="animation-delay: 0.9s;" onclick="launchGame('2048', '2048')">
+                <div class="last-played-badge" id="badge-2048">上次游玩</div>
+                <div class="game-icon">🍉</div>
+                <h2 class="game-title">合成水果 & 2048</h2>
+                <p class="game-desc">双重益智合成体验。左侧重力物理合成大西瓜，右侧经典4×4数字2048，同屏畅玩挑战极限高分。</p>
+            </div>
         </div>
     </div>
 
     <script>
         // 当页面从浏览器的缓存中恢复时（如点击后退按钮），重置页面的透明度
         window.addEventListener('pageshow', (event) => {
-            // event.persisted 为 true 表示页面是从浏览器的缓存(BFCache)中读取的
             document.body.style.opacity = '1';
-            // 移除过渡效果以便立即显示，避免返回时出现奇怪的闪烁
             document.body.style.transition = 'none'; 
             
             // 每次回到主页动态刷新上次游玩的标记
@@ -273,7 +279,7 @@
 
         // 封装高亮逻辑便于复用
         function updateLastPlayedBadge() {
-            // 清除旧的激活状态（防止缓存导致多个都亮）
+            // 清除旧的激活状态
             document.querySelectorAll('.last-played-badge').forEach(badge => {
                 badge.classList.remove('active');
                 badge.parentElement.style.borderColor = 'var(--glass-border)';

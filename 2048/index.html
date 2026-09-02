@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<!--合成水果&2048 - v1.1-->
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合成水果 & 2048</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background: linear-gradient(135deg,#fff8dc 0%,#ffe4a0 100%);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    overflow:hidden;
+    user-select:none;
+    padding:20px;
+  }
+  #main-container{
+    display:flex;
+    gap:0;
+    align-items:flex-start;
+  }
+  .game-section{
+    display:flex;
+    gap:24px;
+    align-items:flex-start;
+    padding:0 20px;
+  }
+  .divider{
+    width:2px;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(200,150,50,0.5) 0px,
+      rgba(200,150,50,0.5) 10px,
+      transparent 10px,
+      transparent 20px
+    );
+    margin:0 10px;
+    min-height:600px;
+  }
+  #side-panel{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    width:140px;
+  }
+  .panel-box{
+    background:rgba(255,255,255,0.7);
+    border-radius:18px;
+    padding:14px 16px;
+    box-shadow:0 4px 16px rgba(180,120,0,0.13);
+    text-align:center;
+  }
+  .panel-label{
+    font-size:12px;
+    color:#a07830;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  #score-val{
+    font-size:32px;
+    font-weight:900;
+    color:#c04010;
+    line-height:1;
+  }
+  #best-val{
+    font-size:20px;
+    font-weight:700;
+    color:#806020;
+  }
+  #next-preview{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+  #next-canvas{
+    border-radius:50%;
+  }
+  #legend{
+    background:rgba(255,255,255,0.6);
+    border-radius:18px;
+    padding:12px;
+    box-shadow:0 4px 16px rgba(180,120,0,0.1);
+  }
+  .legend-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:5px;
+    font-size:11px;
+    font-weight:700;
+    color:#604010;
+  }
+  .legend-dot{
+    width:14px;height:14px;border-radius:50%;flex-shrink:0;
+    box-shadow:inset -2px -2px 4px rgba(0,0,0,0.15);
+  }
+  #canvas-wrap{
+    position:relative;
+  }
+  canvas#game{cursor:default;}
+  #overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:rgba(255,240,200,0.88);
+    border-radius:24px;
+    gap:12px;
+    display:none;
+  }
+  #overlay h2{font-size:36px;font-weight:900;color:#c04010;}
+  #overlay p{font-size:18px;color:#806030;font-weight:700;}
+  #overlay .final-score{font-size:28px;font-weight:900;color:#c04010;}
+  #restart-btn{
+    margin-top:8px;
+    padding:12px 32px;
+    font-size:18px;
+    font-weight:900;
+    font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    background:#ff6b2b;
+    color:#fff;
+    border:none;
+    border-radius:50px;
+    cursor:pointer;
+    box-shadow:0 4px 16px rgba(200,80,0,0.3);
+    transition:transform 0.1s,box-shadow 0.1s;
+  }
+  #restart-btn:hover{transform:scale(1.06);box-shadow:0 6px 24px rgba(200,80,0,0.4);}
+  #restart-btn:active{transform:scale(0.97);}
+
+  /* 2048 游戏样式 */
+  #game2048{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  #game2048-header{
+    display:flex;
+    gap:12px;
+    align-items:flex-end;
+  }
+  #game2048-title{
+    font-size:48px;
+    font-weight:900;
+    color:#8f7a66;
+  }
+  #game2048-scores{
+    display:flex;
+    gap:12px;
+  }
+  #game2048-score-box,#game2048-best-box{
+    background:#bbada0;
+    border-radius:10px;
+    padding:10px 20px;
+    text-align:center;
+    min-width:80px;
+  }
+  #game2048-score-label,#game2048-best-label{
+    font-size:11px;
+    font-weight:700;
+    color:#eee4da;
+    text-transform:uppercase;
+  }
+  #game2048-score-val,#game2048-best-val{
+    font-size:24px;
+    font-weight:900;
+    color:#fff;
+  }
+  #game2048-board{
+    position:relative;
+    background:#bbada0;
+    border-radius:10px;
+    padding:15px;
+  }
+  #game2048-grid{
+    display:grid;
+    grid-template-columns:repeat(4,80px);
+    grid-template-rows:repeat(4,80px);
+    gap:15px;
+  }
+  .grid-cell{
+    background:rgba(238,228,218,0.35);
+    border-radius:6px;
+  }
+  #game2048-tiles{
+    position:absolute;
+    top:15px;
+    left:15px;
+    display:grid;
+    grid-template-columns:repeat(4,80px);
+    grid-template-rows:repeat(4,80px);
+    gap:15px;
+  }
+  .tile{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:36px;
+    font-weight:900;
+    border-radius:6px;
+    animation:appear 0.2s ease-in-out;
+  }
+  @keyframes appear{
+    0%{transform:scale(0);}
+    100%{transform:scale(1);}
+  }
+  .tile-2{background:#eee4da;color:#776e65;}
+  .tile-4{background:#ede0c8;color:#776e65;}
+  .tile-8{background:#f2b179;color:#f9f6f2;}
+  .tile-16{background:#f59563;color:#f9f6f2;}
+  .tile-32{background:#f67c5f;color:#f9f6f2;}
+  .tile-64{background:#f65e3b;color:#f9f6f2;}
+  .tile-128{background:#edcf72;color:#f9f6f2;font-size:32px;}
+  .tile-256{background:#edcc61;color:#f9f6f2;font-size:32px;}
+  .tile-512{background:#edc850;color:#f9f6f2;font-size:32px;}
+  .tile-1024{background:#edc53f;color:#f9f6f2;font-size:26px;}
+  .tile-2048{background:#edc22e;color:#f9f6f2;font-size:26px;}
+  .tile-super{background:#3c3a32;color:#f9f6f2;font-size:22px;}
+  #game2048-controls{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  #game2048-restart{
+    padding:10px 24px;
+    font-size:16px;
+    font-weight:700;
+    font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    background:#8f7a66;
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    transition:background 0.1s;
+  }
+  #game2048-restart:hover{background:#9f8b77;}
+  #game2048-overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:rgba(238,228,218,0.73);
+    border-radius:10px;
+    gap:12px;
+    display:none;
+  }
+  #game2048-overlay h2{font-size:36px;font-weight:900;color:#776e65;}
+  /* 水果游戏控制区域 */
+  #fruit-game-controls{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    margin-top:16px;
+  }
+  .new-game-btn{
+    padding:12px 24px;
+    font-size:16px;
+    font-weight:700;
+    font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    color:#fff;
+    border:none;
+    border-radius:50px;
+    cursor:pointer;
+    transition:transform 0.1s,box-shadow 0.1s;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+  }
+  .new-game-btn:hover{transform:scale(1.05);box-shadow:0 6px 16px rgba(0,0,0,0.2);}
+  .new-game-btn:active{transform:scale(0.98);}
+  .fruit-new-game{
+    background:#e74c3c;
+  }
+  .fruit-new-game:hover{background:#c0392b;}
+  /* 优化2048控制区域 */
+  #game2048-controls{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:20px;
+    gap:20px;
+  }
+</style>
+</head>
+<body>
+<div id="main-container">
+  <div class="game-section" id="fruit-game">
+    <div id="side-panel">
+      <div class="panel-box">
+        <div class="panel-label">分数</div>
+        <div id="score-val">0</div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-label">最高</div>
+        <div id="best-val">0</div>
+      </div>
+      <div class="panel-box" id="next-preview">
+        <div class="panel-label">下一个</div>
+        <canvas id="next-canvas" width="80" height="80"></canvas>
+      </div>
+      <div id="legend">
+        <div class="panel-label" style="text-align:center;margin-bottom:8px;">水果图鉴</div>
+      </div>
+      <div id="fruit-game-controls">
+        <button class="new-game-btn fruit-new-game" id="fruit-new-game-btn">新游戏</button>
+      </div>
+    </div>
+    <div id="canvas-wrap">
+      <canvas id="game" width="420" height="580"></canvas>
+      <div id="overlay">
+        <h2>游戏结束！</h2>
+        <p>得分</p>
+        <div class="final-score" id="final-score-val">0</div>
+        <button id="restart-btn">再来一局</button>
+      </div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="game-section" id="game2048">
+    <div id="game2048-header">
+      <div id="game2048-title">2048</div>
+      <div id="game2048-scores">
+        <div id="game2048-score-box">
+          <div id="game2048-score-label">分数</div>
+          <div id="game2048-score-val">0</div>
+        </div>
+        <div id="game2048-best-box">
+          <div id="game2048-best-label">最高</div>
+          <div id="game2048-best-val">0</div>
+        </div>
+      </div>
+    </div>
+    <div id="game2048-board">
+      <div id="game2048-grid">
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+      </div>
+      <div id="game2048-tiles"></div>
+      <div id="game2048-overlay">
+        <h2>游戏结束！</h2>
+        <button class="new-game-btn" style="background:#8f7a66;" onclick="init2048()">再来一局</button>
+      </div>
+    </div>
+    <div id="game2048-controls">
+      <div style="color:#8f7a66;font-size:14px;font-weight:700;">使用方向键移动</div>
+      <button class="new-game-btn" style="background:#8f7a66;" onclick="init2048()">新游戏</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FRUITS = [
+  {name:'樱桃',color:'#FF3333',r:14,score:1,  mass:1},
+  {name:'草莓',color:'#FF6688',r:20,score:3,  mass:2},
+  {name:'葡萄',color:'#9933FF',r:27,score:6,  mass:4},
+  {name:'橘子',color:'#FF9900',r:34,score:10, mass:8},
+  {name:'柿子',color:'#FF5533',r:42,score:15, mass:14},
+  {name:'苹果',color:'#DD0044',r:52,score:21, mass:22},
+  {name:'梨',  color:'#CCDD00',r:63,score:28, mass:34},
+  {name:'桃子',color:'#FFAACC',r:76,score:36, mass:50},
+  {name:'菠萝',color:'#FFD700',r:90,score:45, mass:70},
+  {name:'西瓜',color:'#33BB33',r:108,score:55,mass:100},
+];
+
+const GRAVITY = 3800;
+const DAMPING = 0.08;
+const FRICTION = 0.38;
+const WALL_LEFT = 10;
+const WALL_RIGHT = 410;
+const FLOOR = 565;
+const DROP_LINE = 80;
+const DANGER_LINE = 90;
+const MAX_LEVEL = 4;
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const nextCanvas = document.getElementById('next-canvas');
+const nCtx = nextCanvas.getContext('2d');
+const scoreEl = document.getElementById('score-val');
+const bestEl = document.getElementById('best-val');
+const finalEl = document.getElementById('final-score-val');
+const overlay = document.getElementById('overlay');
+
+let fruits=[], score=0, best=0, mouseX=210, canDrop=true, dropCooldown=0;
+let currentLevel=0, nextLevel=0, gameOver=false;
+let particles=[], scorePopups=[];
+let lastTime=0;
+let dangerTimer=0; // 水果在危险线以上的累计时间
+
+function randLevel(){return Math.floor(Math.random()*MAX_LEVEL);}
+
+function initGame(){
+  fruits=[];score=0;gameOver=false;canDrop=true;dropCooldown=0;
+  particles=[];scorePopups=[];
+  currentLevel=randLevel();nextLevel=randLevel();
+  overlay.style.display='none';
+  scoreEl.textContent='0';
+  dangerTimer=0;
+  updateLegend();
+  drawNext();
+}
+
+class Fruit{
+  constructor(x,y,level,vx=0,vy=0){
+    this.x=x;this.y=y;this.level=level;
+    this.r=FRUITS[level].r;
+    this.mass=FRUITS[level].mass;
+    this.vx=vx;this.vy=vy;
+    this.toRemove=false;this.merged=false;
+    this.age=0;this.born=performance.now();
+    this.scale=0.3;
+  }
+  update(dt){
+    if(this.toRemove)return;
+    this.age+=dt;
+    if(this.scale<1){this.scale=Math.min(1,this.scale+dt*8);}
+    this.vy+=GRAVITY*dt;
+    this.x+=this.vx*dt;
+    this.y+=this.vy*dt;
+    
+    // 墙壁基础碰撞与摩擦
+    if(this.x-this.r<WALL_LEFT){this.x=WALL_LEFT+this.r;this.vx=Math.abs(this.vx)*DAMPING;}
+    if(this.x+this.r>WALL_RIGHT){this.x=WALL_RIGHT-this.r;this.vx=-Math.abs(this.vx)*DAMPING;}
+    if(this.y+this.r>FLOOR){this.y=FLOOR-this.r;this.vy=-Math.abs(this.vy)*DAMPING;this.vx*=FRICTION;}
+    
+    this.vx*=0.995;
+  }
+  draw(c){
+    if(this.toRemove)return;
+    const f=FRUITS[this.level];
+    const s=this.scale;
+    c.save();
+    c.translate(this.x,this.y);
+    c.scale(s,s);
+    c.beginPath();
+    c.arc(0,0,this.r,0,Math.PI*2);
+    c.fillStyle=f.color;
+    c.fill();
+    c.beginPath();
+    c.arc(0,0,this.r,0,Math.PI*2);
+    c.strokeStyle='rgba(255,255,255,0.35)';
+    c.lineWidth=2.5;
+    c.stroke();
+    c.beginPath();
+    c.arc(-this.r*0.28,-this.r*0.3,this.r*0.22,0,Math.PI*2);
+    c.fillStyle='rgba(255,255,255,0.28)';
+    c.fill();
+    c.restore();
+  }
+}
+
+class Particle{
+  constructor(x,y,color){
+    this.x=x;this.y=y;
+    this.vx=(Math.random()-0.5)*320;
+    this.vy=(Math.random()-0.8)*280;
+    this.r=Math.random()*5+3;
+    this.color=color;
+    this.life=1;
+    this.decay=Math.random()*1.5+1.2;
+  }
+  update(dt){this.x+=this.vx*dt;this.y+=this.vy*dt;this.vy+=400*dt;this.life-=this.decay*dt;}
+  draw(c){
+    c.globalAlpha=Math.max(0,this.life)*0.85;
+    c.beginPath();c.arc(this.x,this.y,this.r,0,Math.PI*2);
+    c.fillStyle=this.color;c.fill();
+    c.globalAlpha=1;
+  }
+}
+
+class ScorePopup{
+  constructor(x,y,val){
+    this.x=x;this.y=y;this.val='+'+val;this.life=1.2;
+  }
+  update(dt){this.y-=55*dt;this.life-=dt;}
+  draw(c){
+    if(this.life<=0)return;
+    const a=Math.min(1,this.life*2);
+    c.globalAlpha=a;
+    c.font='bold 18px "Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+    c.fillStyle='#c04010';
+    c.textAlign='center';c.textBaseline='middle';
+    c.fillText(this.val,this.x,this.y);
+    c.globalAlpha=1;
+  }
+}
+
+function spawnMergeParticles(x,y,color){
+  for(let i=0;i<12;i++) particles.push(new Particle(x,y,color));
+}
+
+function checkCollisions(iter){
+  const n=fruits.length;
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      const a=fruits[i],b=fruits[j];
+      if(a.toRemove||b.toRemove)continue;
+      const dx=b.x-a.x,dy=b.y-a.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      const minDist=a.r+b.r;
+      
+      if(dist<minDist && dist>0.0001){
+        if(iter===0 && a.level===b.level&&!a.merged&&!b.merged&&a.level<FRUITS.length-1){
+          const nx=(a.x+b.x)/2,ny=(a.y+b.y)/2;
+          const newLevel=a.level+1;
+          a.toRemove=true;b.toRemove=true;
+          a.merged=true;b.merged=true;
+          
+          // 给合成的水果一个向上的初速度，更符合物理反馈
+          const nf=new Fruit(nx,ny,newLevel,0,-80);
+          nf.scale=0.5;
+          fruits.push(nf);
+          
+          const pts=FRUITS[newLevel].score;
+          score+=pts;
+          if(score>best)best=score;
+          scoreEl.textContent=score;
+          bestEl.textContent=best;
+          scorePopups.push(new ScorePopup(nx,ny-nf.r-10,pts));
+          spawnMergeParticles(nx,ny,FRUITS[newLevel].color);
+        } else {
+          const overlap=minDist-dist;
+          const nx=dx/dist,ny=dy/dist;
+          
+          // 修复1：完全放弃质量比例，改为0.5强制均摊重叠排斥
+          // 这能保证即便是一个草莓也能在被压扁时将上面的西瓜推开，消除死结
+          const push = overlap * 0.5; 
+          a.x -= nx * push; a.y -= ny * push;
+          b.x += nx * push; b.y += ny * push;
+          
+          const relVx=b.vx-a.vx, relVy=b.vy-a.vy;
+          const relV=relVx*nx+relVy*ny;
+          
+          // 仅当两个水果相互靠近时才处理反弹
+          if(relV<0){
+            // 极小的反弹系数，减小堆叠时的“沸腾”效应
+            const e=0.02; 
+            const imp=-(1+e)*relV/(1/a.mass+1/b.mass);
+            a.vx-=(imp/a.mass)*nx; a.vy-=(imp/a.mass)*ny;
+            b.vx+=(imp/b.mass)*nx; b.vy+=(imp/b.mass)*ny;
+            
+            // 修复2：增加横向碰撞摩擦力，能极大地稳定挤压状态
+            const tx = -ny, ty = nx;
+            const relT = relVx*tx + relVy*ty;
+            const friction = 0.15; // 横向滑动阻力
+            const fImp = -relT * friction / (1/a.mass+1/b.mass);
+            a.vx-=(fImp/a.mass)*tx; a.vy-=(fImp/a.mass)*ty;
+            b.vx+=(fImp/b.mass)*tx; b.vy+=(fImp/b.mass)*ty;
+          }
+        }
+      }
+    }
+  }
+}
+
+function dropFruit(){
+  if(!canDrop||gameOver)return;
+  const x=Math.max(WALL_LEFT+FRUITS[currentLevel].r+2,Math.min(WALL_RIGHT-FRUITS[currentLevel].r-2,mouseX));
+  fruits.push(new Fruit(x,DROP_LINE,currentLevel));
+  currentLevel=nextLevel;
+  nextLevel=randLevel();
+  drawNext();
+  canDrop=false;
+  dropCooldown=0.42;
+}
+
+function hasFruitInDanger(){
+  for(const f of fruits){
+    if(!f.toRemove&&f.y-f.r<DANGER_LINE&&f.age>1.2){
+      return true;
+    }
+  }
+  return false;
+}
+
+function drawNext(){
+  nCtx.clearRect(0,0,80,80);
+  const f=FRUITS[nextLevel];
+  const r=Math.min(f.r,32);
+  nCtx.beginPath();nCtx.arc(40,40,r,0,Math.PI*2);
+  nCtx.fillStyle=f.color;nCtx.fill();
+  nCtx.beginPath();nCtx.arc(40,40,r,0,Math.PI*2);
+  nCtx.strokeStyle='rgba(255,255,255,0.35)';nCtx.lineWidth=2;nCtx.stroke();
+  nCtx.beginPath();nCtx.arc(40-r*0.28,40-r*0.3,r*0.22,0,Math.PI*2);
+  nCtx.fillStyle='rgba(255,255,255,0.28)';nCtx.fill();
+  if(r>14){
+    nCtx.fillStyle='rgba(255,255,255,0.8)';
+    nCtx.font=`bold ${Math.max(9,r*0.38)}px "Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif`;
+    nCtx.textAlign='center';nCtx.textBaseline='middle';
+    nCtx.fillText(f.name,40,41);
+  }
+}
+
+function updateLegend(){
+  const leg=document.getElementById('legend');
+  leg.innerHTML='<div class="panel-label" style="text-align:center;margin-bottom:8px;">水果图鉴</div>';
+  FRUITS.forEach((f,i)=>{
+    const row=document.createElement('div');
+    row.className='legend-row';
+    row.innerHTML=`<div class="legend-dot" style="background:${f.color}"></div><span>${f.name}</span><span style="margin-left:auto;color:#b06020;font-size:10px;">${f.mass}kg</span>`;
+    leg.appendChild(row);
+  });
+}
+
+function drawScene(now){
+  // 限制最大dt=0.02(约50fps的步长)，防网页切后台累积时间导致飞天爆炸
+  const dt=Math.min((now-lastTime)/1000,0.02);
+  lastTime=now;
+
+  if(gameOver){
+    requestAnimationFrame(drawScene);
+    return;
+  }
+
+  if(!canDrop){
+    dropCooldown-=dt;
+    if(dropCooldown<=0){canDrop=true;}
+  }
+
+  fruits.forEach(f=>f.update(dt));
+  
+  // 增加到 8 次迭代进行深度位置纠正，堆叠越深越需要足够的迭代次数
+  const ITERATIONS = 8;
+  for(let iter=0; iter<ITERATIONS; iter++) {
+    checkCollisions(iter);
+    
+    // 修复3：不仅强制修复越界位置，更要将撞墙方向的速度完全“截断”（归零）
+    fruits.forEach(f=>{
+      if(!f.toRemove) {
+        if(f.x-f.r < WALL_LEFT) { 
+            f.x = WALL_LEFT+f.r; 
+            if(f.vx < 0) f.vx = 0; 
+        }
+        if(f.x+f.r > WALL_RIGHT) { 
+            f.x = WALL_RIGHT-f.r; 
+            if(f.vx > 0) f.vx = 0; 
+        }
+        if(f.y+f.r > FLOOR) { 
+            f.y = FLOOR-f.r; 
+            if(f.vy > 0) f.vy = 0; 
+        }
+      }
+    });
+  }
+
+  fruits=fruits.filter(f=>!f.toRemove);
+  particles=particles.filter(p=>{p.update(dt);return p.life>0;});
+  scorePopups=scorePopups.filter(s=>{s.update(dt);return s.life>0;});
+
+  // 更新危险计时器
+  if(hasFruitInDanger()){
+    dangerTimer+=dt;
+  } else {
+    dangerTimer=0;
+  }
+
+  if(canDrop&&dangerTimer>=3){
+    gameOver=true;
+    finalEl.textContent=score;
+    overlay.style.display='flex';
+    requestAnimationFrame(drawScene);
+    return;
+  }
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(WALL_LEFT,0,WALL_RIGHT-WALL_LEFT,FLOOR,12);
+  ctx.fillStyle='rgba(255,255,255,0.82)';
+  ctx.fill();
+  ctx.strokeStyle='rgba(200,150,50,0.35)';
+  ctx.lineWidth=2;ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.setLineDash([8,6]);
+  ctx.strokeStyle=dangerTimer>0?'rgba(231,76,60,0.8)':'rgba(200,100,50,0.3)';
+  ctx.lineWidth=dangerTimer>0?2.5:1.5;
+  ctx.beginPath();ctx.moveTo(WALL_LEFT,DANGER_LINE);ctx.lineTo(WALL_RIGHT,DANGER_LINE);
+  ctx.stroke();ctx.setLineDash([]);
+  ctx.restore();
+
+  fruits.forEach(f=>f.draw(ctx));
+  particles.forEach(p=>p.draw(ctx));
+  scorePopups.forEach(s=>s.draw(ctx));
+
+  if(canDrop&&!gameOver){
+    const clampedX=Math.max(WALL_LEFT+FRUITS[currentLevel].r+2,Math.min(WALL_RIGHT-FRUITS[currentLevel].r-2,mouseX));
+    ctx.save();
+    ctx.setLineDash([5,5]);
+    ctx.strokeStyle='rgba(200,120,50,0.3)';
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(clampedX,DANGER_LINE);ctx.lineTo(clampedX,DROP_LINE-FRUITS[currentLevel].r);
+    ctx.stroke();ctx.setLineDash([]);
+    ctx.restore();
+    const ghost=new Fruit(clampedX,DROP_LINE,currentLevel);
+    ghost.scale=1;
+    ctx.globalAlpha=0.65;ghost.draw(ctx);ctx.globalAlpha=1;
+  }
+
+  ctx.save();
+  ctx.fillStyle='rgba(200,90,30,0.13)';
+  ctx.fillRect(WALL_LEFT,0,WALL_RIGHT-WALL_LEFT,DANGER_LINE);
+  ctx.restore();
+
+  // 绘制危险倒计时提示
+  if(dangerTimer>0&&!gameOver){
+    ctx.save();
+    const progress=dangerTimer/3;
+    // 背景条
+    ctx.fillStyle='rgba(0,0,0,0.4)';
+    ctx.fillRect(WALL_LEFT+10,20,WALL_RIGHT-WALL_LEFT-20,20);
+    // 进度条
+    ctx.fillStyle='#e74c3c';
+    ctx.fillRect(WALL_LEFT+10,20,(WALL_RIGHT-WALL_LEFT-20)*progress,20);
+    // 文字
+    ctx.fillStyle='#e74c3c';
+    ctx.font='bold 15px "Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(`⚠️ 游戏即将结束: ${(3-dangerTimer).toFixed(1)}秒`,(WALL_LEFT+WALL_RIGHT)/2,30);
+    ctx.restore();
+  }
+
+  requestAnimationFrame(drawScene);
+}
+
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  mouseX=e.clientX-rect.left;
+});
+canvas.addEventListener('click',dropFruit);
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  const rect=canvas.getBoundingClientRect();
+  mouseX=e.touches[0].clientX-rect.left;
+},{passive:false});
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const rect=canvas.getBoundingClientRect();
+  mouseX=e.touches[0].clientX-rect.left;
+  dropFruit();
+},{passive:false});
+
+document.getElementById('restart-btn').addEventListener('click',()=>{
+  initGame();lastTime=performance.now();
+});
+
+document.getElementById('fruit-new-game-btn').addEventListener('click',()=>{
+  initGame();lastTime=performance.now();
+});
+
+initGame();
+lastTime=performance.now();
+requestAnimationFrame(drawScene);
+
+// 2048 游戏逻辑
+let grid2048 = [];
+let score2048 = 0;
+let best2048 = parseInt(localStorage.getItem('best2048')) || 0;
+
+function init2048() {
+  grid2048 = Array(4).fill(0).map(() => Array(4).fill(0));
+  score2048 = 0;
+  document.getElementById('game2048-score-val').textContent = '0';
+  document.getElementById('game2048-best-val').textContent = best2048;
+  document.getElementById('game2048-overlay').style.display = 'none';
+  addRandomTile();
+  addRandomTile();
+  render2048();
+}
+
+function addRandomTile() {
+  const empty = [];
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      if (grid2048[i][j] === 0) {
+        empty.push({i, j});
+      }
+    }
+  }
+  if (empty.length > 0) {
+    const {i, j} = empty[Math.floor(Math.random() * empty.length)];
+    grid2048[i][j] = Math.random() < 0.9 ? 2 : 4;
+  }
+}
+
+function render2048() {
+  const tilesContainer = document.getElementById('game2048-tiles');
+  tilesContainer.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      if (grid2048[i][j] !== 0) {
+        const tile = document.createElement('div');
+        const value = grid2048[i][j];
+        tile.className = `tile ${value <= 2048 ? `tile-${value}` : 'tile-super'}`;
+        tile.style.gridRow = i + 1;
+        tile.style.gridColumn = j + 1;
+        tile.textContent = value;
+        tilesContainer.appendChild(tile);
+      }
+    }
+  }
+}
+
+function slide(row) {
+  let arr = row.filter(val => val !== 0);
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i] === arr[i + 1]) {
+      arr[i] *= 2;
+      score2048 += arr[i];
+      arr.splice(i + 1, 1);
+    }
+  }
+  while (arr.length < 4) arr.push(0);
+  return arr;
+}
+
+function moveLeft() {
+  let moved = false;
+  for (let i = 0; i < 4; i++) {
+    const original = [...grid2048[i]];
+    grid2048[i] = slide(grid2048[i]);
+    if (JSON.stringify(original) !== JSON.stringify(grid2048[i])) {
+      moved = true;
+    }
+  }
+  return moved;
+}
+
+function moveRight() {
+  let moved = false;
+  for (let i = 0; i < 4; i++) {
+    const original = [...grid2048[i]];
+    grid2048[i] = slide(grid2048[i].reverse()).reverse();
+    if (JSON.stringify(original) !== JSON.stringify(grid2048[i])) {
+      moved = true;
+    }
+  }
+  return moved;
+}
+
+function moveUp() {
+  let moved = false;
+  for (let j = 0; j < 4; j++) {
+    let col = [grid2048[0][j], grid2048[1][j], grid2048[2][j], grid2048[3][j]];
+    const original = [...col];
+    col = slide(col);
+    for (let i = 0; i < 4; i++) {
+      grid2048[i][j] = col[i];
+    }
+    if (JSON.stringify(original) !== JSON.stringify(col)) {
+      moved = true;
+    }
+  }
+  return moved;
+}
+
+function moveDown() {
+  let moved = false;
+  for (let j = 0; j < 4; j++) {
+    let col = [grid2048[0][j], grid2048[1][j], grid2048[2][j], grid2048[3][j]];
+    const original = [...col];
+    col = slide(col.reverse()).reverse();
+    for (let i = 0; i < 4; i++) {
+      grid2048[i][j] = col[i];
+    }
+    if (JSON.stringify(original) !== JSON.stringify(col)) {
+      moved = true;
+    }
+  }
+  return moved;
+}
+
+function checkGameOver() {
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      if (grid2048[i][j] === 0) return false;
+      if (j < 3 && grid2048[i][j] === grid2048[i][j + 1]) return false;
+      if (i < 3 && grid2048[i][j] === grid2048[i + 1][j]) return false;
+    }
+  }
+  return true;
+}
+
+function handleKeyDown(e) {
+  let moved = false;
+  if (e.key === 'ArrowLeft') moved = moveLeft();
+  else if (e.key === 'ArrowRight') moved = moveRight();
+  else if (e.key === 'ArrowUp') moved = moveUp();
+  else if (e.key === 'ArrowDown') moved = moveDown();
+  else return;
+  e.preventDefault();
+  if (moved) {
+    addRandomTile();
+    document.getElementById('game2048-score-val').textContent = score2048;
+    if (score2048 > best2048) {
+      best2048 = score2048;
+      localStorage.setItem('best2048', best2048);
+      document.getElementById('game2048-best-val').textContent = best2048;
+    }
+    render2048();
+    if (checkGameOver()) {
+      document.getElementById('game2048-overlay').style.display = 'flex';
+    }
+  }
+}
+
+document.addEventListener('keydown', handleKeyDown);
+init2048();
+</script>
+</body>
+</html>
