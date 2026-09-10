@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>合成水果 & 2048</title>
 <style>
+  :root {
+    --tile-transition-duration: 90ms;
+  }
   *{margin:0;padding:0;box-sizing:border-box;}
   body{
     background: linear-gradient(135deg,#fff8dc 0%,#ffe4a0 100%);
@@ -147,7 +150,7 @@
   #game2048{
     display:flex;
     flex-direction:column;
-    gap:16px;
+    gap:12px;
   }
   #game2048-header{
     display:flex;
@@ -192,6 +195,11 @@
     background:#bbada0;
     border-radius:10px;
     padding:15px;
+    width:395px;
+    height:395px;
+    box-sizing:border-box;
+    touch-action:none;
+    overflow:hidden;
   }
   #game2048-grid{
     display:grid;
@@ -202,47 +210,134 @@
   .grid-cell{
     background:rgba(238,228,218,0.35);
     border-radius:6px;
+    width:80px;
+    height:80px;
   }
+  
+  /* 2048 方块滑动动画容器与样式 */
   #game2048-tiles{
     position:absolute;
     top:15px;
     left:15px;
-    display:grid;
-    grid-template-columns:repeat(4,80px);
-    grid-template-rows:repeat(4,80px);
-    gap:15px;
+    width:365px;
+    height:365px;
+    pointer-events:none;
   }
   .tile{
+    position:absolute;
+    top:0;
+    left:0;
+    width:80px;
+    height:80px;
+    transition:transform var(--tile-transition-duration, 90ms) ease-in-out;
+    will-change:transform;
+    z-index:2;
+  }
+  .tile-inner{
+    width:100%;
+    height:100%;
+    border-radius:6px;
     display:flex;
     align-items:center;
     justify-content:center;
     font-size:36px;
     font-weight:900;
-    border-radius:6px;
-    animation:appear 0.2s ease-in-out;
+  }
+  .tile-new .tile-inner{
+    animation:appear calc(var(--tile-transition-duration, 90ms) * 1.5) ease-in-out;
+  }
+  .tile-merged{
+    z-index:4;
+  }
+  .tile-merged .tile-inner{
+    animation:pop calc(var(--tile-transition-duration, 90ms) * 1.5) ease-in-out;
   }
   @keyframes appear{
-    0%{transform:scale(0);}
+    0%{transform:scale(0);opacity:0;}
+    100%{transform:scale(1);opacity:1;}
+  }
+  @keyframes pop{
+    0%{transform:scale(0.8);}
+    50%{transform:scale(1.2);}
     100%{transform:scale(1);}
   }
-  .tile-2{background:#eee4da;color:#776e65;}
-  .tile-4{background:#ede0c8;color:#776e65;}
-  .tile-8{background:#f2b179;color:#f9f6f2;}
-  .tile-16{background:#f59563;color:#f9f6f2;}
-  .tile-32{background:#f67c5f;color:#f9f6f2;}
-  .tile-64{background:#f65e3b;color:#f9f6f2;}
-  .tile-128{background:#edcf72;color:#f9f6f2;font-size:32px;}
-  .tile-256{background:#edcc61;color:#f9f6f2;font-size:32px;}
-  .tile-512{background:#edc850;color:#f9f6f2;font-size:32px;}
-  .tile-1024{background:#edc53f;color:#f9f6f2;font-size:26px;}
-  .tile-2048{background:#edc22e;color:#f9f6f2;font-size:26px;}
-  .tile-super{background:#3c3a32;color:#f9f6f2;font-size:22px;}
+  .tile-inner.tile-2{background:#eee4da;color:#776e65;}
+  .tile-inner.tile-4{background:#ede0c8;color:#776e65;}
+  .tile-inner.tile-8{background:#f2b179;color:#f9f6f2;}
+  .tile-inner.tile-16{background:#f59563;color:#f9f6f2;}
+  .tile-inner.tile-32{background:#f67c5f;color:#f9f6f2;}
+  .tile-inner.tile-64{background:#f65e3b;color:#f9f6f2;}
+  .tile-inner.tile-128{background:#edcf72;color:#f9f6f2;font-size:32px;}
+  .tile-inner.tile-256{background:#edcc61;color:#f9f6f2;font-size:32px;}
+  .tile-inner.tile-512{background:#edc850;color:#f9f6f2;font-size:32px;}
+  .tile-inner.tile-1024{background:#edc53f;color:#f9f6f2;font-size:26px;}
+  .tile-inner.tile-2048{background:#edc22e;color:#f9f6f2;font-size:26px;}
+  
+  /* 高阶扩展瓦片（4096~65536+ 炫彩支持） */
+  .tile-inner.tile-4096{background:#9b59b6;color:#fff;font-size:26px;box-shadow:0 0 10px rgba(155,89,182,0.6);}
+  .tile-inner.tile-8192{background:#8e44ad;color:#fff;font-size:26px;box-shadow:0 0 14px rgba(142,68,173,0.7);}
+  .tile-inner.tile-16384{background:#2c3e50;color:#f1c40f;font-size:20px;box-shadow:0 0 18px rgba(241,196,15,0.75);}
+  .tile-inner.tile-32768{background:#16a085;color:#fff;font-size:20px;box-shadow:0 0 22px rgba(22,160,133,0.85);}
+  .tile-inner.tile-65536{background:#c0392b;color:#fff;font-size:18px;box-shadow:0 0 25px rgba(231,76,60,0.95);}
+  .tile-inner.tile-super{background:#111;color:#f39c12;font-size:17px;box-shadow:0 0 30px rgba(243,156,18,1);}
+
   #game2048-controls{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-top:10px;
+    margin-top:2px;
   }
+
+  /* AI 速度调节控制面板 */
+  #game2048-speed-panel{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:rgba(255,255,255,0.65);
+    border-radius:12px;
+    padding:8px 14px;
+    box-shadow:0 2px 8px rgba(180,120,0,0.06);
+  }
+  .speed-slider-wrap{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  #ai-speed-slider{
+    -webkit-appearance:none;
+    appearance:none;
+    width:130px;
+    height:6px;
+    background:#d8cfc4;
+    border-radius:4px;
+    outline:none;
+    cursor:pointer;
+  }
+  #ai-speed-slider::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:16px;
+    height:16px;
+    border-radius:50%;
+    background:#27ae60;
+    cursor:pointer;
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+    transition:transform 0.1s;
+  }
+  #ai-speed-slider::-webkit-slider-thumb:hover{
+    transform:scale(1.2);
+  }
+  #ai-speed-slider::-moz-range-thumb{
+    width:16px;
+    height:16px;
+    border:none;
+    border-radius:50%;
+    background:#27ae60;
+    cursor:pointer;
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  /* 游戏结束覆盖层 */
   #game2048-overlay{
     position:absolute;
     inset:0;
@@ -250,14 +345,96 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    background:rgba(238,228,218,0.85);
+    background:rgba(238,228,218,0.88);
     border-radius:10px;
-    gap:10px;
+    gap:8px;
     display:none;
+    z-index:100;
   }
   #game2048-overlay h2{font-size:36px;font-weight:900;color:#776e65;}
   .game2048-final-time{font-size:20px;font-weight:900;color:#8f7a66;font-family:monospace;}
   
+  /* 网页内置 AI 确认弹窗 */
+  #game2048-ai-modal{
+    position:absolute;
+    inset:0;
+    background:rgba(80,60,40,0.48);
+    backdrop-filter:blur(3px);
+    border-radius:10px;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:120;
+    animation:modalFadeIn 0.2s ease-out;
+  }
+  @keyframes modalFadeIn{
+    from{opacity:0;transform:scale(0.96);}
+    to{opacity:1;transform:scale(1);}
+  }
+  .ai-modal-box{
+    background:#fffdfa;
+    border-radius:16px;
+    padding:22px 20px;
+    width:88%;
+    max-width:320px;
+    box-shadow:0 12px 28px rgba(0,0,0,0.25);
+    text-align:center;
+  }
+  .ai-modal-title{
+    font-size:18px;
+    font-weight:900;
+    color:#776e65;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .ai-modal-body{
+    font-size:13px;
+    color:#8f7a66;
+    line-height:1.5;
+    margin-bottom:18px;
+  }
+  .ai-modal-warn{
+    margin-top:10px;
+    padding:8px 10px;
+    background:#fff3f0;
+    border:1px solid #ffccd0;
+    border-radius:8px;
+    color:#c0392b;
+    font-weight:700;
+    font-size:12px;
+  }
+  .ai-modal-actions{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+  }
+  .ai-modal-btn{
+    padding:9px 20px;
+    border-radius:50px;
+    font-size:14px;
+    font-weight:800;
+    font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    cursor:pointer;
+    border:none;
+    transition:transform 0.1s,opacity 0.1s;
+  }
+  .ai-modal-btn:hover{transform:scale(1.04);}
+  .ai-modal-btn:active{transform:scale(0.98);}
+  .ai-modal-cancel{
+    background:#e0d5c8;
+    color:#776e65;
+  }
+  .ai-modal-cancel:hover{background:#d5c7b7;}
+  .ai-modal-confirm{
+    background:#27ae60;
+    color:#fff;
+    box-shadow:0 4px 12px rgba(39,174,96,0.3);
+  }
+  .ai-modal-confirm:hover{background:#219653;}
+
   /* 水果游戏控制区域 */
   #fruit-game-controls{
     display:flex;
@@ -266,15 +443,15 @@
     margin-top:4px;
   }
   .new-game-btn{
-    padding:10px 20px;
-    font-size:15px;
+    padding:9px 16px;
+    font-size:14px;
     font-weight:700;
     font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
     color:#fff;
     border:none;
     border-radius:50px;
     cursor:pointer;
-    transition:transform 0.1s,box-shadow 0.1s;
+    transition:transform 0.1s,box-shadow 0.1s,background-color 0.2s;
     box-shadow:0 4px 12px rgba(0,0,0,0.15);
   }
   .new-game-btn:hover{transform:scale(1.05);box-shadow:0 6px 16px rgba(0,0,0,0.2);}
@@ -283,6 +460,16 @@
     background:#e74c3c;
   }
   .fruit-new-game:hover{background:#c0392b;}
+
+  #ai-status-tag{
+    font-size:10px;
+    background:#e74c3c;
+    color:#fff;
+    padding:1px 5px;
+    border-radius:4px;
+    margin-left:4px;
+    display:none;
+  }
 </style>
 </head>
 <body>
@@ -330,7 +517,7 @@
       <div id="game2048-title">2048</div>
       <div id="game2048-scores">
         <div id="game2048-score-box">
-          <div id="game2048-score-label">分数</div>
+          <div id="game2048-score-label">分数<span id="ai-status-tag">AI托管</span></div>
           <div id="game2048-score-val">0</div>
         </div>
         <div id="game2048-best-box">
@@ -363,15 +550,50 @@
         <div class="grid-cell"></div>
       </div>
       <div id="game2048-tiles"></div>
+      
+      <!-- 游戏结束弹窗 -->
       <div id="game2048-overlay">
         <h2>游戏结束！</h2>
         <p style="font-size:16px;color:#776e65;font-weight:700;">用时：<span class="game2048-final-time" id="game2048-final-time-val">00:00</span></p>
+        <p id="game2048-ai-notice" style="font-size:13px;color:#e74c3c;font-weight:700;display:none;">⚠️ 已使用AI代打，本局分数未计入最高分</p>
         <button class="new-game-btn" style="background:#8f7a66;margin-top:6px;" onclick="init2048()">再来一局</button>
       </div>
+
+      <!-- 网页内 AI 托管确认弹窗 -->
+      <div id="game2048-ai-modal" onclick="onAiModalBackdropClick(event)">
+        <div class="ai-modal-box">
+          <div class="ai-modal-title">🤖 开启 AI 托管</div>
+          <div class="ai-modal-body">
+            全新搭载<b>位运算查表引擎</b>与<b>自适应深度 Expectimax 决策系统
+            <div class="ai-modal-warn">⚠️ 注意：开启后本局分数将不计入历史最高分记录！</div>
+          </div>
+          <div class="ai-modal-actions">
+            <button class="ai-modal-btn ai-modal-cancel" onclick="closeAiModal()">取消</button>
+            <button class="ai-modal-btn ai-modal-confirm" onclick="confirmStartAi()">确认开启</button>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- AI 速度滑块控制栏 -->
+    <div id="game2048-speed-panel">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:13px;font-weight:800;color:#8f7a66;">⚡ AI 速度:</span>
+        <span id="ai-speed-val" style="font-size:12px;font-weight:900;color:#27ae60;min-width:62px;">1.5x 推荐</span>
+      </div>
+      <div class="speed-slider-wrap">
+        <span style="font-size:11px;color:#a08a75;font-weight:700;">慢</span>
+        <input type="range" id="ai-speed-slider" min="1" max="8" value="4" step="1" oninput="updateAiSpeed(this.value)">
+        <span style="font-size:11px;color:#a08a75;font-weight:700;">快</span>
+      </div>
+    </div>
+
     <div id="game2048-controls">
-      <div style="color:#8f7a66;font-size:14px;font-weight:700;">使用方向键移动</div>
-      <button class="new-game-btn" style="background:#8f7a66;" onclick="init2048()">新游戏</button>
+      <div style="color:#8f7a66;font-size:13px;font-weight:700;">方向键移动 / AI自动</div>
+      <div style="display:flex;gap:8px;">
+        <button class="new-game-btn" id="game2048-ai-btn" style="background:#27ae60;" onclick="toggleAi2048()">AI 自动</button>
+        <button class="new-game-btn" style="background:#8f7a66;" onclick="init2048()">新游戏</button>
+      </div>
     </div>
   </div>
 </div>
@@ -421,8 +643,6 @@ let currentLevel=0, nextLevel=0, gameOver=false;
 let particles=[], scorePopups=[];
 let lastTime=0;
 let dangerTimer=0;
-
-// 水果游戏计时变量
 let fruitElapsedSeconds = 0;
 
 function randLevel(){return Math.floor(Math.random()*MAX_LEVEL);}
@@ -704,7 +924,6 @@ function drawScene(now){
     return;
   }
 
-  // 累加游戏时间并刷新UI
   fruitElapsedSeconds += dt;
   fruitTimeEl.textContent = formatTime(fruitElapsedSeconds);
 
@@ -823,13 +1042,51 @@ initGame();
 lastTime=performance.now();
 requestAnimationFrame(drawScene);
 
-// ================= 2048 游戏逻辑 =================
+// ================= 2048 游戏逻辑 & 高阶 AI 引擎 =================
 let grid2048 = [];
 let score2048 = 0;
 let best2048 = parseInt(localStorage.getItem('best2048')) || 0;
 let time2048 = 0;
 let timer2048Id = null;
 let isGameOver2048 = false;
+let isAnimating2048 = false;
+let tileIdCounter = 0;
+
+// AI 状态与速度控制配置
+let isAiRunning = false;
+let isAiUsedThisRound = false;
+let aiTimerId = null;
+
+const AI_SPEED_CONFIG = {
+  1: { delay: 420, anim: 240, label: '0.5x 慢速' },
+  2: { delay: 280, anim: 170, label: '0.75x 较慢' },
+  3: { delay: 190, anim: 120, label: '1.0x 标准' },
+  4: { delay: 130, anim: 85,  label: '1.5x 推荐' },
+  5: { delay: 80,  anim: 55,  label: '2.5x 较快' },
+  6: { delay: 45,  anim: 30,  label: '4.0x 快速' },
+  7: { delay: 25,  anim: 15,  label: '6.0x 高速' },
+  8: { delay: 12,  anim: 8,   label: '10x 极速' }
+};
+
+let currentAiDelay = 130;
+let currentAnimDuration = 85;
+
+function updateAiSpeed(level) {
+  const cfg = AI_SPEED_CONFIG[level] || AI_SPEED_CONFIG[4];
+  currentAiDelay = cfg.delay;
+  currentAnimDuration = cfg.anim;
+  document.documentElement.style.setProperty('--tile-transition-duration', `${cfg.anim}ms`);
+  document.getElementById('ai-speed-val').textContent = cfg.label;
+}
+
+class Tile2048 {
+  constructor(r, c, value) {
+    this.id = ++tileIdCounter;
+    this.r = r;
+    this.c = c;
+    this.value = value;
+  }
+}
 
 function startTimer2048() {
   if (timer2048Id) clearInterval(timer2048Id);
@@ -843,159 +1100,658 @@ function startTimer2048() {
   }, 1000);
 }
 
+function createTileDOM(tile, isNew = false, isMerged = false) {
+  const tilesContainer = document.getElementById('game2048-tiles');
+  const tileDiv = document.createElement('div');
+  tileDiv.id = `tile-${tile.id}`;
+  tileDiv.className = `tile ${isNew ? 'tile-new' : ''} ${isMerged ? 'tile-merged' : ''}`;
+  tileDiv.style.transform = `translate(${tile.c * 95}px, ${tile.r * 95}px)`;
+
+  const innerDiv = document.createElement('div');
+  const valClass = tile.value <= 65536 ? `tile-${tile.value}` : 'tile-super';
+  innerDiv.className = `tile-inner ${valClass}`;
+  innerDiv.textContent = tile.value;
+
+  tileDiv.appendChild(innerDiv);
+  tilesContainer.appendChild(tileDiv);
+}
+
 function init2048() {
-  grid2048 = Array(4).fill(0).map(() => Array(4).fill(0));
+  stopAi2048();
+  closeAiModal();
+  isAiUsedThisRound = false;
+  document.getElementById('ai-status-tag').style.display = 'none';
+  document.getElementById('game2048-ai-notice').style.display = 'none';
+
+  grid2048 = Array(4).fill(null).map(() => Array(4).fill(null));
+  document.getElementById('game2048-tiles').innerHTML = '';
   score2048 = 0;
   isGameOver2048 = false;
+  isAnimating2048 = false;
+  tileIdCounter = 0;
   document.getElementById('game2048-score-val').textContent = '0';
   document.getElementById('game2048-best-val').textContent = best2048;
   document.getElementById('game2048-overlay').style.display = 'none';
   startTimer2048();
   addRandomTile();
   addRandomTile();
-  render2048();
 }
 
 function addRandomTile() {
   const empty = [];
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
-      if (grid2048[i][j] === 0) {
-        empty.push({i, j});
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      if (!grid2048[r][c]) {
+        empty.push({ r, c });
       }
     }
   }
   if (empty.length > 0) {
-    const {i, j} = empty[Math.floor(Math.random() * empty.length)];
-    grid2048[i][j] = Math.random() < 0.9 ? 2 : 4;
+    const { r, c } = empty[Math.floor(Math.random() * empty.length)];
+    const val = Math.random() < 0.9 ? 2 : 4;
+    const tile = new Tile2048(r, c, val);
+    grid2048[r][c] = tile;
+    createTileDOM(tile, true);
+    return tile;
   }
+  return null;
 }
 
-function render2048() {
-  const tilesContainer = document.getElementById('game2048-tiles');
-  tilesContainer.innerHTML = '';
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
-      if (grid2048[i][j] !== 0) {
-        const tile = document.createElement('div');
-        const value = grid2048[i][j];
-        tile.className = `tile ${value <= 2048 ? `tile-${value}` : 'tile-super'}`;
-        tile.style.gridRow = i + 1;
-        tile.style.gridColumn = j + 1;
-        tile.textContent = value;
-        tilesContainer.appendChild(tile);
+function move2048(direction) {
+  if (isAiModalOpen()) return false;
+  if (isGameOver2048 || isAnimating2048) return false;
+
+  let dr = 0, dc = 0;
+  if (direction === 'ArrowLeft') dc = -1;
+  else if (direction === 'ArrowRight') dc = 1;
+  else if (direction === 'ArrowUp') dr = -1;
+  else if (direction === 'ArrowDown') dr = 1;
+  else return false;
+
+  const rowOrder = dr === 1 ? [3, 2, 1, 0] : [0, 1, 2, 3];
+  const colOrder = dc === 1 ? [3, 2, 1, 0] : [0, 1, 2, 3];
+
+  let moved = false;
+  const mergedMap = {};
+  const tilesToRemove = [];
+  const newMergedTiles = [];
+
+  const nextGrid = Array(4).fill(null).map(() => Array(4).fill(null));
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      nextGrid[r][c] = grid2048[r][c];
+    }
+  }
+
+  for (let r of rowOrder) {
+    for (let c of colOrder) {
+      const tile = nextGrid[r][c];
+      if (!tile) continue;
+
+      let currR = r;
+      let currC = c;
+      let nextR = r + dr;
+      let nextC = c + dc;
+      let mergeTarget = null;
+
+      while (nextR >= 0 && nextR < 4 && nextC >= 0 && nextC < 4) {
+        const obstacle = nextGrid[nextR][nextC];
+        if (obstacle) {
+          if (obstacle.value === tile.value && !mergedMap[`${nextR},${nextC}`]) {
+            mergeTarget = { r: nextR, c: nextC, tile: obstacle };
+          }
+          break;
+        } else {
+          currR = nextR;
+          currC = nextC;
+          nextR += dr;
+          nextC += dc;
+        }
+      }
+
+      if (mergeTarget) {
+        moved = true;
+        mergedMap[`${mergeTarget.r},${mergeTarget.c}`] = true;
+        nextGrid[r][c] = null;
+
+        const tileEl = document.getElementById(`tile-${tile.id}`);
+        if (tileEl) {
+          tileEl.style.transform = `translate(${mergeTarget.c * 95}px, ${mergeTarget.r * 95}px)`;
+          tileEl.style.zIndex = '3';
+        }
+
+        tilesToRemove.push(tile);
+        tilesToRemove.push(mergeTarget.tile);
+
+        const newVal = tile.value * 2;
+        score2048 += newVal;
+
+        const mergedTile = new Tile2048(mergeTarget.r, mergeTarget.c, newVal);
+        nextGrid[mergeTarget.r][mergeTarget.c] = mergedTile;
+        newMergedTiles.push(mergedTile);
+      } else if (currR !== r || currC !== c) {
+        moved = true;
+        nextGrid[r][c] = null;
+        nextGrid[currR][currC] = tile;
+        tile.r = currR;
+        tile.c = currC;
+
+        const tileEl = document.getElementById(`tile-${tile.id}`);
+        if (tileEl) {
+          tileEl.style.transform = `translate(${currC * 95}px, ${currR * 95}px)`;
+        }
       }
     }
   }
-}
 
-function slide(row) {
-  let arr = row.filter(val => val !== 0);
-  for (let i = 0; i < arr.length - 1; i++) {
-    if (arr[i] === arr[i + 1]) {
-      arr[i] *= 2;
-      score2048 += arr[i];
-      arr.splice(i + 1, 1);
-    }
-  }
-  while (arr.length < 4) arr.push(0);
-  return arr;
-}
+  if (!moved) return false;
 
-function moveLeft() {
-  let moved = false;
-  for (let i = 0; i < 4; i++) {
-    const original = [...grid2048[i]];
-    grid2048[i] = slide(grid2048[i]);
-    if (JSON.stringify(original) !== JSON.stringify(grid2048[i])) {
-      moved = true;
-    }
-  }
-  return moved;
-}
+  grid2048 = nextGrid;
+  isAnimating2048 = true;
 
-function moveRight() {
-  let moved = false;
-  for (let i = 0; i < 4; i++) {
-    const original = [...grid2048[i]];
-    grid2048[i] = slide(grid2048[i].reverse()).reverse();
-    if (JSON.stringify(original) !== JSON.stringify(grid2048[i])) {
-      moved = true;
-    }
-  }
-  return moved;
-}
+  setTimeout(() => {
+    tilesToRemove.forEach(t => {
+      const el = document.getElementById(`tile-${t.id}`);
+      if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
 
-function moveUp() {
-  let moved = false;
-  for (let j = 0; j < 4; j++) {
-    let col = [grid2048[0][j], grid2048[1][j], grid2048[2][j], grid2048[3][j]];
-    const original = [...col];
-    col = slide(col);
-    for (let i = 0; i < 4; i++) {
-      grid2048[i][j] = col[i];
-    }
-    if (JSON.stringify(original) !== JSON.stringify(col)) {
-      moved = true;
-    }
-  }
-  return moved;
-}
+    newMergedTiles.forEach(t => {
+      createTileDOM(t, false, true);
+    });
 
-function moveDown() {
-  let moved = false;
-  for (let j = 0; j < 4; j++) {
-    let col = [grid2048[0][j], grid2048[1][j], grid2048[2][j], grid2048[3][j]];
-    const original = [...col];
-    col = slide(col.reverse()).reverse();
-    for (let i = 0; i < 4; i++) {
-      grid2048[i][j] = col[i];
+    addRandomTile();
+
+    document.getElementById('game2048-score-val').textContent = score2048;
+    if (!isAiUsedThisRound && score2048 > best2048) {
+      best2048 = score2048;
+      localStorage.setItem('best2048', best2048);
+      document.getElementById('game2048-best-val').textContent = best2048;
     }
-    if (JSON.stringify(original) !== JSON.stringify(col)) {
-      moved = true;
+
+    if (checkGameOver()) {
+      isGameOver2048 = true;
+      stopAi2048();
+      if (timer2048Id) clearInterval(timer2048Id);
+      document.getElementById('game2048-final-time-val').textContent = formatTime(time2048);
+      if (isAiUsedThisRound) {
+        document.getElementById('game2048-ai-notice').style.display = 'block';
+      }
+      document.getElementById('game2048-overlay').style.display = 'flex';
     }
-  }
-  return moved;
+
+    isAnimating2048 = false;
+  }, currentAnimDuration + 5);
+
+  return true;
 }
 
 function checkGameOver() {
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
-      if (grid2048[i][j] === 0) return false;
-      if (j < 3 && grid2048[i][j] === grid2048[i][j + 1]) return false;
-      if (i < 3 && grid2048[i][j] === grid2048[i + 1][j]) return false;
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      if (!grid2048[r][c]) return false;
+      const val = grid2048[r][c].value;
+      if (c < 3 && grid2048[r][c + 1] && grid2048[r][c + 1].value === val) return false;
+      if (r < 3 && grid2048[r + 1][c] && grid2048[r + 1][c].value === val) return false;
     }
   }
   return true;
 }
 
-function handleKeyDown(e) {
-  let moved = false;
-  if (e.key === 'ArrowLeft') moved = moveLeft();
-  else if (e.key === 'ArrowRight') moved = moveRight();
-  else if (e.key === 'ArrowUp') moved = moveUp();
-  else if (e.key === 'ArrowDown') moved = moveDown();
-  else return;
-  e.preventDefault();
-  if (moved) {
-    addRandomTile();
-    document.getElementById('game2048-score-val').textContent = score2048;
-    if (score2048 > best2048) {
-      best2048 = score2048;
-      localStorage.setItem('best2048', best2048);
-      document.getElementById('game2048-best-val').textContent = best2048;
+// ================= 超强 AI 算法引擎（位运算查表 + Expectimax 深搜） =================
+// 预计算查找表
+const ROW_LEFT_TABLE = new Uint16Array(65536);
+const ROW_RIGHT_TABLE = new Uint16Array(65536);
+const HEUR_SCORE_TABLE = new Float32Array(65536);
+
+// 经典启发式参数
+const SCORE_LOST_PENALTY = 200000.0;
+const SCORE_MONOTONICITY_POWER = 4.0;
+const SCORE_MONOTONICITY_WEIGHT = 47.0;
+const SCORE_SUM_POWER = 3.5;
+const SCORE_SUM_WEIGHT = 11.0;
+const SCORE_MERGES_WEIGHT = 700.0;
+const SCORE_EMPTY_WEIGHT = 270.0;
+
+function reverseRow(row) {
+  return ((row & 0x000F) << 12) | ((row & 0x00F0) << 4) | ((row & 0x0F00) >> 4) | ((row & 0xF000) >> 12);
+}
+
+function calcRowLeft(row) {
+  const line = [row & 0xF, (row >> 4) & 0xF, (row >> 8) & 0xF, (row >> 12) & 0xF];
+  const res = [0, 0, 0, 0];
+  let resIdx = 0;
+  let lastVal = 0;
+
+  for (let i = 0; i < 4; i++) {
+    const val = line[i];
+    if (val === 0) continue;
+    if (lastVal === 0) {
+      lastVal = val;
+    } else if (lastVal === val) {
+      res[resIdx++] = val + 1;
+      lastVal = 0;
+    } else {
+      res[resIdx++] = lastVal;
+      lastVal = val;
     }
-    render2048();
-    if (checkGameOver()) {
-      isGameOver2048 = true;
-      clearInterval(timer2048Id);
-      document.getElementById('game2048-final-time-val').textContent = formatTime(time2048);
-      document.getElementById('game2048-overlay').style.display = 'flex';
+  }
+  if (lastVal !== 0) {
+    res[resIdx++] = lastVal;
+  }
+  return res[0] | (res[1] << 4) | (res[2] << 8) | (res[3] << 12);
+}
+
+function calcRowHeuristic(row) {
+  const line = [row & 0xF, (row >> 4) & 0xF, (row >> 8) & 0xF, (row >> 12) & 0xF];
+  let empty = 0;
+  let merges = 0;
+  let sum = 0;
+  let prev = 0;
+  let counter = 0;
+
+  for (let i = 0; i < 4; i++) {
+    const rank = line[i];
+    if (rank === 0) {
+      empty++;
+    } else {
+      sum += Math.pow(rank, SCORE_SUM_POWER);
+      if (prev === rank) {
+        counter++;
+      } else if (counter > 0) {
+        merges += 1 + counter;
+        counter = 0;
+      }
+      prev = rank;
     }
+  }
+  if (counter > 0) {
+    merges += 1 + counter;
+  }
+
+  let monoLeft = 0;
+  let monoRight = 0;
+  for (let i = 1; i < 4; i++) {
+    if (line[i - 1] > line[i]) {
+      monoLeft += Math.pow(line[i - 1], SCORE_MONOTONICITY_POWER) - Math.pow(line[i], SCORE_MONOTONICITY_POWER);
+    } else {
+      monoRight += Math.pow(line[i], SCORE_MONOTONICITY_POWER) - Math.pow(line[i - 1], SCORE_MONOTONICITY_POWER);
+    }
+  }
+
+  return SCORE_LOST_PENALTY +
+    SCORE_EMPTY_WEIGHT * empty +
+    SCORE_MERGES_WEIGHT * merges -
+    SCORE_MONOTONICITY_WEIGHT * Math.min(monoLeft, monoRight) -
+    SCORE_SUM_WEIGHT * sum;
+}
+
+// 初始化 65536 状态表（仅耗时 2~3ms）
+(function initAiEngine() {
+  for (let row = 0; row < 65536; row++) {
+    ROW_LEFT_TABLE[row] = calcRowLeft(row);
+  }
+  for (let row = 0; row < 65536; row++) {
+    ROW_RIGHT_TABLE[row] = reverseRow(ROW_LEFT_TABLE[reverseRow(row)]);
+  }
+  for (let row = 0; row < 65536; row++) {
+    HEUR_SCORE_TABLE[row] = calcRowHeuristic(row);
+  }
+})();
+
+// 极速 4x4 矩阵转置位运算
+function transpose(r0, r1, r2, r3) {
+  return [
+    (r0 & 0x000F) | ((r1 & 0x000F) << 4) | ((r2 & 0x000F) << 8) | ((r3 & 0x000F) << 12),
+    ((r0 >> 4) & 0x000F) | (r1 & 0x00F0) | ((r2 & 0x00F0) << 4) | ((r3 & 0x00F0) << 8),
+    ((r0 >> 8) & 0x000F) | ((r1 >> 4) & 0x00F0) | (r2 & 0x0F00) | ((r3 & 0x0F00) << 4),
+    ((r0 >> 12) & 0x000F) | ((r1 >> 8) & 0x00F0) | ((r2 >> 4) & 0x0F00) | (r3 & 0xF000)
+  ];
+}
+
+const MOVE_UP = 0;
+const MOVE_RIGHT = 1;
+const MOVE_DOWN = 2;
+const MOVE_LEFT = 3;
+const DIR_KEYS = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
+
+function executeMove(m, r0, r1, r2, r3) {
+  let nr0 = r0, nr1 = r1, nr2 = r2, nr3 = r3;
+  if (m === MOVE_UP) {
+    const [t0, t1, t2, t3] = transpose(r0, r1, r2, r3);
+    const nt0 = ROW_LEFT_TABLE[t0];
+    const nt1 = ROW_LEFT_TABLE[t1];
+    const nt2 = ROW_LEFT_TABLE[t2];
+    const nt3 = ROW_LEFT_TABLE[t3];
+    [nr0, nr1, nr2, nr3] = transpose(nt0, nt1, nt2, nt3);
+  } else if (m === MOVE_RIGHT) {
+    nr0 = ROW_RIGHT_TABLE[r0];
+    nr1 = ROW_RIGHT_TABLE[r1];
+    nr2 = ROW_RIGHT_TABLE[r2];
+    nr3 = ROW_RIGHT_TABLE[r3];
+  } else if (m === MOVE_DOWN) {
+    const [t0, t1, t2, t3] = transpose(r0, r1, r2, r3);
+    const nt0 = ROW_RIGHT_TABLE[t0];
+    const nt1 = ROW_RIGHT_TABLE[t1];
+    const nt2 = ROW_RIGHT_TABLE[t2];
+    const nt3 = ROW_RIGHT_TABLE[t3];
+    [nr0, nr1, nr2, nr3] = transpose(nt0, nt1, nt2, nt3);
+  } else if (m === MOVE_LEFT) {
+    nr0 = ROW_LEFT_TABLE[r0];
+    nr1 = ROW_LEFT_TABLE[r1];
+    nr2 = ROW_LEFT_TABLE[r2];
+    nr3 = ROW_LEFT_TABLE[r3];
+  }
+
+  if (nr0 === r0 && nr1 === r1 && nr2 === r2 && nr3 === r3) {
+    return null;
+  }
+  return [nr0, nr1, nr2, nr3];
+}
+
+function scoreBoard(r0, r1, r2, r3) {
+  const [c0, c1, c2, c3] = transpose(r0, r1, r2, r3);
+  let score = HEUR_SCORE_TABLE[r0] + HEUR_SCORE_TABLE[r1] + HEUR_SCORE_TABLE[r2] + HEUR_SCORE_TABLE[r3] +
+              HEUR_SCORE_TABLE[c0] + HEUR_SCORE_TABLE[c1] + HEUR_SCORE_TABLE[c2] + HEUR_SCORE_TABLE[c3];
+
+  // 角落大数锚定策略（Corner Max Anchor）：严厉惩罚大数脱离角落游走
+  let maxRank = 0;
+  let maxPos = 0;
+  const rows = [r0, r1, r2, r3];
+  for (let r = 0; r < 4; r++) {
+    const row = rows[r];
+    for (let c = 0; c < 4; c++) {
+      const rank = (row >> (c * 4)) & 0xF;
+      if (rank > maxRank) {
+        maxRank = rank;
+        maxPos = (r << 2) | c;
+      }
+    }
+  }
+
+  if (maxRank >= 7) { // 128 及以上触发角隅锁定
+    const maxValBonus = Math.pow(maxRank, 3.5);
+    if (maxPos === 0 || maxPos === 3 || maxPos === 12 || maxPos === 15) {
+      score += maxValBonus * 16.0;
+    } else if (maxPos === 5 || maxPos === 6 || maxPos === 9 || maxPos === 10) {
+      score -= maxValBonus * 45.0; // 陷入中心四格，给予致命负分惩罚
+    } else {
+      score -= maxValBonus * 18.0;
+    }
+  }
+
+  return score;
+}
+
+function getEmptyCells(r0, r1, r2, r3) {
+  const empties = [];
+  const rows = [r0, r1, r2, r3];
+  for (let r = 0; r < 4; r++) {
+    const row = rows[r];
+    if ((row & 0x000F) === 0) empties.push((r << 2) | 0);
+    if ((row & 0x00F0) === 0) empties.push((r << 2) | 1);
+    if ((row & 0x0F00) === 0) empties.push((r << 2) | 2);
+    if ((row & 0xF000) === 0) empties.push((r << 2) | 3);
+  }
+  return empties;
+}
+
+function gridToBitboard() {
+  const rows = [0, 0, 0, 0];
+  for (let r = 0; r < 4; r++) {
+    let row = 0;
+    for (let c = 0; c < 4; c++) {
+      const tile = grid2048[r][c];
+      if (tile && tile.value > 0) {
+        const rank = Math.round(Math.log2(tile.value));
+        row |= (rank & 0xF) << (c * 4);
+      }
+    }
+    rows[r] = row;
+  }
+  return rows;
+}
+
+// 置换表缓存
+const transTable = new Map();
+
+function expectimaxSearch(r0, r1, r2, r3, depth, prob, isPlayer) {
+  if (depth <= 0 || prob < 0.0006) {
+    return scoreBoard(r0, r1, r2, r3);
+  }
+
+  if (isPlayer) {
+    const key = (BigInt(r0) | (BigInt(r1) << 16n) | (BigInt(r2) << 32n) | (BigInt(r3) << 48n));
+    if (transTable.has(key)) {
+      const cached = transTable.get(key);
+      if (cached.depth >= depth) return cached.score;
+    }
+
+    let bestScore = -Infinity;
+    let anyMove = false;
+    for (let m = 0; m < 4; m++) {
+      const nextBoard = executeMove(m, r0, r1, r2, r3);
+      if (nextBoard !== null) {
+        anyMove = true;
+        const score = expectimaxSearch(nextBoard[0], nextBoard[1], nextBoard[2], nextBoard[3], depth - 1, prob, false);
+        if (score > bestScore) {
+          bestScore = score;
+        }
+      }
+    }
+
+    const res = anyMove ? bestScore : -1e9;
+    if (transTable.size < 40000) {
+      transTable.set(key, { depth, score: res });
+    }
+    return res;
+  } else {
+    // 环境随机生成方块（Chance Node）
+    const empties = getEmptyCells(r0, r1, r2, r3);
+    const numEmpty = empties.length;
+    if (numEmpty === 0) {
+      return scoreBoard(r0, r1, r2, r3);
+    }
+
+    let expectedScore = 0;
+    const p2 = (0.9 / numEmpty) * prob;
+    const p4 = (0.1 / numEmpty) * prob;
+
+    const rows = [r0, r1, r2, r3];
+    for (let i = 0; i < numEmpty; i++) {
+      const pos = empties[i];
+      const r = pos >> 2;
+      const c = pos & 3;
+      const shift = c * 4;
+
+      // 放置 2 (rank 1, 90% 概率)
+      rows[r] = (rows[r] & ~(0xF << shift)) | (1 << shift);
+      expectedScore += 0.9 * expectimaxSearch(rows[0], rows[1], rows[2], rows[3], depth - 1, p2, true);
+
+      // 放置 4 (rank 2, 10% 概率)
+      if (depth > 1 || numEmpty <= 4) {
+        rows[r] = (rows[r] & ~(0xF << shift)) | (2 << shift);
+        expectedScore += 0.1 * expectimaxSearch(rows[0], rows[1], rows[2], rows[3], depth - 1, p4, true);
+      } else {
+        rows[r] = (rows[r] & ~(0xF << shift)) | (2 << shift);
+        expectedScore += 0.1 * scoreBoard(rows[0], rows[1], rows[2], rows[3]);
+      }
+
+      rows[r] &= ~(0xF << shift);
+    }
+
+    return expectedScore / numEmpty;
   }
 }
 
-document.addEventListener('keydown', handleKeyDown);
+function getOptimalMove() {
+  const [r0, r1, r2, r3] = gridToBitboard();
+  const empties = getEmptyCells(r0, r1, r2, r3);
+  const numEmpty = empties.length;
+
+  // 自适应搜索深度：盘面空旷时深度 3，极速响应；盘面越险，深度自动加深至 4~5 层，精准拆解死局
+  let searchDepth = 3;
+  if (numEmpty <= 2) {
+    searchDepth = 5;
+  } else if (numEmpty <= 4) {
+    searchDepth = 4;
+  } else if (numEmpty >= 8) {
+    searchDepth = 3;
+  }
+
+  transTable.clear();
+
+  let bestScore = -Infinity;
+  let bestMove = -1;
+
+  for (let m = 0; m < 4; m++) {
+    const nextBoard = executeMove(m, r0, r1, r2, r3);
+    if (nextBoard !== null) {
+      const score = expectimaxSearch(nextBoard[0], nextBoard[1], nextBoard[2], nextBoard[3], searchDepth, 1.0, false);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = m;
+      }
+    }
+  }
+
+  if (bestMove === -1) {
+    for (let m = 0; m < 4; m++) {
+      if (executeMove(m, r0, r1, r2, r3) !== null) {
+        bestMove = m;
+        break;
+      }
+    }
+  }
+
+  return bestMove !== -1 ? DIR_KEYS[bestMove] : null;
+}
+
+function aiStep() {
+  if (!isAiRunning || isGameOver2048) {
+    stopAi2048();
+    return;
+  }
+
+  if (isAnimating2048) {
+    aiTimerId = setTimeout(aiStep, Math.max(8, Math.floor(currentAiDelay / 2)));
+    return;
+  }
+
+  const dir = getOptimalMove();
+
+  if (dir) {
+    move2048(dir);
+    aiTimerId = setTimeout(aiStep, currentAiDelay);
+  } else {
+    stopAi2048();
+  }
+}
+
+function startAi2048() {
+  isAiRunning = true;
+  const btn = document.getElementById('game2048-ai-btn');
+  btn.textContent = '停止 AI';
+  btn.style.background = '#e67e22';
+  document.getElementById('ai-status-tag').style.display = 'inline-block';
+  aiStep();
+}
+
+function stopAi2048() {
+  isAiRunning = false;
+  if (aiTimerId) {
+    clearTimeout(aiTimerId);
+    aiTimerId = null;
+  }
+  const btn = document.getElementById('game2048-ai-btn');
+  if (btn) {
+    btn.textContent = 'AI 自动';
+    btn.style.background = '#27ae60';
+  }
+}
+
+// ----------------- 网页内弹窗交互逻辑 -----------------
+function isAiModalOpen() {
+  const modal = document.getElementById('game2048-ai-modal');
+  return modal && modal.style.display === 'flex';
+}
+
+function showAiModal() {
+  const modal = document.getElementById('game2048-ai-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeAiModal() {
+  const modal = document.getElementById('game2048-ai-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function onAiModalBackdropClick(e) {
+  if (e.target.id === 'game2048-ai-modal') {
+    closeAiModal();
+  }
+}
+
+function confirmStartAi() {
+  closeAiModal();
+  isAiUsedThisRound = true;
+  startAi2048();
+}
+
+function toggleAi2048() {
+  if (isGameOver2048) return;
+
+  if (isAiRunning) {
+    stopAi2048();
+    return;
+  }
+
+  if (!isAiUsedThisRound) {
+    showAiModal();
+    return;
+  }
+
+  startAi2048();
+}
+
+// 键盘事件监听
+document.addEventListener('keydown', e => {
+  if (isAiModalOpen()) {
+    if (e.key === 'Escape') closeAiModal();
+    return;
+  }
+  if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+    e.preventDefault();
+    move2048(e.key);
+  }
+});
+
+// 触屏滑动支持
+let touchStartX = 0;
+let touchStartY = 0;
+const board2048 = document.getElementById('game2048-board');
+board2048.addEventListener('touchstart', e => {
+  if (isAiModalOpen()) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+board2048.addEventListener('touchend', e => {
+  if (isAiModalOpen()) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+  if (Math.max(absDx, absDy) > 20) {
+    if (absDx > absDy) {
+      move2048(dx > 0 ? 'ArrowRight' : 'ArrowLeft');
+    } else {
+      move2048(dy > 0 ? 'ArrowDown' : 'ArrowUp');
+    }
+  }
+}, { passive: true });
+
 init2048();
 </script>
 </body>
