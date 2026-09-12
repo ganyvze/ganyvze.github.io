@@ -262,11 +262,6 @@
         }
 
         /* ================= 文件夹弹窗与可打断动画体系 ================= */
-        /* 
-           利用 CSS Transition（状态差值），而非 keyframe 动画。
-           在展开中途点击关闭、或收集中途再次打开时，浏览器会立即从当前百分比帧平滑反向过渡，
-           实现真正的【零断裂随时可打断动画】。
-        */
         .folder-overlay {
             position: fixed;
             top: 0;
@@ -284,7 +279,6 @@
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
-            /* 打断核心过渡 */
             transition: opacity 0.32s cubic-bezier(0.2, 0.9, 0.3, 1),
                         backdrop-filter 0.32s cubic-bezier(0.2, 0.9, 0.3, 1),
                         -webkit-backdrop-filter 0.32s cubic-bezier(0.2, 0.9, 0.3, 1),
@@ -311,7 +305,6 @@
             position: relative;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 
                         inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            /* 展开阻尼物理曲线 */
             transform: scale(0.85) translateY(20px);
             opacity: 0;
             transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1),
@@ -397,14 +390,132 @@
                 padding: 20px 16px;
             }
         }
-        /* 全局隐藏所有元素的滚动条，但依然可以正常上下滚动 */
+
+        /* ================= 浏览器适配提示弹窗 ================= */
+        .browser-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                        visibility 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .browser-alert-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .browser-alert-box {
+            background: rgba(28, 28, 35, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 22px;
+            padding: 28px 30px;
+            max-width: 480px;
+            width: 100%;
+            text-align: left;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: scale(0.9) translateY(15px);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .browser-alert-overlay.active .browser-alert-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .browser-alert-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .browser-alert-icon {
+            font-size: 1.8em;
+        }
+
+        .browser-alert-title {
+            margin: 0;
+            font-size: 1.25em;
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .browser-alert-text {
+            color: #d1d8e0;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin: 0 0 24px 0;
+        }
+
+        .browser-alert-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .dont-remind-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--text-sub);
+            font-size: 0.88em;
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+
+        .dont-remind-label:hover {
+            color: #ffffff;
+        }
+
+        .dont-remind-label input[type="checkbox"] {
+            cursor: pointer;
+            accent-color: #00cec9;
+            width: 16px;
+            height: 16px;
+        }
+
+        .browser-alert-confirm-btn {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: #121212;
+            border: none;
+            padding: 9px 26px;
+            font-size: 0.92em;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 206, 201, 0.3);
+            transition: all 0.25s ease;
+        }
+
+        .browser-alert-confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 206, 201, 0.5);
+        }
+
         * {
-            scrollbar-width: none; /* 适配 Firefox */
-            -ms-overflow-style: none; /* 适配 IE / 旧版 Edge */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
         *::-webkit-scrollbar {
-            display: none; /* 适配 Chrome / Safari / 新版 Edge */
+            display: none;
         }
     </style>
 </head>
@@ -473,19 +584,18 @@
                 <p class="game-desc">物理引擎驱动的特技竞速。巧妙控制油门与重心平衡，改装升级专属越野载具，征服各式起伏颠簸的险峻赛道。</p>
             </div>
 
-            <!-- 新增模块：独立游戏合辑文件夹 -->
+            <!-- 独立游戏合辑文件夹 -->
             <div class="game-card folder-card animate-up" style="animation-delay: 1.1s;" onclick="openFolder()" id="folder-card-main">
                 <div class="last-played-badge" id="badge-folder">最近游玩</div>
-                <!-- iOS 风格四宫格微缩预览 -->
                 <div class="folder-preview-box">
                     <span class="folder-mini-icon">🏰</span>
-                    <span class="folder-mini-icon">♟️</span>
+                    <span class="folder-mini-icon">🛡️</span>
                     <span class="folder-mini-icon">💰</span>
                     <span class="folder-mini-icon">🗡️</span>
                 </div>
                 <h2 class="game-title">Scratch 游戏合辑</h2>
-                <p class="game-desc">收录 5 款全新策略、模拟、射击与动作独立作品，点击展开独立游戏阵列。</p>
-                <div class="folder-tag">合辑包含 5 款游戏 📂</div>
+                <p class="game-desc">收录 6 款全新策略、模拟、射击与动作独立作品，点击展开独立游戏阵列。</p>
+                <div class="folder-tag">合辑包含 6 款游戏 📂</div>
             </div>
         </div>
     </div>
@@ -544,34 +654,61 @@
                     <h2 class="game-title">元气骑士</h2>
                     <p class="game-desc">Roguelike 动作射击佳作！解锁奇葩武器与各异英雄，勇闯随机生成的地牢世界。</p>
                 </div>
+
+                <!-- 文件夹游戏6：方块防卫 -->
+                <div class="game-card" onclick="launchGame('s-fkfw', 's-fkfw')">
+                    <div class="last-played-badge" id="badge-s-fkfw">上次游玩</div>
+                    <div class="game-icon">🛡️</div>
+                    <h2 class="game-title">方块防卫</h2>
+                    <p class="game-desc">策略构建多元方块矩阵，协同火力与阵型防线，阻击层层逼近的几何敌潮。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 浏览器检测提示弹窗 -->
+    <div class="browser-alert-overlay" id="browserAlertOverlay">
+        <div class="browser-alert-box">
+            <div class="browser-alert-header">
+                <span class="browser-alert-icon">💡</span>
+                <h3 class="browser-alert-title">体验建议</h3>
+            </div>
+            <p class="browser-alert-text">
+                本站的所有游戏是针对 Google Chrome 设计并优化的，建议使用 Chrome 浏览器以获得最佳游戏体验
+            </p>
+            <div class="browser-alert-actions">
+                <label class="dont-remind-label">
+                    <input type="checkbox" id="dontRemindCheckbox">
+                    <span>不再提示</span>
+                </label>
+                <button class="browser-alert-confirm-btn" onclick="dismissBrowserAlert()">确定</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 文件夹内游戏 ID 列表，用于联动主界面文件夹卡片的高亮状态
-        const FOLDER_GAME_IDS = ['s-cbzj', 's-hzb', 's-qsq', 's-smqz', 's-yqqs'];
+        const FOLDER_GAME_IDS = ['s-cbzj', 's-hzb', 's-qsq', 's-smqz', 's-yqqs', 's-fkfw'];
 
         const folderOverlay = document.getElementById('folderOverlay');
 
-        // 打开文件夹（任何时候触发均可平滑反向展开）
+        // 打开文件夹
         function openFolder() {
             folderOverlay.classList.add('active');
         }
 
-        // 关闭文件夹（随时打断收起）
+        // 关闭文件夹
         function closeFolder() {
             folderOverlay.classList.remove('active');
         }
 
-        // 点击遮罩空白区域打断并关闭
+        // 点击遮罩空白区域关闭文件夹
         function handleOverlayClick(event) {
             if (event.target === folderOverlay) {
                 closeFolder();
             }
         }
 
-        // 监听键盘 ESC 键瞬间打断并退出文件夹
+        // 监听键盘 ESC 键关闭
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && folderOverlay.classList.contains('active')) {
                 closeFolder();
@@ -585,9 +722,8 @@
             updateLastPlayedBadge();
         });
 
-        // 刷新上次游玩的标记（包含主卡片与文件夹内游戏联动）
+        // 刷新上次游玩的标记
         function updateLastPlayedBadge() {
-            // 清除旧的激活状态
             document.querySelectorAll('.last-played-badge').forEach(badge => {
                 badge.classList.remove('active');
                 if (badge.parentElement) {
@@ -598,7 +734,6 @@
 
             const lastPlayed = localStorage.getItem('hub_last_played');
             if (lastPlayed) {
-                // 激活对应游戏卡片的高亮
                 const badge = document.getElementById(`badge-${lastPlayed}`);
                 if (badge) {
                     badge.classList.add('active');
@@ -606,7 +741,6 @@
                     badge.parentElement.style.background = 'rgba(255, 255, 255, 0.08)';
                 }
 
-                // 如果上次玩的是文件夹内的 5 个游戏之一，文件夹外壳也会相应高亮提醒
                 if (FOLDER_GAME_IDS.includes(lastPlayed)) {
                     const folderBadge = document.getElementById('badge-folder');
                     const folderCard = document.getElementById('folder-card-main');
@@ -619,21 +753,63 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', updateLastPlayedBadge);
-
         // 点击进入游戏并记录
         function launchGame(gameId, targetUrl) {
             localStorage.setItem('hub_last_played', gameId);
             
-            // 执行退出动画
             document.body.style.transition = 'opacity 0.4s ease';
             document.body.style.opacity = '0';
             
-            // 延迟跳转等待动画完成
             setTimeout(() => {
                 window.location.href = targetUrl;
             }, 400);
         }
+
+        // ================= 浏览器检测与提示控制 =================
+        function isGoogleChrome() {
+            const ua = navigator.userAgent;
+            // 判断是否含有 Chrome / iOS 上的 CriOS
+            const hasChrome = /Chrome\/([0-9]+)/.test(ua) || /CriOS\/([0-9]+)/.test(ua);
+            // 排除其他常见基于 Chromium 的衍生浏览器或非 Chrome 浏览器
+            const isOther = /Edg\/|Edge\/|OPR\/|Opera|SamsungBrowser|UCBrowser|MicroMessenger|MQQBrowser|Firefox|FxiOS/.test(ua);
+            // 排除 Brave
+            const isBrave = !!(navigator.brave && typeof navigator.brave.isBrave === 'function');
+
+            return hasChrome && !isOther && !isBrave;
+        }
+
+        function checkBrowser() {
+            // 检查用户是否勾选过“不再提示”
+            const dismissed = localStorage.getItem('hub_chrome_prompt_dismissed');
+            if (dismissed === 'true') {
+                return;
+            }
+
+            // 若不是 Chrome 则激活弹窗
+            if (!isGoogleChrome()) {
+                const overlay = document.getElementById('browserAlertOverlay');
+                if (overlay) {
+                    overlay.classList.add('active');
+                }
+            }
+        }
+
+        function dismissBrowserAlert() {
+            const checkbox = document.getElementById('dontRemindCheckbox');
+            if (checkbox && checkbox.checked) {
+                // 写入持久化存储
+                localStorage.setItem('hub_chrome_prompt_dismissed', 'true');
+            }
+            const overlay = document.getElementById('browserAlertOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateLastPlayedBadge();
+            checkBrowser();
+        });
     </script>
 </body>
 </html>
