@@ -13,6 +13,7 @@
             --text-sub: #b2bec3;
             --accent: #555555;
             --accent-glow: rgba(20, 20, 20, 0.5);
+            --folder-accent: #00cec9;
         }
 
         * {
@@ -33,7 +34,6 @@
             color: var(--text-main);
             overflow-x: hidden;
             overflow-y: auto;
-            /* 预设默认不透明，防止缓存导致的闪烁 */
             opacity: 1; 
         }
 
@@ -113,7 +113,7 @@
             }
         }
 
-        /* 游戏卡片 */
+        /* 游戏卡片基础样式 */
         .game-card {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
@@ -122,7 +122,10 @@
             border-radius: 16px;
             padding: 24px 16px;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
+                        background 0.35s ease,
+                        border-color 0.35s ease,
+                        box-shadow 0.35s ease;
             position: relative;
             overflow: hidden;
             text-decoration: none;
@@ -144,7 +147,7 @@
             font-size: 3.2em;
             margin-bottom: 12px;
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
-            transition: transform 0.3s;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .game-card:hover .game-icon {
@@ -205,6 +208,203 @@
             top: -100px;
             left: -100px;
             pointer-events: none;
+        }
+
+        /* ================= 文件夹卡片样式 ================= */
+        .folder-card {
+            border: 1px dashed rgba(255, 255, 255, 0.28);
+            background: rgba(35, 35, 45, 0.35);
+        }
+
+        .folder-card:hover {
+            border-style: solid;
+            border-color: rgba(0, 206, 201, 0.5);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 25px rgba(0, 206, 201, 0.2);
+        }
+
+        /* 文件夹内缩略图四宫格预览效果 */
+        .folder-preview-box {
+            width: 72px;
+            height: 72px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .folder-card:hover .folder-preview-box {
+            transform: scale(1.1);
+        }
+
+        .folder-mini-icon {
+            font-size: 1.15em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .folder-tag {
+            font-size: 0.72em;
+            background: rgba(255, 255, 255, 0.1);
+            color: #74b9ff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(116, 185, 255, 0.2);
+        }
+
+        /* ================= 文件夹弹窗与可打断动画体系 ================= */
+        /* 
+           利用 CSS Transition（状态差值），而非 keyframe 动画。
+           在展开中途点击关闭、或收集中途再次打开时，浏览器会立即从当前百分比帧平滑反向过渡，
+           实现真正的【零断裂随时可打断动画】。
+        */
+        .folder-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.68);
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            /* 打断核心过渡 */
+            transition: opacity 0.32s cubic-bezier(0.2, 0.9, 0.3, 1),
+                        backdrop-filter 0.32s cubic-bezier(0.2, 0.9, 0.3, 1),
+                        -webkit-backdrop-filter 0.32s cubic-bezier(0.2, 0.9, 0.3, 1),
+                        visibility 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
+        }
+
+        .folder-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .folder-window {
+            background: rgba(25, 25, 30, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 26px;
+            padding: 30px;
+            width: 100%;
+            max-width: 980px;
+            max-height: 86vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            /* 展开阻尼物理曲线 */
+            transform: scale(0.85) translateY(20px);
+            opacity: 0;
+            transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+                        opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .folder-overlay.active .folder-window {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .folder-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .folder-header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .folder-header-icon {
+            font-size: 2em;
+        }
+
+        .folder-header-title {
+            margin: 0;
+            font-size: 1.5em;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+
+        .folder-header-desc {
+            margin: 3px 0 0 0;
+            font-size: 0.85em;
+            color: var(--text-sub);
+        }
+
+        .folder-close-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .folder-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        /* 文件夹内部游戏网格 */
+        .folder-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        @media (max-width: 820px) {
+            .folder-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 520px) {
+            .folder-grid {
+                grid-template-columns: 1fr;
+            }
+            .folder-window {
+                padding: 20px 16px;
+            }
+        }
+        /* 全局隐藏所有元素的滚动条，但依然可以正常上下滚动 */
+        * {
+            scrollbar-width: none; /* 适配 Firefox */
+            -ms-overflow-style: none; /* 适配 IE / 旧版 Edge */
+        }
+
+        *::-webkit-scrollbar {
+            display: none; /* 适配 Chrome / Safari / 新版 Edge */
         }
     </style>
 </head>
@@ -272,35 +472,149 @@
                 <h2 class="game-title">登山赛车 2</h2>
                 <p class="game-desc">物理引擎驱动的特技竞速。巧妙控制油门与重心平衡，改装升级专属越野载具，征服各式起伏颠簸的险峻赛道。</p>
             </div>
+
+            <!-- 新增模块：独立游戏合辑文件夹 -->
+            <div class="game-card folder-card animate-up" style="animation-delay: 1.1s;" onclick="openFolder()" id="folder-card-main">
+                <div class="last-played-badge" id="badge-folder">最近游玩</div>
+                <!-- iOS 风格四宫格微缩预览 -->
+                <div class="folder-preview-box">
+                    <span class="folder-mini-icon">🏰</span>
+                    <span class="folder-mini-icon">♟️</span>
+                    <span class="folder-mini-icon">💰</span>
+                    <span class="folder-mini-icon">🗡️</span>
+                </div>
+                <h2 class="game-title">Scratch 游戏合辑</h2>
+                <p class="game-desc">收录 5 款全新策略、模拟、射击与动作独立作品，点击展开独立游戏阵列。</p>
+                <div class="folder-tag">合辑包含 5 款游戏 📂</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文件夹全屏毛玻璃展开弹窗 -->
+    <div class="folder-overlay" id="folderOverlay" onclick="handleOverlayClick(event)">
+        <div class="folder-window" id="folderWindow">
+            <div class="folder-header">
+                <div class="folder-header-title-box">
+                    <span class="folder-header-icon">🗂️</span>
+                    <div>
+                        <h3 class="folder-header-title">Scratch 游戏合辑</h3>
+                        <p class="folder-header-desc">选择要启动的战术模块或模拟环境</p>
+                    </div>
+                </div>
+                <button class="folder-close-btn" onclick="closeFolder()" title="关闭合辑 (ESC)">✕</button>
+            </div>
+
+            <div class="folder-grid">
+                <!-- 文件夹游戏1：城堡战争：科技与魔法 -->
+                <div class="game-card" onclick="launchGame('s-cbzj', 's-cbzj')">
+                    <div class="last-played-badge" id="badge-s-cbzj">上次游玩</div>
+                    <div class="game-icon">🏰</div>
+                    <h2 class="game-title">城堡战争：科技与魔法</h2>
+                    <p class="game-desc">召唤法术与科技战甲，合理调度前线兵种与后勤防御，展开史诗级的攻防拉锯对决。</p>
+                </div>
+
+                <!-- 文件夹游戏2：新·黑战白 -->
+                <div class="game-card" onclick="launchGame('s-hzb', 's-hzb')">
+                    <div class="last-played-badge" id="badge-s-hzb">上次游玩</div>
+                    <div class="game-icon">🔪</div>
+                    <h2 class="game-title">新·黑战白</h2>
+                    <p class="game-desc">黑白两色的纯粹对抗！与敌人开展惊险交锋。</p>
+                </div>
+
+                <!-- 文件夹游戏3：钱生钱 -->
+                <div class="game-card" onclick="launchGame('s-qsq', 's-qsq')">
+                    <div class="last-played-badge" id="badge-s-qsq">上次游玩</div>
+                    <div class="game-icon">💰</div>
+                    <h2 class="game-title">钱生钱</h2>
+                    <p class="game-desc">体验资本滚雪球的极致乐趣！规划实体产业投资、利用复利机制打造独一无二的金融帝国。</p>
+                </div>
+
+                <!-- 文件夹游戏4：神庙枪战 -->
+                <div class="game-card" onclick="launchGame('s-smqz', 's-smqz')">
+                    <div class="last-played-badge" id="badge-s-smqz">上次游玩</div>
+                    <div class="game-icon">🎯</div>
+                    <h2 class="game-title">神庙枪战</h2>
+                    <p class="game-desc">深入神秘幽闭的古代神庙秘境，凭借敏捷走位与重型火力压制，突围远古守卫防线。</p>
+                </div>
+
+                <!-- 文件夹游戏5：元气骑士 -->
+                <div class="game-card" onclick="launchGame('s-yqqs', 's-yqqs')">
+                    <div class="last-played-badge" id="badge-s-yqqs">上次游玩</div>
+                    <div class="game-icon">🗡️</div>
+                    <h2 class="game-title">元气骑士</h2>
+                    <p class="game-desc">Roguelike 动作射击佳作！解锁奇葩武器与各异英雄，勇闯随机生成的地牢世界。</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 当页面从浏览器的缓存中恢复时（如点击后退按钮），重置页面的透明度
+        // 文件夹内游戏 ID 列表，用于联动主界面文件夹卡片的高亮状态
+        const FOLDER_GAME_IDS = ['s-cbzj', 's-hzb', 's-qsq', 's-smqz', 's-yqqs'];
+
+        const folderOverlay = document.getElementById('folderOverlay');
+
+        // 打开文件夹（任何时候触发均可平滑反向展开）
+        function openFolder() {
+            folderOverlay.classList.add('active');
+        }
+
+        // 关闭文件夹（随时打断收起）
+        function closeFolder() {
+            folderOverlay.classList.remove('active');
+        }
+
+        // 点击遮罩空白区域打断并关闭
+        function handleOverlayClick(event) {
+            if (event.target === folderOverlay) {
+                closeFolder();
+            }
+        }
+
+        // 监听键盘 ESC 键瞬间打断并退出文件夹
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && folderOverlay.classList.contains('active')) {
+                closeFolder();
+            }
+        });
+
+        // 页面恢复时重置透明度
         window.addEventListener('pageshow', (event) => {
             document.body.style.opacity = '1';
             document.body.style.transition = 'none'; 
-            
-            // 每次回到主页动态刷新上次游玩的标记
             updateLastPlayedBadge();
         });
 
-        // 封装高亮逻辑便于复用
+        // 刷新上次游玩的标记（包含主卡片与文件夹内游戏联动）
         function updateLastPlayedBadge() {
             // 清除旧的激活状态
             document.querySelectorAll('.last-played-badge').forEach(badge => {
                 badge.classList.remove('active');
-                badge.parentElement.style.borderColor = 'var(--glass-border)';
-                badge.parentElement.style.background = 'rgba(0, 0, 0, 0.3)';
+                if (badge.parentElement) {
+                    badge.parentElement.style.borderColor = '';
+                    badge.parentElement.style.background = '';
+                }
             });
 
             const lastPlayed = localStorage.getItem('hub_last_played');
             if (lastPlayed) {
+                // 激活对应游戏卡片的高亮
                 const badge = document.getElementById(`badge-${lastPlayed}`);
                 if (badge) {
                     badge.classList.add('active');
                     badge.parentElement.style.borderColor = 'rgba(0, 206, 201, 0.4)';
                     badge.parentElement.style.background = 'rgba(255, 255, 255, 0.08)';
+                }
+
+                // 如果上次玩的是文件夹内的 5 个游戏之一，文件夹外壳也会相应高亮提醒
+                if (FOLDER_GAME_IDS.includes(lastPlayed)) {
+                    const folderBadge = document.getElementById('badge-folder');
+                    const folderCard = document.getElementById('folder-card-main');
+                    if (folderBadge && folderCard) {
+                        folderBadge.classList.add('active');
+                        folderCard.style.borderColor = 'rgba(0, 206, 201, 0.4)';
+                        folderCard.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }
                 }
             }
         }
