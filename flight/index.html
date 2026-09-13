@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlightSim</title>
+  <style>
+    :root { --hud: #3dffb0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #03121f; font-family: Consolas, "Courier New", monospace; user-select: none; }
+    #app { position: fixed; inset: 0; }
+    #app canvas.webgl { position: absolute; inset: 0; display: block; }
+    #hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+    #overlay {
+      position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 30%, rgba(8,28,48,.86), rgba(2,8,16,.94));
+      color: #cfe9ff; text-align: center;
+    }
+    #overlay .box { max-width: 980px; padding: 28px 40px; }
+    #overlay h1 { font-size: 30px; letter-spacing: 6px; color: #eafff5; text-shadow: 0 0 18px rgba(61,255,176,.45); margin-bottom: 6px; }
+    #overlay .sub { color: #89b8d8; font-size: 13px; margin-bottom: 22px; }
+    #overlay table { margin: 0; border-collapse: collapse; font-size: 13px; }
+    #overlay td { padding: 4px 12px; text-align: left; }
+    #overlay td.k { text-align: right; white-space: nowrap; }
+    .keys-wrap { display: flex; justify-content: center; align-items: flex-start; gap: 26px; }
+    .glass {
+      background: rgba(10, 32, 46, 0.38);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      border: 1px solid rgba(140, 220, 255, 0.16);
+      border-radius: 14px;
+      padding: 14px 20px 12px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 34px rgba(0, 8, 18, 0.45);
+    }
+    kbd { display: inline-block; min-width: 22px; padding: 1px 7px; border: 1px solid #4d7a99; border-bottom-width: 3px; border-radius: 4px; background: rgba(23, 55, 78, 0.65); color: #d8f4ff; font-family: inherit; font-size: 12px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); }
+    #btnStart {
+      margin-top: 24px; padding: 12px 54px; font-size: 17px; letter-spacing: 4px; cursor: pointer; color: #02150f;
+      background: linear-gradient(180deg, #7dffd0, #2de39b); border: none; border-radius: 6px; font-family: inherit; font-weight: bold;
+      box-shadow: 0 0 24px rgba(45,227,155,.55);
+    }
+    #btnStart:hover { filter: brightness(1.12); }
+    .hint { margin-top: 14px; font-size: 12px; color: #6f9bb8; }
+    #crashBox {
+      position: fixed; inset: 0; z-index: 18; display: none; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at center, rgba(90,6,6,.55), rgba(20,0,0,.82));
+    }
+    #crashBox .inner { text-align: center; color: #ffb9b9; }
+    #crashBox h2 { font-size: 44px; letter-spacing: 10px; text-shadow: 0 0 30px rgba(255,60,60,.8); }
+    #crashBox p { margin-top: 12px; font-size: 14px; color: #ffd9d9; }
+    #camHint {
+      position: fixed; top: 16px; right: 20px; z-index: 12; font-size: 12px; color: rgba(190,240,225,.75);
+      text-shadow: 0 0 6px rgba(0,0,0,.8); pointer-events: none;
+    }
+    #pauseBox {
+      position: fixed; inset: 0; z-index: 16; display: none; align-items: center; justify-content: center;
+      background: rgba(4, 14, 24, 0.30); pointer-events: none;
+    }
+    #pauseBox .inner {
+      padding: 34px 64px; border-radius: 18px;
+      background: rgba(16, 40, 54, 0.40);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      border: 1px solid rgba(125, 255, 208, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 16px 48px rgba(0, 0, 0, 0.45);
+      color: #9dffd8; font-size: 26px; letter-spacing: 10px;
+      text-shadow: 0 0 16px rgba(61, 255, 176, 0.55);
+    }
+    #pauseBox .sub {
+      margin-top: 12px; font-size: 12px; letter-spacing: 3px; text-align: center;
+      color: rgba(180, 240, 220, 0.72); text-shadow: none;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <canvas id="hud"></canvas>
+  <div id="camHint"></div>
+
+  <div id="overlay">
+    <div class="box">
+      <h1>FLIGHT SIM</h1>
+      <div class="sub">跑道 09/27</div>
+      <div class="keys-wrap">
+        <div class="glass"><table>
+          <tr><td class="k">鼠标</td><td>虚拟操纵杆：点击拖动 = 俯仰/滚转 —— 下拖抬头、上推低头（松手回中）</td></tr>
+          <tr><td class="k"><kbd>Enter</kbd></td><td>切换 指针锁定精确模式 / 虚拟操纵杆</td></tr>
+          <tr><td class="k"><kbd>W</kbd><kbd>S</kbd></td><td>油门 增 / 减</td></tr>
+          <tr><td class="k"><kbd>A</kbd><kbd>D</kbd></td><td>方向舵 左 / 右</td></tr>
+          <tr><td class="k"><kbd>F</kbd></td><td>襟翼循环：收起 / 1 / 2 / 全放</td></tr>
+          <tr><td class="k"><kbd>G</kbd></td><td>起落架 收 / 放</td></tr>
+          <tr><td class="k"><kbd>B</kbd></td><td>按住 = 地面轮刹（空中为减速板）</td></tr>
+          <tr><td class="k"><kbd>C</kbd></td><td>视角：座舱 / 追尾 / 自由环绕</td></tr>
+          <tr><td class="k"><kbd>R</kbd></td><td>回到跑道 27 起点，重新开始</td></tr>
+          <tr><td class="k">手柄</td><td>X/Y 摇杆 = 滚转/俯仰，LT/RT = 收/加油门，A = 襟翼，B = 起落架</td></tr>
+        </table></div>
+        <div class="glass"><table>
+          <tr><td class="k"><kbd>Space</kbd><kbd>Esc</kbd></td><td>暂停 / 继续（窗口失焦自动暂停）</td></tr>
+          <tr><td class="k"><kbd>P</kbd></td><td>自动驾驶主开关（AP1）</td></tr>
+          <tr><td class="k"><kbd>H</kbd></td><td>航向保持（捕获当前航向）</td></tr>
+          <tr><td class="k"><kbd>J</kbd></td><td>高度保持（捕获当前高度）</td></tr>
+          <tr><td class="k"><kbd>K</kbd></td><td>垂直速度保持（捕获当前升降率）</td></tr>
+          <tr><td class="k"><kbd>Z</kbd><kbd>X</kbd></td><td>升降率目标 −200 / +200 ft/min</td></tr>
+          <tr><td class="k"><kbd>T</kbd></td><td>速度保持 · 自动油门（捕获当前表速）</td></tr>
+          <tr><td class="k"><kbd>←</kbd><kbd>→</kbd></td><td>AP：航向目标 减 / 增（按住连续调节）</td></tr>
+          <tr><td class="k"><kbd>↑</kbd><kbd>↓</kbd></td><td>AP：调目标高度（ALT）或升降率（V/S）</td></tr>
+          <tr><td class="k"><kbd>PgUp</kbd><kbd>PgDn</kbd></td><td>AP：速度目标 增 / 减（自动油门）</td></tr>
+        </table></div>
+      </div>
+      <div><button id="btnStart">点 击 进 入 座 舱</button></div>
+      <div class="hint">初始状态：跑道 27 起点 · 停留刹车 ON · 引擎怠速 —— 推油门滑跑起飞（VR ≈ 75 节）</div>
+    </div>
+  </div>
+
+  <div id="crashBox">
+    <div class="inner">
+      <h2>CRASHED</h2>
+      <p>机体损毁 · 撞击障碍物或结构过载 —— 按 <kbd>R</kbd> 复位至跑道起点</p>
+    </div>
+  </div>
+
+  <div id="pauseBox"><div class="inner">PAUSED<div class="sub">按 空格 / Esc 继续</div></div></div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
