@@ -704,8 +704,8 @@
       costScale: 1.9,
       maxLevel: 5,
       getStats: (lvl) => ({
-        liftForce: 0.0035 + lvl * 0.0013,
-        glideThrust: 0.0018 + lvl * 0.0008
+        liftForce: 0.0024 + lvl * 0.0007,
+        glideThrust: 0.0015 + lvl * 0.0006
       })
     },
     landingBoost: {
@@ -770,7 +770,8 @@
       headOffset: { x: -4, y: -26 },
       exhaustOffset: { x: -40, y: -8 },
       wingOffset: { x: -28, y: -20 },
-      chassis: { w: 68, h: 18, density: 0.0019, inertiaMult: 1.8 },
+      // 将 density 提升至 0.0030，inertiaMult 提升至 3.0，使车架重心稳定，不易被扭力掀翻
+      chassis: { w: 68, h: 18, density: 0.0030, inertiaMult: 3.0 },
       wheels: {
         rear: { r: 20, x: -34, y: 24 },
         front: { r: 20, x: 34, y: 24 }
@@ -815,8 +816,8 @@
         wheelAccel: 0.048,
         thrustForce: 0.056,
         grip: 3.6,
-        stiffness: 0.13,
-        damping: 0.19,
+        stiffness: 0.26,
+        damping: 0.20,
         airSpinTorque: 0.0035,
         maxAirSpin: 0.045,
         engineAngScale: 0.038,
@@ -848,8 +849,8 @@
         wheelAccel: 0.088,
         thrustForce: 0.068,
         grip: 4.2,
-        stiffness: 0.30,
-        damping: 0.22,
+        stiffness: 0.98,
+        damping: 0.19,
         airSpinTorque: 0.0042,
         maxAirSpin: 0.055,
         engineAngScale: 0.055,
@@ -1832,22 +1833,40 @@
       this.isGliding = false;
       if (!grounded && throttle && this.activeGadgets.glider) {
         const gStats = GADGETS_CONFIG.glider.getStats(this.activeGadgets.glider);
-        if (Math.abs(this.chassis.angle) < 1.2) {
+        // 增加安全空域限制 (y > 250)：防止飞出屏幕顶部进入失重区；俯仰角限制在平稳滑翔区间
+        if (Math.abs(this.chassis.angle) < 1.0 && this.chassis.position.y > 250) {
           this.isGliding = true;
           const ang = this.chassis.angle;
           const cosA = Math.cos(ang);
           const sinA = Math.sin(ang);
 
-          Body.applyForce(this.chassis, this.chassis.position, {
-            x: cosA * gStats.glideThrust,
-            y: -gStats.liftForce
-          });
-
-          if (this.chassis.velocity.y > 1.5) {
-            Body.setVelocity(this.chassis, {
-              x: this.chassis.velocity.x,
-              y: this.chassis.velocity.y * 0.965
+          // 1. 水平延展推力（当水平速度未溢出时才提供推进，防止无限超光速）
+          if (this.chassis.velocity.x < 26) {
+            Body.applyForce(this.chassis, this.chassis.position, {
+              x: cosA * gStats.glideThrust,
+              y: 0
             });
+          }
+
+          // 2. 升力核心修复：滑翔翼只在【下落阶段 (velocity.y > 0)】减缓下坠，
+          // 车辆【上升阶段 (velocity.y <= 0)】升力强制归零，杜绝无限爬升飞天的 Bug
+          const curVy = this.chassis.velocity.y;
+          if (curVy > 0.4) {
+            // 升力平滑衰减并限制上限，确保升力永远不会大于重力
+            const liftFactor = Math.min(1.0, (curVy - 0.4) / 2.0);
+            Body.applyForce(this.chassis, this.chassis.position, {
+              x: 0,
+              y: -gStats.liftForce * liftFactor * 0.6
+            });
+
+            // 3. 将下坠垂直速度平滑维持在平缓的滑翔下沉区间 (下沉率约 1.2~1.5)
+            // 设定保底最小下沉率 Math.max(1.0, ...)，确保轨迹一定是缓慢落地的优美滑翔抛物线
+            if (curVy > 1.2) {
+              Body.setVelocity(this.chassis, {
+                x: this.chassis.velocity.x,
+                y: Math.max(1.0, curVy * 0.94)
+              });
+            }
           }
 
           if (particles && Math.random() < 0.6) {
@@ -1899,7 +1918,10 @@
 
           const topSpeed = isBoosting ? 0.95 : this.specs.maxAngularVelocity;
           if (this.rearWheel.angularVelocity < topSpeed) this.rearWheel.angularVelocity += this.specs.wheelAccel;
-          if (this.frontWheel.angularVelocity < topSpeed) this.frontWheel.angularVelocity += this.specs.wheelAccel;
+          // 越野摩托为后轮驱动，前轮为从动轮（不驱动），彻底解决起步前轮抓地向下拽车头的问题
+          if (this.type !== 'bike' && this.frontWheel.angularVelocity < topSpeed) {
+            this.frontWheel.angularVelocity += this.specs.wheelAccel;
+          }
 
           const sDx = this.frontWheel.position.x - this.rearWheel.position.x;
           const sDy = this.frontWheel.position.y - this.rearWheel.position.y;
@@ -3935,7 +3957,7 @@
 
       ctx.font = '11px "PingFang SC", "Microsoft YaHei", sans-serif';
       ctx.fillStyle = hasNitro || isBoosting ? '#7dd3fc' : '#64748b';
-      ctx.fillText('(空格键 / 触控)', nbX + nbW / 2, nbY + nbH / 2 + 11);
+      ctx.fillText('(空格键)', nbX + nbW / 2, nbY + nbH / 2 + 11);
 
       ctx.restore();
     }
