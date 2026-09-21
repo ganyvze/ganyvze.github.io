@@ -398,7 +398,7 @@
     /* 杯赛选择界面 */
     .cup-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-bottom: 12px;
     }
@@ -466,16 +466,18 @@
     @media (max-width: 600px) {
       .vehicle-roster-grid { grid-template-columns: repeat(2, 1fr); }
       .upgrade-grid { grid-template-columns: repeat(2, 1fr); }
+      .cup-grid { grid-template-columns: repeat(2, 1fr); } /* 👈 新增这行 */
       .gadgets-grid { grid-template-columns: 1fr; }
       .vehicle-info-banner { flex-direction: column; align-items: stretch; text-align: center; }
       .vinfo-title-row { justify-content: center; }
       .vinfo-perks { justify-content: center; }
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <script src="matter.min.js"></script>
+  <!-- 若本地文件不存在或加载失败，自动回退到 CDN 备用地址 -->
   <script>
     if (typeof Matter === 'undefined') {
-      document.write('<script src="matter.min.js"><\/script>');
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"><\/script>');
     }
   </script>
 </head>
@@ -493,7 +495,7 @@
       </div>
 
       <div class="section-header">
-        <span>🏎️ 赛车阵容（选择与出战）</span>
+        <span>🏎️ 赛车阵容</span>
         <span id="current-ride-hint" style="font-size: 11px; color: #facc15;">当前出战: 经典吉普</span>
       </div>
       <div class="vehicle-roster-grid" id="vehicle-roster-grid">
@@ -531,7 +533,7 @@
       </div>
 
       <div class="section-header">
-        <span id="upgrade-owner-hint">🔧 基础核心改装 (当前车辆)</span>
+        <span id="upgrade-owner-hint">🔧 基础核心改装</span>
       </div>
       <div class="upgrade-grid">
         <div class="upgrade-card">
@@ -558,7 +560,7 @@
 
       <div class="gadgets-container">
         <div class="gadgets-slots-banner">
-          <span>⚙️ <b>特技配件改装槽</b>（全车队共享等级，最多装备 2 种）</span>
+          <span>⚙️ <b>特技配件改装槽</b></span>
           <div class="slots-tags" id="equipped-slots-summary">
             <span class="slot-pill">槽位1: 空</span>
             <span class="slot-pill">槽位2: 空</span>
@@ -621,6 +623,12 @@
           <div class="cup-icon">🥇</div>
           <div class="cup-name" style="color: #facc15;">黄金杯</div>
           <div class="cup-prog" id="prog-cup-gold">通关白银解锁</div>
+        </div>
+        <!-- 👇 新增钻石杯卡片 -->
+        <div class="cup-card locked" id="card-cup-diamond" data-cup="diamond">
+          <div class="cup-icon">💎</div>
+          <div class="cup-name" style="color: #38bdf8;">钻石杯</div>
+          <div class="cup-prog" id="prog-cup-diamond">通关黄金解锁</div>
         </div>
       </div>
 
@@ -888,6 +896,16 @@
         { name: '第 1 站: 冰封雪道', dist: 1100, trackLength: 25000, diff: 2.2 },
         { name: '第 2 站: 霜冻绝壁', dist: 1300, trackLength: 29500, diff: 2.6 },
         { name: '第 3 站: 极光巅峰对决', dist: 1500, trackLength: 34000, diff: 3.0 }
+      ]
+    },
+    diamond: {
+      id: 'diamond',
+      name: '钻石杯',
+      theme: 'moon',
+      stages: [
+        { name: '第 1 站: 静海环形山', dist: 1300, trackLength: 29500, diff: 2.6 },
+        { name: '第 2 站: 尘埃深壑', dist: 1500, trackLength: 34000, diff: 3.0 },
+        { name: '第 3 站: 月背极光跃迁', dist: 1800, trackLength: 40000, diff: 3.5 }
       ]
     }
   };
@@ -1379,6 +1397,20 @@
         this.dirtGradMid = '#1e293b';
         this.dirtGradBot = '#0f172a';
         this.dirtParticleColor = '#cbd5e1';
+      } else if (this.theme === 'snow') {
+        this.grassColor = '#e2e8f0';
+        this.grassBorder = '#ffffff';
+        this.dirtGradTop = '#334155';
+        this.dirtGradMid = '#1e293b';
+        this.dirtGradBot = '#0f172a';
+        this.dirtParticleColor = '#cbd5e1';
+      } else if (this.theme === 'moon') { // 👈 新增月面地质着色
+        this.grassColor = '#94a3b8';       // 灰白表土
+        this.grassBorder = '#e2e8f0';      // 发光环形微光
+        this.dirtGradTop = '#475569';      // 月岩深灰
+        this.dirtGradMid = '#1e293b';
+        this.dirtGradBot = '#090d16';
+        this.dirtParticleColor = '#94a3b8';// 月尘微粒
       } else {
         this.grassColor = '#48bb1d';
         this.grassBorder = '#7bee3b';
@@ -1461,12 +1493,13 @@
         const cx = (p1.x + p2.x) / 2 + nx * (thickness / 2);
         const cy = (p1.y + p2.y) / 2 + ny * (thickness / 2);
 
+        const isMoon = this.theme === 'moon';
         const seg = Bodies.rectangle(cx, cy, L, thickness, {
           isStatic: true,
           angle: angle,
-          friction: 1.8,
-          frictionStatic: 3.5,
-          restitution: 0.02,
+          friction: isMoon ? 1.2 : 1.8,
+          frictionStatic: isMoon ? 2.4 : 3.5,
+          restitution: isMoon ? 0.06 : 0.02,
           collisionFilter: { category: 0x0001 },
           label: 'terrain'
         });
@@ -1482,21 +1515,11 @@
     updateDynamicChunks(playerX) {
       if (this.mode !== 'endless') return;
 
+      // 仅在向前行驶时动态延伸新地形
       if (playerX + 5000 > this.highestGeneratedX) {
         const nextStart = this.highestGeneratedX;
         const nextEnd = nextStart + this.chunkSize;
         this.generateRange(nextStart, nextEnd);
-      }
-
-      const purgeThreshold = playerX - 3500;
-      while (this.chunks.length > 0 && this.chunks[0].endX < purgeThreshold) {
-        const oldChunk = this.chunks.shift();
-        Matter.Composite.remove(this.world, oldChunk.bodies);
-      }
-
-      const cutIdx = this.points.findIndex(p => p.x >= purgeThreshold);
-      if (cutIdx > 1) {
-        this.points.splice(0, cutIdx - 1);
       }
     }
 
@@ -1821,12 +1844,17 @@
         const vel = this.chassis.velocity;
         const spdSq = vel.x * vel.x + vel.y * vel.y;
         if (spdSq > 25) {
-          const df = Math.min(0.065, spdSq * this.config.downforce);
           const ang = this.chassis.angle;
-          Body.applyForce(this.chassis, this.chassis.position, {
-            x: -Math.sin(ang) * df * 0.4,
-            y: Math.cos(ang) * df
-          });
+          const cosA = Math.cos(ang);
+          // 修复：仅当车身未倒置（车顶朝上，cosA > 0）时生效
+          // 且限制垂直分力必须 >= 0，彻底杜绝倒置时下压力反转为超强升力飞天的问题
+          if (cosA > 0) {
+            const df = Math.min(0.045, spdSq * this.config.downforce);
+            Body.applyForce(this.chassis, this.chassis.position, {
+              x: -Math.sin(ang) * df * 0.4,
+              y: Math.max(0, cosA * df)
+            });
+          }
         }
       }
 
@@ -2568,8 +2596,7 @@
         this.populateUpTo(px + 5500);
       }
 
-      const purgeX = px - 3500;
-      this.items = this.items.filter(item => item.x >= purgeX && (!item.collected || item.x >= px - 400));
+      this.items = this.items.filter(item => !item.collected || item.x >= px - 400);
     }
 
     checkCollisions(playerVehicle, onCollect) {
@@ -2667,6 +2694,14 @@
         sky1 = '#1e1b4b'; sky2 = '#312e81'; sky3 = '#c7d2fe';
         mtnFar = '#4338ca'; mtnNear = '#e2e8f0';
         sunColor = '#e0e7ff';
+      } else if (theme === 'snow') {
+        sky1 = '#1e1b4b'; sky2 = '#312e81'; sky3 = '#c7d2fe';
+        mtnFar = '#4338ca'; mtnNear = '#e2e8f0';
+        sunColor = '#e0e7ff';
+      } else if (theme === 'moon') { // 👈 新增月球深空天象
+        sky1 = '#020617'; sky2 = '#0b0f19'; sky3 = '#1e1b4b';
+        mtnFar = '#1e293b'; mtnNear = '#334155';
+        sunColor = '#38bdf8'; // 蔚蓝地球
       }
 
       const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
@@ -2830,6 +2865,7 @@
         };
       }
       if (!this.savedData.equippedGadgets) this.savedData.equippedGadgets = ['magnet'];
+      if (!this.savedData.cupProgress.diamond) this.savedData.cupProgress.diamond = 0;
       if (!this.savedData.selectedVehicle) this.savedData.selectedVehicle = 'jeep';
       this.previewVehicle = this.savedData.selectedVehicle;
 
@@ -2892,6 +2928,9 @@
       World.clear(this.engine.world, false);
 
       const stageConf = this.getCurrentStageConfig();
+      
+      const isMoon = stageConf.theme === 'moon';
+      this.engine.gravity.y = isMoon ? 0.36 : 1.05;
       this.terrain = new TerrainManager(this.engine.world, this.savedData.selectedMode, stageConf);
       this.collectibles = new CollectiblesManager(this.terrain);
 
@@ -2909,6 +2948,15 @@
 
       this.player = new Vehicle(this.engine.world, 220, startY, curVid, activeGadgets);
       this.player.applyUpgrades(vData.engine, vData.tires, vData.suspension);
+
+      if (isMoon) {
+        this.player.specs.grip *= 0.25;
+        this.player.specs.thrustForce *= 0.72;
+        this.player.rearWheel.friction = this.player.specs.grip;
+        this.player.frontWheel.friction = this.player.specs.grip;
+        this.player.rearWheel.frictionStatic = 0.45;
+        this.player.frontWheel.frictionStatic = 0.45;
+      }
 
       this.fuel = 100;
       this.coins = 0;
@@ -3049,7 +3097,7 @@
         vActionBtn.className = this.savedData.coins >= previewCfg.price ? "vdetail-action-btn buy-btn" : "vdetail-action-btn disabled";
       }
 
-      document.getElementById('upgrade-owner-hint').innerText = `🔧 基础核心改装 (${previewCfg.name})`;
+      document.getElementById('upgrade-owner-hint').innerText = `🔧 基础核心改装`;
       const vUpgrades = this.savedData.vehicles[previewVid];
 
       const upgrades = [
@@ -3133,6 +3181,7 @@
       const bProg = this.savedData.cupProgress.bronze;
       const sProg = this.savedData.cupProgress.silver;
       const gProg = this.savedData.cupProgress.gold;
+      const dProg = this.savedData.cupProgress.diamond || 0;
 
       document.getElementById('prog-cup-bronze').innerText = bProg >= 3 ? "🏆 冠军完成" : `进度: ${bProg}/3 站`;
 
@@ -3154,7 +3203,16 @@
         document.getElementById('prog-cup-gold').innerText = "需通关白银杯";
       }
 
-      ['bronze', 'silver', 'gold'].forEach(cid => {
+      const diamondCard = document.getElementById('card-cup-diamond');
+      if (gProg >= 3) {
+        diamondCard.classList.remove('locked');
+        document.getElementById('prog-cup-diamond').innerText = dProg >= 3 ? "🏆 冠军完成" : `进度: ${dProg}/3 站`;
+      } else {
+        diamondCard.classList.add('locked');
+        document.getElementById('prog-cup-diamond').innerText = "需通关黄金杯";
+      }
+
+      ['bronze', 'silver', 'gold', 'diamond'].forEach(cid => {
         const card = document.getElementById(`card-cup-${cid}`);
         card.classList.toggle('selected', this.savedData.selectedCup === cid);
       });
@@ -3221,10 +3279,11 @@
         this.updateModalValues();
       });
 
-      ['bronze', 'silver', 'gold'].forEach(cid => {
+      ['bronze', 'silver', 'gold', 'diamond'].forEach(cid => {
         document.getElementById(`card-cup-${cid}`).addEventListener('click', () => {
           if (cid === 'silver' && this.savedData.cupProgress.bronze < 3) return;
           if (cid === 'gold' && this.savedData.cupProgress.silver < 3) return;
+          if (cid === 'diamond' && this.savedData.cupProgress.gold < 3) return;
           this.savedData.selectedCup = cid;
           this.saveData();
           HapticFX.tap();

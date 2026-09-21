@@ -26,6 +26,7 @@
             position: absolute;
             top: 0;
             left: 0;
+            touch-action: none;
         }
 
         #ui-layer {
@@ -1020,6 +1021,75 @@
         window.addEventListener('resize', resize); resize();
         let running = true, frame = 0, startTime = Date.now();
         let mouseX = canvas.width / 2, mouseY = canvas.height / 2; window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+        
+        // ==================== 触屏拖动控制适配 ====================
+        let isTouching = false;
+        let joyBaseX = 0, joyBaseY = 0;       // 摇杆底座中心（手指刚触碰屏幕的位置）
+        let joyCurrentX = 0, joyCurrentY = 0; // 手指当前位置（用于绘制摇杆帽）
+        const JOYSTICK_RADIUS = 60;          // 摇杆活动的最大半径（像素）
+
+        window.addEventListener('touchstart', e => {
+            // 仅在点击画布时生效，避免影响背包、图鉴、弹窗点击
+            if (e.target !== canvas) return;
+            
+            const touch = e.touches[0];
+            isTouching = true;
+            // 锁定手指刚落下的位置为摇杆底座中心
+            joyBaseX = touch.clientX;
+            joyBaseY = touch.clientY;
+            joyCurrentX = touch.clientX;
+            joyCurrentY = touch.clientY;
+
+            // 双指同时按住时触发左键技能（提速、扩圈、发射飞刀）
+            if (e.touches.length >= 2) {
+                isLeftMouseDown = true;
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchmove', e => {
+            if (!isTouching || e.touches.length === 0) return;
+            e.preventDefault(); // 阻止手机浏览器下拉刷新与页面滑动
+
+            const touch = e.touches[0];
+            joyCurrentX = touch.clientX;
+            joyCurrentY = touch.clientY;
+
+            const dx = joyCurrentX - joyBaseX;
+            const dy = joyCurrentY - joyBaseY;
+            const dist = Math.hypot(dx, dy);
+
+            // 摇杆死区判定：拉出 8px 以上才开始移动，防止手指轻微抖动
+            if (dist > 8) {
+                const angle = Math.atan2(dy, dx);
+                // 按拖动比例映射为方向向量（拉满时提供最大航速）
+                const tiltFactor = Math.min(1.0, dist / JOYSTICK_RADIUS);
+                mouseX = canvas.width / 2 + Math.cos(angle) * (tiltFactor * 120);
+                mouseY = canvas.height / 2 + Math.sin(angle) * (tiltFactor * 120);
+            } else {
+                mouseX = canvas.width / 2;
+                mouseY = canvas.height / 2;
+            }
+        }, { passive: false });
+
+        function stopTouch() {
+            if (!isTouching) return;
+            isTouching = false;
+            isLeftMouseDown = false;
+            // 松开手指后复位，角色自然滑行减速停步
+            mouseX = canvas.width / 2;
+            mouseY = canvas.height / 2;
+        }
+
+        window.addEventListener('touchend', e => {
+            if (e.touches.length === 0) {
+                stopTouch();
+            } else if (e.touches.length < 2) {
+                isLeftMouseDown = false;
+            }
+        });
+        window.addEventListener('touchcancel', stopTouch);
+        // ========================================================
+
         let shiftPressed = false;
         let isPaused = false;
         let isPausedBySpace = false;
@@ -1863,6 +1933,17 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
             frost: '击中敌人使其减速 50%，并有概率直接冻结敌人使其无法移动。',
             vampire: '造成伤害时，按伤害的一定比例回复自身生命值。',
             magnet: '装备后大幅扩大掉落花瓣的自动吸引半径与飞回速度。'
+        };
+        // 特殊属性光圈颜色映射（淡淡的半透明发光效果）
+        const KIND_AURA_COLORS = {
+            explosive: 'rgba(249, 115, 22, 0.65)',  // 爆：橙色
+            missile:   'rgba(59, 130, 246, 0.65)',  // 射：蓝色
+            speed:     'rgba(6, 182, 212, 0.65)',   // 速：青色
+            guardian:  'rgba(250, 204, 21, 0.7)',   // 护：金色
+            poison:    'rgba(168, 85, 247, 0.65)',  // 毒：紫色
+            frost:     'rgba(56, 189, 248, 0.65)',  // 冰：淡蓝色
+            vampire:   'rgba(239, 68, 68, 0.65)',   // 吸：红色
+            magnet:    'rgba(255, 255, 255, 0.75)'  // 磁：白色
         };
         
         const BASE_CRAFT_RATES = { common: 0.68, unusual: 0.58, rare: 0.48, epic: 0.38, legendary: 0.28 };
@@ -2708,12 +2789,36 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
             });
 
             groundPetals.forEach(p => {
-                ctx.globalAlpha = p.life < 100 ? p.life / 100 : 0.8; const col = getPetalColor(p.type, p.x + p.y);
-                ctx.shadowBlur = 10; ctx.shadowColor = col;
+                ctx.globalAlpha = p.life < 100 ? p.life / 100 : 0.8;
+                const col = getPetalColor(p.type, p.x + p.y);
+                // 明确在此处声明 angle，避免引用未定义变量导致崩溃
+                const angle = Math.atan2(p.y - player.y, p.x - player.x);
+
+                // 特殊属性掉落花瓣贴体光圈
+                if (typeof KIND_AURA_COLORS !== 'undefined' && KIND_AURA_COLORS[p.kind]) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.ellipse(p.x, p.y, 8, 5, angle, 0, Math.PI * 2);
+                    ctx.strokeStyle = KIND_AURA_COLORS[p.kind];
+                    ctx.lineWidth = 4;
+                    ctx.shadowBlur = 7;
+                    ctx.shadowColor = KIND_AURA_COLORS[p.kind];
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = col;
                 ctx.fillStyle = col;
-                ctx.beginPath(); ctx.ellipse(p.x, p.y, 8, 5, Math.atan2(p.y - player.y, p.x - player.x), 0, Math.PI * 2); ctx.fill();
-                ctx.shadowBlur = 0; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+                ctx.beginPath();
+                ctx.ellipse(p.x, p.y, 8, 5, angle, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
             });
+
             ctx.globalAlpha = 1;
             enemies.forEach(e => {
                 ctx.fillStyle = e.aggro ? (e.hitFlash > 0 ? '#fff' : e.color) : '#64748b';
@@ -2746,23 +2851,43 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                 ctx.fillStyle = '#22c55e'; ctx.fillRect(e.x - 12, e.y - e.r - 8, 24 * Math.max(0, e.hp / e.maxHp), 4);
             });
             equipped.forEach((p, i) => {
+                const rotAngle = (p.kind === 'missile' && p.missileState === 'flying') 
+                    ? Math.atan2(p.missileVy, p.missileVx) 
+                    : Math.atan2(p.y - player.y, p.x - player.x);
+
                 if (!p.isActive && p.kind !== 'missile') {
                     ctx.globalAlpha = 0.25; ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
-                    ctx.beginPath(); ctx.ellipse(p.x, p.y, 10, 6, Math.atan2(p.y - player.y, p.x - player.x), 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; return;
+                    ctx.beginPath(); ctx.ellipse(p.x, p.y, 10, 6, rotAngle, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; return;
                 }
                 if (!p.isActive && p.kind === 'missile' && p.missileState === 'idle') {
                     ctx.globalAlpha = 0.25; ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
-                    ctx.beginPath(); ctx.ellipse(p.x, p.y, 10, 6, Math.atan2(p.y - player.y, p.x - player.x), 0, Math.PI * 2); ctx.stroke();
+                    ctx.beginPath(); ctx.ellipse(p.x, p.y, 10, 6, rotAngle, 0, Math.PI * 2); ctx.stroke();
                     ctx.setLineDash([]); ctx.globalAlpha = 1; return;
                 }
+
+                // 【新增】绘制特殊属性光圈
+                if (KIND_AURA_COLORS[p.kind]) {
+                    ctx.save();
+                    ctx.beginPath();
+                    // 使用与花瓣本体完全一致的长半轴(10)、短半轴(6)与实时朝向角(rotAngle)
+                    ctx.ellipse(p.x, p.y, 10, 6, rotAngle, 0, Math.PI * 2);
+                    ctx.strokeStyle = KIND_AURA_COLORS[p.kind];
+                    ctx.lineWidth = 5;       // 稍宽的线条，超出花瓣边缘约 1.5~2px
+                    ctx.shadowBlur = 9;       // 光圈向外柔和扩散
+                    ctx.shadowColor = KIND_AURA_COLORS[p.kind];
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
                 const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 10);
                 grad.addColorStop(0, '#ffffff');
                 grad.addColorStop(1, getPetalColor(p.type, i * 20));
                 ctx.fillStyle = grad;
                 ctx.globalAlpha = 0.6 + (p.durability / p.maxDurability) * 0.4;
-                ctx.beginPath(); ctx.ellipse(p.x, p.y, 10, 6, Math.atan2(p.y - player.y, p.x - player.x), 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(p.x, p.y, 10, 6, rotAngle, 0, Math.PI * 2); ctx.fill();
                 ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.globalAlpha = 1;
             });
+
             ctx.save(); ctx.translate(player.x, player.y);
             if (player.hurtFlashTimer > 0) { ctx.fillStyle = '#ef4444'; ctx.shadowBlur = 15; ctx.shadowColor = '#ef4444'; }
             else { ctx.fillStyle = '#38bdf8'; ctx.shadowBlur = 10; ctx.shadowColor = '#38bdf8'; }
@@ -2784,6 +2909,63 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
             });
             ctx.shadowBlur = 0; ctx.globalAlpha = 1;
             ctx.restore();
+
+            if (isTouching) {
+                const dx = joyCurrentX - joyBaseX;
+                const dy = joyCurrentY - joyBaseY;
+                const dist = Math.hypot(dx, dy);
+
+                // 限制摇杆滑块不能超出底座的最大半径
+                let knobX = joyCurrentX;
+                let knobY = joyCurrentY;
+                if (dist > JOYSTICK_RADIUS) {
+                    knobX = joyBaseX + (dx / dist) * JOYSTICK_RADIUS;
+                    knobY = joyBaseY + (dy / dist) * JOYSTICK_RADIUS;
+                }
+
+                ctx.save();
+                // 1. 绘制摇杆底座背景与外环（以首次触碰点为圆心）
+                ctx.beginPath();
+                ctx.arc(joyBaseX, joyBaseY, JOYSTICK_RADIUS, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.45)';
+                ctx.fill();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+                ctx.stroke();
+
+                // 2. 绘制底座中心原点
+                ctx.beginPath();
+                ctx.arc(joyBaseX, joyBaseY, 4, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+                ctx.fill();
+
+                // 3. 绘制中心与摇杆帽之间的指示连线
+                if (dist > 6) {
+                    ctx.beginPath();
+                    ctx.moveTo(joyBaseX, joyBaseY);
+                    ctx.lineTo(knobX, knobY);
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                // 4. 绘制手指跟随的摇杆帽（发光半透明球体）
+                const knobGrad = ctx.createRadialGradient(knobX - 3, knobY - 3, 2, knobX, knobY, 22);
+                knobGrad.addColorStop(0, 'rgba(125, 211, 252, 0.95)');
+                knobGrad.addColorStop(1, 'rgba(14, 165, 233, 0.7)');
+
+                ctx.beginPath();
+                ctx.arc(knobX, knobY, 22, 0, Math.PI * 2);
+                ctx.fillStyle = knobGrad;
+                ctx.shadowColor = 'rgba(56, 189, 248, 0.6)';
+                ctx.shadowBlur = 12;
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+                ctx.restore();
+            }
+
         }
         needsUIRender = true;
         loop();
