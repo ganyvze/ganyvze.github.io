@@ -1031,6 +1031,11 @@
         let lastTapX = 0, lastTapY = 0;
 
         window.addEventListener('touchstart', e => {
+            
+            if (!e.target.closest('#equip-grid') && !e.target.closest('#inv-grid') && !e.target.closest('#tooltip-card')) {
+                hideTooltip();
+            }
+
             // 仅在点击画布时生效，避免影响背包、图鉴、弹窗点击
             if (e.target !== canvas) return;
             
@@ -2126,6 +2131,105 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
             p.life = 600; groundPetals.push(p); needsUIRender = true;
         }
 
+        // ==================== 移动端花瓣触摸手势与丢弃处理 ====================
+        let lastPetalTapTime = 0;
+        let lastPetalTapTarget = null;
+
+        // 丢弃装备栏花瓣
+        function discardEquippedPetal(petal) {
+            const idx = equipped.indexOf(petal);
+            if (idx > -1) {
+                equipped.splice(idx, 1);
+                spawnDamageText(player.x, player.y - 30, `已丢弃: ${TIER_NAMES[petal.type]}·${KIND_NAMES[petal.kind]}`, '#ef4444');
+                spawnParticles(player.x, player.y, TIER_COLORS[petal.type], 8);
+                hideTooltip();
+                needsUIRender = true;
+            }
+        }
+
+        // 丢弃背包内对应分类的 1 个花瓣
+        function discardInventoryPetalByKey(key) {
+            const [tier, kind] = key.split('|');
+            const idx = inventory.findIndex(p => p.type === tier && p.kind === kind);
+            if (idx > -1) {
+                const removed = inventory.splice(idx, 1)[0];
+                spawnDamageText(player.x, player.y - 30, `已丢弃: ${TIER_NAMES[removed.type]}·${KIND_NAMES[removed.kind]}`, '#ef4444');
+                spawnParticles(player.x, player.y, TIER_COLORS[removed.type], 8);
+                hideTooltip();
+                needsUIRender = true;
+            }
+        }
+
+        // 通用触摸事件绑定：单击查看属性、双击交换/卸下、长按丢弃
+        function bindPetalTouch(element, { targetId, onSingleTap, onDoubleTap, onLongPress }) {
+            let pressTimer = null;
+            let startX = 0, startY = 0;
+            let isLongPressTriggered = false;
+
+            element.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) return;
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                isLongPressTriggered = false;
+
+                // 超过 500ms 判定为长按
+                pressTimer = setTimeout(() => {
+                    isLongPressTriggered = true;
+                    if (navigator.vibrate) navigator.vibrate(50); // 震动反馈
+                    onLongPress();
+                }, 500);
+            }, { passive: true });
+
+            element.addEventListener('touchmove', e => {
+                if (!pressTimer) return;
+                const touch = e.touches[0];
+                // 手指移动超过 10px 则判定为拖动/滚动页面，取消长按
+                if (Math.hypot(touch.clientX - startX, touch.clientY - startY) > 10) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+            }, { passive: true });
+
+            element.addEventListener('touchend', e => {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+                // 如果已触发长按，阻止后续模拟点击事件
+                if (isLongPressTriggered) {
+                    if (e.cancelable) e.preventDefault();
+                    return;
+                }
+
+                const touch = e.changedTouches[0];
+                if (Math.hypot(touch.clientX - startX, touch.clientY - startY) > 10) return;
+
+                // 阻止浏览器向后触发 simulated mousedown/click，避免唤起 PC 端的 startDrag
+                if (e.cancelable) e.preventDefault();
+
+                const now = Date.now();
+                // 350ms 范围内连续点击同一花瓣判定为双击
+                if (now - lastPetalTapTime < 350 && lastPetalTapTarget === targetId) {
+                    lastPetalTapTime = 0;
+                    lastPetalTapTarget = null;
+                    onDoubleTap();
+                } else {
+                    lastPetalTapTime = now;
+                    lastPetalTapTarget = targetId;
+                    onSingleTap(touch);
+                }
+            });
+
+            element.addEventListener('touchcancel', () => {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+            });
+        }
+        // ======================================================================
+
         function renderUINow() {
             document.getElementById('lvl').textContent = player.lvl; document.getElementById('hp').textContent = Number(player.hp.toFixed(1));
             document.getElementById('maxHp').textContent = player.maxHp;
@@ -2148,6 +2252,8 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
                 const bar = document.createElement('div');
                 bar.style.cssText = `position:absolute; bottom:0; left:0; width:100%; height:3px; background:${p.durability > 2 ? '#22c55e' : '#ef4444'}; transition:height 0.15s; border-radius: 0 0 6px 6px;`;
                 s.appendChild(bar);
+
+                // PC 鼠标事件
                 s.onmouseenter = (e) => showPetalTooltip(e, p.type, p.kind, p.durability, p.maxDurability);
                 s.onmousemove = (e) => moveTooltip(e);
                 s.onmouseleave = () => hideTooltip();
@@ -2156,6 +2262,15 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
                     if (shiftPressed) { quickSwap(p, 'equip'); return; }
                     startDrag(e, p, 'equip');
                 };
+
+                // 移动端触摸手势（单击查看属性、双击卸下、长按丢弃）
+                bindPetalTouch(s, {
+                    targetId: 'equip_' + p.id,
+                    onSingleTap: (touch) => showPetalTooltip(touch, p.type, p.kind, p.durability, p.maxDurability),
+                    onDoubleTap: () => { hideTooltip(); quickSwap(p, 'equip'); },
+                    onLongPress: () => discardEquippedPetal(p)
+                });
+
                 eqFrag.appendChild(s);
             });
             eqGrid.appendChild(eqFrag);
@@ -2182,6 +2297,8 @@ h1{color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.5);}
                     let iconHtml = KIND_ICONS[kind] ? `<div style="position:absolute; top:2px; right:3px; color:#fff; font-size:10px; font-weight:bold; text-shadow:0 0 2px #000; pointer-events:none;">${KIND_ICONS[kind]}</div>` : '';
                     el.innerHTML = `<span>${TIER_STATS[tier].dmg}</span>
 ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,0,0,0.65);color:#fff;border-radius:4px;padding:0 4px;font-size:11px;font-weight:600;line-height:1.6;pointer-events:none;">x${count}</span>`;
+
+                    // PC 鼠标事件
                     el.onmouseenter = (e) => showPetalTooltip(e, tier, kind, 5, 5);
                     el.onmousemove = (e) => moveTooltip(e);
                     el.onmouseleave = () => hideTooltip();
@@ -2190,6 +2307,15 @@ ${iconHtml}<span style="position:absolute;bottom:2px;left:3px;background:rgba(0,
                         if (shiftPressed) { quickSwapByKey(key, 'inv'); return; }
                         startDragByKey(e, key);
                     };
+
+                    // 移动端触摸手势（单击查看属性、双击装备、长按丢弃）
+                    bindPetalTouch(el, {
+                        targetId: 'inv_' + key,
+                        onSingleTap: (touch) => showPetalTooltip(touch, tier, kind, 5, 5),
+                        onDoubleTap: () => { hideTooltip(); quickSwapByKey(key, 'inv'); },
+                        onLongPress: () => discardInventoryPetalByKey(key)
+                    });
+
                     invFrag.appendChild(el);
                 }); invGrid.appendChild(invFrag);
                 const panel = document.getElementById('craft-panel');
