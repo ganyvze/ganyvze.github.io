@@ -4,4 +4,4 @@
 node_modules/
 wrangler.jsonc
 wrangler.toml
-.assetsignore
+gamee/
