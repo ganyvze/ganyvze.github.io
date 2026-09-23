@@ -1027,12 +1027,32 @@
         let joyBaseX = 0, joyBaseY = 0;       // 摇杆底座中心（手指刚触碰屏幕的位置）
         let joyCurrentX = 0, joyCurrentY = 0; // 手指当前位置（用于绘制摇杆帽）
         const JOYSTICK_RADIUS = 60;          // 摇杆活动的最大半径（像素）
+        let lastTapTime = 0;
+        let lastTapX = 0, lastTapY = 0;
 
         window.addEventListener('touchstart', e => {
             // 仅在点击画布时生效，避免影响背包、图鉴、弹窗点击
             if (e.target !== canvas) return;
             
             const touch = e.touches[0];
+
+            // ==================== 新增：双击判定 ====================
+            // 单指点击、间隔小于 300ms 且两击距离小于 50px 触发
+            if (e.touches.length === 1) {
+                const now = Date.now();
+                const tapDist = Math.hypot(touch.clientX - lastTapX, touch.clientY - lastTapY);
+                if (now - lastTapTime < 300 && tapDist < 50) {
+                    toggleInventory(); // 打开/关闭背包
+                    lastTapTime = 0;   // 重置时间，防止连点三次误触发
+                    stopTouch();       // 重置虚拟摇杆与位移，避免人物滑行
+                    return;
+                }
+                lastTapTime = now;
+                lastTapX = touch.clientX;
+                lastTapY = touch.clientY;
+            }
+            // ========================================================
+
             isTouching = true;
             // 锁定手指刚落下的位置为摇杆底座中心
             joyBaseX = touch.clientX;
