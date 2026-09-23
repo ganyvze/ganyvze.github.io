@@ -77,6 +77,58 @@
             margin: auto;
         }
 
+        /* 右上角下载安卓应用按钮 */
+        .download-app-btn {
+            position: absolute;
+            top: 28px;
+            right: 32px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            padding: 8px 18px;
+            font-size: 0.88em;
+            font-weight: 500;
+            border-radius: 20px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 10;
+        }
+
+        .download-app-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 184, 148, 0.28), rgba(0, 206, 201, 0.28));
+            border-color: rgba(0, 206, 201, 0.65);
+            color: #00cec9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 206, 201, 0.35);
+        }
+
+        .download-app-btn:active {
+            transform: translateY(0);
+        }
+
+        .download-app-btn .btn-icon {
+            font-size: 1.15em;
+            line-height: 1;
+        }
+
+        @media (max-width: 640px) {
+            .main-container {
+                padding-top: 60px;
+            }
+            .download-app-btn {
+                top: 18px;
+                right: 18px;
+                padding: 6px 12px;
+                font-size: 0.78em;
+            }
+        }
+
         .main-title {
             font-size: 2.2em;
             margin: 0 0 8px 0;
@@ -522,6 +574,11 @@
 <body>
 
     <div class="main-container animate-up" style="animation-delay: 0.1s;">
+        <!-- 右上角下载安卓应用按钮 -->
+        <a href="https://github.com/ganyvze/ganyvze.github.io/releases/download/apk/gamee.apk" class="download-app-btn" title="下载安卓应用安装包">
+            <span>下载安卓应用</span>
+        </a>
+
         <div class="glow-orb"></div>
         
         <h1 class="main-title animate-up" style="animation-delay: 0.2s;">游戏档案库</h1>
