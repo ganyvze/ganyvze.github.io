@@ -492,15 +492,42 @@
     </div>
   </div>
 
-  <!-- 本地 importmap 配置 -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "./three.module.js",
-      "three/addons/controls/OrbitControls.js": "./OrbitControls.js",
-      "three/addons/": "./"
-    }
-  }
+  <!-- 自动检测：优先本地加载，被浏览器阻止或文件缺失时自动回退到 CDN -->
+  <script>
+    (function() {
+      // 1. 判断是否被阻止：
+      // 直接双击打开(file:///协议)时，浏览器安全策略默认拦截本地 ES Module
+      let useLocal = window.location.protocol !== 'file:';
+
+      // 2. 如果是在本地服务器(http/https)环境下，探测本地文件是否存在
+      if (useLocal) {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open('HEAD', './three.module.js', false); // 同步探测
+          xhr.send();
+          useLocal = (xhr.status >= 200 && xhr.status < 400);
+        } catch (e) {
+          useLocal = false; // 探测失败（被拦截或不存在），降级到 CDN
+        }
+      }
+
+      // 3. 根据检测结果决定映射路径（本地 vs CDN）
+      const CDN_BASE = 'https://cdn.jsdelivr.net/npm/three@0.164.1';
+      const importMap = {
+        imports: {
+          "three": useLocal ? "./three.module.js" : `${CDN_BASE}/build/three.module.js`,
+          "three/addons/controls/OrbitControls.js": useLocal ? "./OrbitControls.js" : `${CDN_BASE}/examples/jsm/controls/OrbitControls.js`,
+          "three/addons/": useLocal ? "./" : `${CDN_BASE}/examples/jsm/`
+        }
+      };
+
+      // 4. 在后续游戏脚本运行前动态生成并插入 importmap
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify(importMap);
+      document.currentScript.after(im);
+
+    })();
   </script>
 
   <script type="module">
