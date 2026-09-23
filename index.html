@@ -779,7 +779,7 @@
             // 判断是否含有 Chrome / iOS 上的 CriOS
             const hasChrome = /Chrome\/([0-9]+)/.test(ua) || /CriOS\/([0-9]+)/.test(ua);
             // 排除其他常见基于 Chromium 的衍生浏览器或非 Chrome 浏览器
-            const isOther = /Edg\/|Edge\/|OPR\/|Opera|SamsungBrowser|UCBrowser|MicroMessenger|MQQBrowser|Firefox|FxiOS/.test(ua);
+            const isOther = /Edg\/|Edge\/|OPR\/|Opera|SamsungBrowser|UCBrowser|MicroMessenger|Trident|MQQBrowser|360|MSIE|Firefox|FxiOS/.test(ua);
             // 排除 Brave
             const isBrave = !!(navigator.brave && typeof navigator.brave.isBrave === 'function');
 
