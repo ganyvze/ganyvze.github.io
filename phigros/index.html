@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>节奏音符</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b0204;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: #fff;
+        }
+
+        /* 仿 Phigros 暗红渐变背景与虚化光斑 */
+        .bg-ambient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 75% 40%, #580d17 0%, #1e0508 50%, #080102 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .bg-bokeh {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            background: rgba(232, 65, 24, 0.15);
+            filter: blur(80px);
+            top: 15%;
+            left: 55%;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            z-index: 1;
+        }
+
+        /* ================= 选曲主界面 ================= */
+        #selectScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .top-bar {
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+            z-index: 2;
+        }
+
+        .top-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            font-size: 26px;
+            cursor: pointer;
+            color: #e0e0e0;
+            transition: transform 0.2s;
+        }
+        .back-btn:hover { transform: scale(1.15); color: #fff; }
+
+        .sort-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #d1d8e0;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 5px 16px;
+            border-radius: 4px;
+            transform: skewX(-12deg);
+        }
+        .sort-badge span { transform: skewX(12deg); }
+
+        /* 导入歌曲按钮 */
+        .import-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0b0204;
+            background: linear-gradient(135deg, #00d2ff, #70a1ff);
+            padding: 6px 18px;
+            border-radius: 4px;
+            transform: skewX(-12deg);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+            border: none;
+            outline: none;
+        }
+        .import-btn:hover {
+            transform: skewX(-12deg) scale(1.05);
+            box-shadow: 0 0 22px rgba(0, 210, 255, 0.8);
+            background: #fff;
+        }
+        .import-btn span { transform: skewX(12deg); }
+
+        .top-right-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: skewX(-12deg);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 16px 4px 6px;
+            border-right: 3px solid #ff4757;
+        }
+        .top-right-profile > * { transform: skewX(12deg); }
+        .avatar {
+            width: 38px;
+            height: 38px;
+            background: #ff4757;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .rks {
+            font-size: 15px;
+            font-weight: bold;
+            color: #f1f2f6;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 左侧曲目/难度列表 */
+        .song-list-wrapper {
+            width: 390px;
+            height: 100%;
+            overflow-y: auto;
+            padding: 20px 0 60px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scrollbar-width: none;
+            mask-image: linear-gradient(180deg, transparent 0%, black 8%, black 85%, transparent 100%);
+            -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 8%, black 85%, transparent 100%);
+        }
+        .song-list-wrapper::-webkit-scrollbar { display: none; }
+
+        .song-item {
+            position: relative;
+            padding: 14px 22px;
+            cursor: pointer;
+            transition: all 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+            transform: skewX(-15deg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(18, 5, 8, 0.55);
+            border-left: 3px solid transparent;
+            margin-right: 20px;
+        }
+
+        .song-item-inner {
+            transform: skewX(15deg);
+            display: flex;
+            flex-direction: column;
+            max-width: 230px;
+            overflow: hidden;
+        }
+
+        .song-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #d2dae2;
+            letter-spacing: 0.5px;
+            transition: color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .song-artist {
+            font-size: 11px;
+            color: #808e9b;
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .song-level-badge {
+            transform: skewX(15deg);
+            font-size: 15px;
+            font-weight: 800;
+            color: #a4b0be;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .song-item.active {
+            background: #ffffff;
+            margin-left: 20px;
+            margin-right: 0px;
+            box-shadow: 0 4px 25px rgba(255, 255, 255, 0.4);
+        }
+        .song-item.active .song-title {
+            color: #0b0204;
+            font-size: 21px;
+        }
+        .song-item.active .song-artist {
+            color: #485460;
+        }
+        .song-item.active .song-level-badge {
+            color: #0b0204;
+            font-size: 19px;
+        }
+
+        /* 右侧封面与播放卡片 */
+        .preview-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding-bottom: 30px;
+        }
+
+        .cover-card {
+            width: 480px;
+            height: 280px;
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(255, 71, 87, 0.25);
+            transform: perspective(800px) rotateY(-8deg) rotateX(4deg) skewX(-4deg);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .cover-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .cover-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 24px;
+            background: linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 65%, transparent 100%);
+        }
+
+        .cover-song-name {
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cover-speed-desc {
+            font-size: 13px;
+            color: #ff6b81;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        .bottom-control-bar {
+            width: 580px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .diff-chips {
+            display: flex;
+            gap: 12px;
+            transform: skewX(-15deg);
+        }
+
+        .diff-chip {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 8px 24px;
+            text-align: center;
+            border-left: 2px solid #57606f;
+        }
+        .diff-chip.active {
+            background: rgba(255, 71, 87, 0.25);
+            border-color: #ff4757;
+        }
+        .diff-chip-inner { transform: skewX(15deg); }
+        .diff-name { font-size: 11px; color: #a4b0be; }
+        .diff-val { font-size: 20px; font-weight: 800; color: #fff; }
+
+        /* 开始按钮 */
+        .play-btn {
+            position: fixed;
+            bottom: 35px;
+            right: 45px;
+            width: 170px;
+            height: 70px;
+            background: linear-gradient(135deg, #f1f2f6, #ced6e0);
+            clip-path: polygon(18% 0%, 100% 0%, 82% 100%, 0% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: transform, filter;
+            transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.22s ease;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+            z-index: 5;
+        }
+        .play-btn:hover {
+            transform: scale(1.08) translateZ(0);
+            filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.65)) brightness(1.15);
+        }
+        .play-icon {
+            font-size: 34px;
+            color: #1e0508;
+            margin-left: 5px;
+        }
+
+        /* 分析音频加载弹窗 */
+        #loadingModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00d2ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #ffffff;
+        }
+        .loading-desc {
+            font-size: 14px;
+            color: #a4b0be;
+        }
+
+        /* ================= 游戏运行界面 ================= */
+        #gameScreen {
+            display: none;
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .game-hud {
+            position: fixed;
+            top: 25px;
+            left: 30px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .hud-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            pointer-events: auto;
+        }
+
+        .game-exit-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 6px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transform: skewX(-12deg);
+            transition: 0.2s;
+        }
+        .game-exit-btn:hover {
+            background: #ff4757;
+            border-color: #ff4757;
+        }
+        .game-exit-btn span { display: inline-block; transform: skewX(12deg); }
+
+        .current-track-name {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #ced6e0;
+        }
+
+        .hud-right {
+            text-align: right;
+            transform: skewX(-10deg);
+        }
+        .score-box {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            color: #00d2ff;
+            text-shadow: 0 0 12px rgba(0, 210, 255, 0.5);
+        }
+        .combo-box {
+            font-size: 14px;
+            color: #ff9f43;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-ambient">
+        <div class="bg-bokeh"></div>
+    </div>
+
+    <!-- 隐藏的文件上传 input -->
+    <input type="file" id="audioFileInput" accept="audio/*" style="display:none;">
+
+    <!-- 选曲界面 -->
+    <div id="selectScreen" class="screen">
+        <div class="top-bar">
+            <div class="top-left">
+                <div class="back-btn">←</div>
+                <div class="sort-badge">
+                    <span>排序方式：<b>难度</b></span>
+                </div>
+                <button class="import-btn" id="importSongBtn">
+                    <span>＋ 导入本地音频</span>
+                </button>
+            </div>
+            <div class="top-right-profile">
+                <div class="avatar">R</div>
+                <div class="rks">15.82</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="song-list-wrapper" id="songList"></div>
+
+            <div class="preview-area">
+                <div class="cover-card">
+                    <canvas id="coverCanvas" class="cover-canvas" width="480" height="280"></canvas>
+                    <div class="cover-overlay">
+                        <div class="cover-song-name" id="previewTitle">Nhelv</div>
+                        <div class="cover-speed-desc" id="previewSpeed">速度: 极高 (IN 13)</div>
+                    </div>
+                </div>
+
+                <div class="bottom-control-bar">
+                    <div class="diff-chips">
+                        <div class="diff-chip">
+                            <div class="diff-chip-inner">
+                                <div class="diff-name">TYPE</div>
+                                <div class="diff-val" id="chipType">IN</div>
+                            </div>
+                        </div>
+                        <div class="diff-chip active">
+                            <div class="diff-chip-inner">
+                                <div class="diff-name">LEVEL</div>
+                                <div class="diff-val" id="chipSelected">13</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="play-btn" id="playBtn" title="开始游戏">
+            <div class="play-icon">▶</div>
+        </div>
+    </div>
+
+    <!-- 游戏界面 -->
+    <div id="gameScreen" class="screen">
+        <div class="game-hud">
+            <div class="hud-left">
+                <button class="game-exit-btn" id="exitGameBtn"><span>← 选歌</span></button>
+                <div class="current-track-name" id="trackNameDisplay">Nhelv</div>
+            </div>
+            <div class="hud-right">
+                <div class="score-box" id="scoreText">000000</div>
+                <div class="combo-box" id="comboText">COMBO 0</div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- 音频分析提示弹窗 -->
+    <div id="loadingModal">
+        <div class="spinner"></div>
+        <div class="loading-title">正在解码与分析音频重音...</div>
+        <div class="loading-desc" id="loadingDesc">正在计算频谱通量与节奏点，自动构建谱面时间轴...</div>
+    </div>
+
+    <script>
+        // 预设歌曲库
+        const SONGS = [
+            { id: 'preset-1', title: 'Originally', artist: 'Various Artists', diffType: 'EZ', level: 1,  speed: 4.5, interval: 75, hue: 195, isCustom: false },
+            { id: 'preset-2', title: 'dB doll', artist: 'Reku Mochizuki', diffType: 'HD', level: 6,  speed: 7.0, interval: 60, hue: 220, isCustom: false },
+            { id: 'preset-3', title: 'I Must Say No', artist: 'EYE XY', diffType: 'HD', level: 9,  speed: 9.5, interval: 50, hue: 280, isCustom: false },
+            { id: 'preset-4', title: 'Nhelv', artist: 'Silentroom', diffType: 'IN', level: 13, speed: 12.8, interval: 38, hue: 350, isCustom: false },
+            { id: 'preset-5', title: 'MARENOL', artist: 'LeaF', diffType: 'IN', level: 15, speed: 15.5, interval: 30, hue: 15, isCustom: false },
+            { id: 'preset-6', title: 'Distorted Fate', artist: 'Sakuzyo', diffType: 'AT', level: 16, speed: 18.5, interval: 24, hue: 335, isCustom: false }
+        ];
+
+        let selectedSongIndex = 3;
+
+        // 判定色彩配置
+        const JUDGE_THEMES = {
+            PERFECT: {
+                primary: '#ffd700',
+                glow: '#ff9f43',
+                inner: '#ffffff'
+            },
+            GOOD: {
+                primary: '#00d2ff',
+                glow: '#0984e3',
+                inner: '#e6faff'
+            },
+            MISS: {
+                primary: '#ff4757',
+                glow: '#c0392b',
+                inner: '#ff6b81'
+            }
+        };
+
+        // ================= 音频管理系统 =================
+        const AudioSys = {
+            ctx: null,
+            bgmSource: null,
+            bgmGain: null,
+            startTime: 0,
+            isPlayingBGM: false,
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    this.bgmGain = this.ctx.createGain();
+                    this.bgmGain.gain.value = 0.85;
+                    this.bgmGain.connect(this.ctx.destination);
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playHit(perfect = true) {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(perfect ? 780 : 540, now);
+                osc.frequency.exponentialRampToValueAtTime(1050, now + 0.07);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            },
+            playFlick() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(1600, now + 0.06);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+                osc.start(now);
+                osc.stop(now + 0.07);
+            },
+            playMiss() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.linearRampToValueAtTime(60, now + 0.16);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.16);
+                osc.start(now);
+                osc.stop(now + 0.16);
+            },
+            playBGM(audioBuffer, onEndedCallback) {
+                this.init();
+                this.stopBGM();
+                this.bgmSource = this.ctx.createBufferSource();
+                this.bgmSource.buffer = audioBuffer;
+                this.bgmSource.connect(this.bgmGain);
+                this.bgmSource.onended = () => {
+                    this.isPlayingBGM = false;
+                    if (onEndedCallback) onEndedCallback();
+                };
+                this.startTime = this.ctx.currentTime;
+                this.bgmSource.start(0);
+                this.isPlayingBGM = true;
+            },
+            stopBGM() {
+                if (this.bgmSource) {
+                    try {
+                        this.bgmSource.stop();
+                        this.bgmSource.disconnect();
+                    } catch (e) {}
+                    this.bgmSource = null;
+                }
+                this.isPlayingBGM = false;
+            },
+            getCurrentAudioTime() {
+                if (!this.ctx || !this.isPlayingBGM) return 0;
+                return Math.max(0, this.ctx.currentTime - this.startTime);
+            }
+        };
+
+        // ================= 重音与节拍分析引擎 (Auto-Charter) =================
+        function analyzeAudioAndGenerateChart(audioBuffer) {
+            const rawData = audioBuffer.getChannelData(0);
+            const sampleRate = audioBuffer.sampleRate;
+            const duration = audioBuffer.duration;
+
+            // 采样窗与步进大小 (约 15ms 步进)
+            const hopSize = Math.floor(sampleRate * 0.015);
+            const numFrames = Math.floor(rawData.length / hopSize);
+
+            const energies = new Float32Array(numFrames);
+            const highTransients = new Float32Array(numFrames);
+
+            // 1. 提取帧低频能量与高频微分瞬态
+            for (let f = 0; f < numFrames; f++) {
+                let eSum = 0;
+                let tSum = 0;
+                const offset = f * hopSize;
+                const end = Math.min(offset + hopSize, rawData.length);
+
+                for (let i = offset; i < end; i++) {
+                    const sample = rawData[i];
+                    eSum += sample * sample;
+                    if (i > 0) {
+                        const diff = sample - rawData[i - 1];
+                        tSum += diff * diff;
+                    }
+                }
+                energies[f] = Math.sqrt(eSum / hopSize);
+                highTransients[f] = Math.sqrt(tSum / hopSize);
+            }
+
+            // 2. 频谱通量差分 (Half-wave rectified flux)
+            const flux = new Float32Array(numFrames);
+            for (let f = 1; f < numFrames; f++) {
+                const deltaE = Math.max(0, energies[f] - energies[f - 1]);
+                const deltaT = Math.max(0, highTransients[f] - highTransients[f - 1]);
+                flux[f] = deltaE * 0.65 + deltaT * 0.35;
+            }
+
+            // 3. 动态滑动窗口局部自适应阈值 Peak Picking
+            const winRadius = 24; // 前后各约 360ms
+            const rawOnsets = [];
+
+            for (let f = winRadius; f < numFrames - winRadius; f++) {
+                const val = flux[f];
+                if (val < 0.02) continue; // 过滤轻微底噪
+
+                // 必须是局部极大值点
+                if (val <= flux[f - 1] || val < flux[f + 1]) continue;
+
+                // 计算局部均值与标准差
+                let localSum = 0;
+                for (let k = f - winRadius; k <= f + winRadius; k++) {
+                    localSum += flux[k];
+                }
+                const localMean = localSum / (winRadius * 2 + 1);
+
+                let varSum = 0;
+                for (let k = f - winRadius; k <= f + winRadius; k++) {
+                    const diff = flux[k] - localMean;
+                    varSum += diff * diff;
+                }
+                const localStd = Math.sqrt(varSum / (winRadius * 2 + 1));
+
+                const threshold = localMean + 1.25 * localStd;
+                if (val > threshold) {
+                    const time = (f * hopSize) / sampleRate;
+                    rawOnsets.push({
+                        time: time,
+                        strength: val,
+                        energy: energies[f],
+                        transient: highTransients[f]
+                    });
+                }
+            }
+
+            // 4. 音符精简、密度调控与类型分配
+            const finalChart = [];
+            const minInterval = 0.11; // 最小允许打击间隔 (防止无法按到的音符叠压)
+            let lastTime = -1;
+            let lastXRatio = 0.5;
+
+            for (let i = 0; i < rawOnsets.length; i++) {
+                const curr = rawOnsets[i];
+                if (curr.time - lastTime < minInterval) continue;
+
+                // 智能水平位置分配 (保证左右手交替感，不紧贴边缘)
+                let xRatio = 0.15 + Math.random() * 0.7;
+                if (Math.abs(xRatio - lastXRatio) < 0.2) {
+                    xRatio = (xRatio + 0.4) % 0.8 + 0.1;
+                }
+                lastXRatio = xRatio;
+
+                // 音符类型判断
+                let type = 'tap';
+                let flickDir = 'left';
+                let holdDuration = 0;
+
+                // 极端强音 / 瞬态爆发 -> Flick (左右滑条)
+                if (curr.transient > 0.08 || curr.strength > 0.12) {
+                    type = 'flick';
+                    flickDir = Math.random() > 0.5 ? 'right' : 'left';
+                }
+                // 持续高能量 -> Hold (长条)
+                else if (curr.energy > 0.14 && (i + 1 < rawOnsets.length) && (rawOnsets[i + 1].time - curr.time > 0.38)) {
+                    type = 'hold';
+                    holdDuration = Math.min(1.5, Math.max(0.35, (rawOnsets[i + 1].time - curr.time) * 0.75));
+                }
+                // 较密节拍或弱音 -> Drag (金黄色黄条)
+                else if (curr.time - lastTime < 0.22 || (curr.energy < 0.06 && Math.random() < 0.4)) {
+                    type = 'drag';
+                }
+
+                finalChart.push({
+                    time: curr.time,
+                    type: type,
+                    xRatio: xRatio,
+                    flickDir: flickDir,
+                    holdDuration: holdDuration
+                });
+
+                lastTime = curr.time;
+            }
+
+            // 评估曲目难度等级与合适速度
+            const density = finalChart.length / Math.max(1, duration);
+            let calculatedLevel = Math.round(density * 2.8);
+            calculatedLevel = Math.max(5, Math.min(16, calculatedLevel));
+
+            let diffType = 'HD';
+            if (calculatedLevel <= 6) diffType = 'EZ';
+            else if (calculatedLevel <= 11) diffType = 'HD';
+            else if (calculatedLevel <= 15) diffType = 'IN';
+            else diffType = 'AT';
+
+            const speed = Math.max(8.0, Math.min(17.5, 7.0 + calculatedLevel * 0.65));
+
+            return {
+                chart: finalChart,
+                level: calculatedLevel,
+                diffType: diffType,
+                speed: speed,
+                noteCount: finalChart.length
+            };
+        }
+
+        // ================= UI 引用与选曲逻辑 =================
+        const songListEl = document.getElementById('songList');
+        const previewTitle = document.getElementById('previewTitle');
+        const previewSpeed = document.getElementById('previewSpeed');
+        const chipSelected = document.getElementById('chipSelected');
+        const chipType = document.getElementById('chipType');
+        const coverCanvas = document.getElementById('coverCanvas');
+        const coverCtx = coverCanvas.getContext('2d');
+        const importSongBtn = document.getElementById('importSongBtn');
+        const audioFileInput = document.getElementById('audioFileInput');
+        const loadingModal = document.getElementById('loadingModal');
+        const loadingDesc = document.getElementById('loadingDesc');
+
+        function renderCover(song) {
+            const w = coverCanvas.width;
+            const h = coverCanvas.height;
+            const grad = coverCtx.createLinearGradient(0, 0, w, h);
+            grad.addColorStop(0, `hsl(${song.hue}, 85%, 22%)`);
+            grad.addColorStop(0.5, '#050102');
+            grad.addColorStop(1, `hsl(${song.hue + 45}, 90%, 14%)`);
+            coverCtx.fillStyle = grad;
+            coverCtx.fillRect(0, 0, w, h);
+
+            coverCtx.strokeStyle = `hsla(${song.hue}, 100%, 75%, 0.3)`;
+            coverCtx.lineWidth = 3;
+            coverCtx.beginPath();
+            coverCtx.moveTo(0, h * 0.2);
+            coverCtx.lineTo(w, h * 0.8);
+            coverCtx.stroke();
+
+            // 装饰几何图形
+            coverCtx.fillStyle = `hsla(${song.hue}, 100%, 60%, 0.15)`;
+            coverCtx.beginPath();
+            coverCtx.arc(w * 0.72, h * 0.38, 120, 0, Math.PI * 2);
+            coverCtx.fill();
+
+            if (song.isCustom) {
+                coverCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                coverCtx.font = 'bold 13px -apple-system, sans-serif';
+                coverCtx.fillText(`AUTO CHART • ${song.chart.length} NOTES`, 24, 40);
+            }
+        }
+
+        function updateSelectionUI() {
+            const items = songListEl.querySelectorAll('.song-item');
+            items.forEach((item, idx) => {
+                if (idx === selectedSongIndex) item.classList.add('active');
+                else item.classList.remove('active');
+            });
+
+            const current = SONGS[selectedSongIndex];
+            previewTitle.innerText = current.title;
+            if (current.isCustom) {
+                previewSpeed.innerText = `下落速度: ${current.speed.toFixed(1)}x  |  音符总数: ${current.chart.length}`;
+            } else {
+                previewSpeed.innerText = `下落速度: ${current.speed.toFixed(1)}x  |  判定难度: ${current.diffType} Lv.${current.level}`;
+            }
+            chipSelected.innerText = current.level;
+            chipType.innerText = current.diffType;
+            renderCover(current);
+        }
+
+        function initSongList() {
+            songListEl.innerHTML = '';
+            SONGS.forEach((song, idx) => {
+                const item = document.createElement('div');
+                item.className = 'song-item' + (idx === selectedSongIndex ? ' active' : '');
+                item.innerHTML = `
+                    <div class="song-item-inner">
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist">${song.artist}</div>
+                    </div>
+                    <div class="song-level-badge">
+                        <span>${song.diffType}</span>
+                        <span>${song.level}</span>
+                    </div>
+                `;
+                item.onclick = () => {
+                    selectedSongIndex = idx;
+                    updateSelectionUI();
+                };
+                songListEl.appendChild(item);
+            });
+            updateSelectionUI();
+        }
+
+        initSongList();
+
+        // ================= 导入音频事件绑定 =================
+        importSongBtn.onclick = () => {
+            AudioSys.init();
+            audioFileInput.click();
+        };
+
+        audioFileInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            loadingDesc.innerText = `正在读取并解码《${file.name}》...`;
+            loadingModal.style.display = 'flex';
+
+            try {
+                AudioSys.init();
+                const arrayBuffer = await file.arrayBuffer();
+                const audioBuffer = await AudioSys.ctx.decodeAudioData(arrayBuffer);
+
+                loadingDesc.innerText = `正在提取重音冲击与瞬态律动，生成精确打击线...`;
+
+                // 异步给 UI 渲染微任务时间
+                setTimeout(() => {
+                    const result = analyzeAudioAndGenerateChart(audioBuffer);
+                    const cleanName = file.name.replace(/\.[^/.]+$/, "");
+
+                    const customSong = {
+                        id: 'custom-' + Date.now(),
+                        title: cleanName,
+                        artist: '本地音频导入',
+                        diffType: result.diffType,
+                        level: result.level,
+                        speed: result.speed,
+                        hue: Math.floor(Math.random() * 360),
+                        isCustom: true,
+                        audioBuffer: audioBuffer,
+                        chart: result.chart
+                    };
+
+                    SONGS.unshift(customSong);
+                    selectedSongIndex = 0;
+                    initSongList();
+                    loadingModal.style.display = 'none';
+                    audioFileInput.value = '';
+                }, 80);
+
+            } catch (err) {
+                alert('音频解码或分析失败，请选择标准格式的音频文件！');
+                console.error(err);
+                loadingModal.style.display = 'none';
+                audioFileInput.value = '';
+            }
+        };
+
+        // ================= 游戏运行界面与画布 =================
+        const selectScreen = document.getElementById('selectScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const gameCanvas = document.getElementById('gameCanvas');
+        const gctx = gameCanvas.getContext('2d');
+        const playBtn = document.getElementById('playBtn');
+        const exitGameBtn = document.getElementById('exitGameBtn');
+        const scoreText = document.getElementById('scoreText');
+        const comboText = document.getElementById('comboText');
+        const trackNameDisplay = document.getElementById('trackNameDisplay');
+
+        let LINE_Y = 0;
+        const BAR_HEIGHT = 18;
+        const BAR_WIDTH = 170;
+        const TOLERANCE = 55;
+
+        function resizeGame() {
+            gameCanvas.width = window.innerWidth;
+            gameCanvas.height = window.innerHeight;
+            LINE_Y = gameCanvas.height * 0.82;
+        }
+        window.addEventListener('resize', resizeGame);
+
+        let inGame = false;
+        let score = 0;
+        let combo = 0;
+        let notes = [];
+        let particles = [];
+        let lightWaves = [];
+        let spawnTimer = 0;
+        let isSpaceDown = false;
+        let activeSongConfig = null;
+        let pendingChartNotes = [];
+
+        // ================= 音符类 =================
+        class Note {
+            constructor(speed, type = 'tap', flickDir = 'left', targetTime = 0, xRatio = null, holdDuration = 0) {
+                this.type = type;
+                this.speed = speed;
+                this.width = BAR_WIDTH;
+                this.height = BAR_HEIGHT;
+                this.targetTime = targetTime;
+                this.hit = false;
+                this.missed = false;
+
+                const margin = 40;
+                const playWidth = Math.max(10, gameCanvas.width - this.width - margin * 2);
+                if (xRatio !== null) {
+                    this.x = margin + xRatio * playWidth;
+                } else {
+                    this.x = margin + Math.random() * playWidth;
+                }
+
+                if (this.type === 'drag') {
+                    this.height = 8;
+                    this.y = -this.height;
+                } else if (this.type === 'hold') {
+                    this.holdDuration = holdDuration;
+                    this.length = Math.max(220, (holdDuration > 0 ? (holdDuration * speed * 60) : (speed * 26)));
+                    this.y = -this.height;
+                    this.isHolding = false;
+                } else if (this.type === 'flick') {
+                    this.y = -this.height;
+                    this.direction = flickDir;
+                } else {
+                    this.y = -this.height;
+                    this.enteredTop = false;
+                    this.continuousHold = false;
+                    this.reachedLine = false;
+                }
+            }
+
+            update(currentTime) {
+                if (activeSongConfig && activeSongConfig.isCustom) {
+                    // 自定义歌曲：采用基于真实音频播放时钟的高精度对齐公式
+                    const timeDiff = this.targetTime - currentTime;
+                    const pxPerSec = this.speed * 60;
+                    this.y = (LINE_Y - this.height / 2) - timeDiff * pxPerSec;
+                } else {
+                    // 预设歌曲：平滑下落
+                    this.y += this.speed;
+                }
+            }
+
+            draw() {
+                gctx.save();
+
+                if (this.type === 'tap') {
+                    gctx.shadowColor = '#00d2ff';
+                    gctx.shadowBlur = 12;
+
+                    const grad = gctx.createLinearGradient(this.x, this.y, this.x + this.width, this.y);
+                    grad.addColorStop(0, '#00d2ff');
+                    grad.addColorStop(1, '#0084ff');
+
+                    gctx.fillStyle = grad;
+                    gctx.beginPath();
+                    gctx.roundRect(this.x, this.y, this.width, this.height, 5);
+                    gctx.fill();
+
+                    gctx.strokeStyle = '#ffffff';
+                    gctx.lineWidth = 1.5;
+                    gctx.stroke();
+
+                } else if (this.type === 'drag') {
+                    gctx.shadowColor = '#ffd32a';
+                    gctx.shadowBlur = 14;
+
+                    const grad = gctx.createLinearGradient(this.x, this.y, this.x + this.width, this.y);
+                    grad.addColorStop(0, '#ffeaa7');
+                    grad.addColorStop(0.5, '#ffd32a');
+                    grad.addColorStop(1, '#ff9f1a');
+
+                    gctx.fillStyle = grad;
+                    gctx.beginPath();
+                    gctx.roundRect(this.x, this.y, this.width, this.height, 4);
+                    gctx.fill();
+
+                    gctx.fillStyle = '#ffffff';
+                    gctx.fillRect(this.x + this.width * 0.2, this.y + 1.5, this.width * 0.6, this.height - 3);
+
+                    gctx.strokeStyle = '#fffbe6';
+                    gctx.lineWidth = 1.2;
+                    gctx.stroke();
+
+                } else if (this.type === 'hold') {
+                    const bodyTop = this.y - this.length;
+                    const isCutting = this.isHolding && (this.y + this.height / 2 >= LINE_Y);
+                    const bodyBottom = isCutting ? LINE_Y : this.y;
+                    const visibleBodyLength = Math.max(0, bodyBottom - bodyTop);
+
+                    if (visibleBodyLength > 0) {
+                        const bodyGrad = gctx.createLinearGradient(this.x, 0, this.x + this.width, 0);
+                        bodyGrad.addColorStop(0, 'rgba(126, 214, 223, 0.2)');
+                        bodyGrad.addColorStop(0.2, 'rgba(126, 214, 223, 0.55)');
+                        bodyGrad.addColorStop(0.5, 'rgba(223, 249, 251, 0.75)');
+                        bodyGrad.addColorStop(0.8, 'rgba(126, 214, 223, 0.55)');
+                        bodyGrad.addColorStop(1, 'rgba(126, 214, 223, 0.2)');
+
+                        gctx.shadowColor = '#7ed6df';
+                        gctx.shadowBlur = 16;
+                        gctx.fillStyle = bodyGrad;
+                        gctx.fillRect(this.x + 8, bodyTop, this.width - 16, visibleBodyLength);
+
+                        gctx.strokeStyle = 'rgba(223, 249, 251, 0.85)';
+                        gctx.lineWidth = 2;
+                        gctx.strokeRect(this.x + 8, bodyTop, this.width - 16, visibleBodyLength);
+
+                        gctx.fillStyle = '#22a6b3';
+                        gctx.fillRect(this.x + 4, bodyTop - 3, this.width - 8, 6);
+                    }
+
+                    const headY = isCutting ? (LINE_Y - this.height / 2) : this.y;
+                    const headGrad = gctx.createLinearGradient(this.x, headY, this.x + this.width, headY);
+                    headGrad.addColorStop(0, '#c7ecee');
+                    headGrad.addColorStop(0.5, '#7ed6df');
+                    headGrad.addColorStop(1, '#22a6b3');
+
+                    gctx.fillStyle = headGrad;
+                    gctx.beginPath();
+                    gctx.roundRect(this.x, headY, this.width, this.height, 5);
+                    gctx.fill();
+
+                    gctx.strokeStyle = '#ffffff';
+                    gctx.lineWidth = isCutting ? 2.5 : 1.5;
+                    gctx.stroke();
+
+                    if (isCutting) {
+                        gctx.save();
+                        gctx.shadowColor = '#ffffff';
+                        gctx.shadowBlur = 16;
+                        gctx.fillStyle = '#ffffff';
+                        gctx.fillRect(this.x + 15, LINE_Y - 2, this.width - 30, 4);
+                        gctx.restore();
+                    }
+
+                } else if (this.type === 'flick') {
+                    gctx.shadowColor = '#ff4757';
+                    gctx.shadowBlur = 15;
+
+                    const grad = gctx.createLinearGradient(this.x, this.y, this.x + this.width, this.y);
+                    grad.addColorStop(0, '#ff4757');
+                    grad.addColorStop(0.5, '#ee5253');
+                    grad.addColorStop(1, '#ff3838');
+
+                    gctx.fillStyle = grad;
+                    gctx.beginPath();
+                    gctx.roundRect(this.x, this.y, this.width, this.height, 5);
+                    gctx.fill();
+
+                    gctx.strokeStyle = '#ffffff';
+                    gctx.lineWidth = 1.5;
+                    gctx.stroke();
+
+                    const cx = this.x + this.width / 2;
+                    const cy = this.y + this.height / 2;
+                    const dir = this.direction === 'left' ? -1 : 1;
+
+                    const drawBoldChevron = (offsetX) => {
+                        const px = cx + offsetX * dir;
+                        gctx.beginPath();
+                        gctx.moveTo(px + 8 * dir, cy);
+                        gctx.lineTo(px - 4 * dir, cy - 6.5);
+                        gctx.lineTo(px - 9.5 * dir, cy - 6.5);
+                        gctx.lineTo(px + 1.5 * dir, cy);
+                        gctx.lineTo(px - 9.5 * dir, cy + 6.5);
+                        gctx.lineTo(px - 4 * dir, cy + 6.5);
+                        gctx.closePath();
+                        gctx.fill();
+                    };
+
+                    gctx.save();
+                    gctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+                    gctx.shadowBlur = 4;
+                    gctx.shadowOffsetX = -1.5 * dir;
+                    gctx.shadowOffsetY = 1;
+                    gctx.fillStyle = '#ffffff';
+
+                    drawBoldChevron(-26);
+                    drawBoldChevron(0);
+                    drawBoldChevron(26);
+                    gctx.restore();
+
+                    gctx.save();
+                    gctx.shadowColor = '#ffffff';
+                    gctx.shadowBlur = 8;
+                    gctx.fillStyle = '#ffffff';
+
+                    drawBoldChevron(-26);
+                    drawBoldChevron(0);
+                    drawBoldChevron(26);
+                    gctx.restore();
+                }
+
+                gctx.restore();
+            }
+        }
+
+        // 光波与粒子特效
+        class LightWave {
+            constructor(x, y, theme) {
+                this.x = x;
+                this.y = y;
+                this.primary = theme.primary;
+                this.glow = theme.glow;
+                this.inner = theme.inner;
+                this.life = 1.0;
+                this.beamWidth = 100;
+                this.height = 10;
+            }
+            update() {
+                this.life -= 0.05;
+                this.beamWidth += 18;
+                this.height *= 0.95;
+            }
+            draw() {
+                if (this.life <= 0) return;
+                gctx.save();
+                gctx.globalAlpha = Math.max(0, this.life);
+
+                const beamGrad = gctx.createLinearGradient(
+                    this.x - this.beamWidth, this.y,
+                    this.x + this.beamWidth, this.y
+                );
+                beamGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                beamGrad.addColorStop(0.35, this.glow);
+                beamGrad.addColorStop(0.5, this.inner);
+                beamGrad.addColorStop(0.65, this.glow);
+                beamGrad.addColorStop(1, 'rgba(0,0,0,0)');
+
+                gctx.fillStyle = beamGrad;
+                gctx.fillRect(this.x - this.beamWidth, this.y - this.height / 2, this.beamWidth * 2, this.height);
+                gctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color, isBottom = false) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 12;
+                this.vy = isBottom ? -(Math.random() * 8 + 3) : (Math.random() - 0.5) * 8;
+                this.life = 1.0;
+                this.color = color;
+                this.size = Math.random() * 3 + 2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= 0.038;
+            }
+            draw() {
+                gctx.save();
+                gctx.globalAlpha = Math.max(0, this.life);
+                gctx.fillStyle = this.color;
+                gctx.beginPath();
+                gctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                gctx.fill();
+                gctx.restore();
+            }
+        }
+
+        function triggerJudgeEffect(x, y, type, showWave = true) {
+            const theme = JUDGE_THEMES[type];
+
+            if (showWave) {
+                lightWaves.push(new LightWave(x, y, theme));
+            }
+
+            const isBottom = !showWave;
+            const count = type === 'PERFECT' ? 24 : 16;
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, theme.primary, isBottom));
+            }
+
+            if (type === 'MISS') {
+                combo = 0;
+                comboText.innerText = `COMBO 0`;
+                AudioSys.playMiss();
+            }
+        }
+
+        // ================= 打击与手势判定 =================
+        function handleHit() {
+            if (!inGame) return;
+
+            let targetNote = null;
+            let minDist = Infinity;
+
+            for (let note of notes) {
+                if (note.hit || note.missed) continue;
+                if (note.type === 'flick') continue;
+
+                const noteCenter = note.y + note.height / 2;
+                const dist = Math.abs(noteCenter - LINE_Y);
+                if (dist <= TOLERANCE && dist < minDist) {
+                    minDist = dist;
+                    targetNote = note;
+                }
+            }
+
+            if (targetNote) {
+                const isPerfect = minDist <= 24;
+                const cx = targetNote.x + targetNote.width / 2;
+
+                if (targetNote.type === 'tap' || targetNote.type === 'drag') {
+                    targetNote.hit = true;
+                    combo++;
+                    score += isPerfect ? 100 : 50;
+                    scoreText.innerText = score.toString().padStart(6, '0');
+                    comboText.innerText = `COMBO ${combo}`;
+                    AudioSys.playHit(isPerfect);
+                    triggerJudgeEffect(cx, LINE_Y, isPerfect ? 'PERFECT' : 'GOOD', true);
+                    notes = notes.filter(n => n !== targetNote);
+
+                } else if (targetNote.type === 'hold') {
+                    targetNote.isHolding = true;
+                    AudioSys.playHit(true);
+                    triggerJudgeEffect(cx, LINE_Y, 'PERFECT', true);
+                }
+            }
+        }
+
+        function handleFlickHit(direction) {
+            if (!inGame) return;
+
+            let targetNote = null;
+            let minDist = Infinity;
+
+            for (let note of notes) {
+                if (note.hit || note.missed) continue;
+                if (note.type !== 'flick' || note.direction !== direction) continue;
+
+                const noteCenter = note.y + note.height / 2;
+                const dist = Math.abs(noteCenter - LINE_Y);
+                if (dist <= TOLERANCE + 15 && dist < minDist) {
+                    minDist = dist;
+                    targetNote = note;
+                }
+            }
+
+            if (targetNote) {
+                targetNote.hit = true;
+                combo++;
+                const isPerfect = minDist <= 30;
+                score += isPerfect ? 100 : 50;
+
+                scoreText.innerText = score.toString().padStart(6, '0');
+                comboText.innerText = `COMBO ${combo}`;
+                AudioSys.playFlick();
+
+                const cx = targetNote.x + targetNote.width / 2;
+                triggerJudgeEffect(cx, LINE_Y, isPerfect ? 'PERFECT' : 'GOOD', true);
+                notes = notes.filter(n => n !== targetNote);
+            }
+        }
+
+        // ================= 游戏场景切换 =================
+        function enterGame() {
+            AudioSys.init();
+            activeSongConfig = SONGS[selectedSongIndex];
+            trackNameDisplay.innerText = `${activeSongConfig.title} [${activeSongConfig.diffType} ${activeSongConfig.level}]`;
+
+            score = 0;
+            combo = 0;
+            notes = [];
+            particles = [];
+            lightWaves = [];
+            spawnTimer = 0;
+            scoreText.innerText = '000000';
+            comboText.innerText = 'COMBO 0';
+
+            resizeGame();
+            selectScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            inGame = true;
+
+            if (activeSongConfig.isCustom) {
+                // 深度复制待发射音符谱面
+                pendingChartNotes = [...activeSongConfig.chart];
+                AudioSys.playBGM(activeSongConfig.audioBuffer, () => {
+                    setTimeout(() => {
+                        if (inGame) exitToSelect();
+                    }, 2000);
+                });
+            }
+        }
+
+        function exitToSelect() {
+            inGame = false;
+            AudioSys.stopBGM();
+            gameScreen.style.display = 'none';
+            selectScreen.style.display = 'flex';
+        }
+
+        playBtn.onclick = enterGame;
+        exitGameBtn.onclick = exitToSelect;
+
+        // ================= 键盘与交互事件 =================
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!inGame) {
+                    enterGame();
+                } else {
+                    if (!e.repeat) {
+                        isSpaceDown = true;
+                        handleHit();
+                    }
+                }
+            } else if ((e.code === 'KeyA' || e.code === 'ArrowLeft') && inGame) {
+                e.preventDefault();
+                if (!e.repeat) handleFlickHit('left');
+            } else if ((e.code === 'KeyD' || e.code === 'ArrowRight') && inGame) {
+                e.preventDefault();
+                if (!e.repeat) handleFlickHit('right');
+            } else if (e.code === 'Escape' && inGame) {
+                exitToSelect();
+            } else if (!inGame) {
+                if (e.code === 'ArrowDown') {
+                    selectedSongIndex = (selectedSongIndex + 1) % SONGS.length;
+                    updateSelectionUI();
+                } else if (e.code === 'ArrowUp') {
+                    selectedSongIndex = (selectedSongIndex - 1 + SONGS.length) % SONGS.length;
+                    updateSelectionUI();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                isSpaceDown = false;
+            }
+        });
+
+        gameCanvas.addEventListener('pointerdown', () => {
+            if (inGame) {
+                isSpaceDown = true;
+                handleHit();
+            }
+        });
+        window.addEventListener('pointerup', () => {
+            isSpaceDown = false;
+        });
+
+        // ================= 游戏主循环 =================
+        function gameLoop() {
+            if (inGame) {
+                const zoneTop = LINE_Y - TOLERANCE;
+                const currentTime = activeSongConfig.isCustom ? AudioSys.getCurrentAudioTime() : 0;
+
+                // --- 1. 音符生成逻辑 ---
+                if (activeSongConfig.isCustom) {
+                    // 自定义歌曲：根据预视时间提前投入舞台
+                    const pxPerSec = activeSongConfig.speed * 60;
+                    const lookaheadTime = (LINE_Y + 100) / pxPerSec; // 提前落入视野的时间
+
+                    while (pendingChartNotes.length > 0 && pendingChartNotes[0].time <= currentTime + lookaheadTime) {
+                        const noteData = pendingChartNotes.shift();
+                        notes.push(new Note(
+                            activeSongConfig.speed,
+                            noteData.type,
+                            noteData.flickDir,
+                            noteData.time,
+                            noteData.xRatio,
+                            noteData.holdDuration
+                        ));
+                    }
+                } else {
+                    // 预设歌曲：原流程随机生成
+                    spawnTimer++;
+                    if (spawnTimer >= activeSongConfig.interval) {
+                        const rand = Math.random();
+                        let type = 'tap';
+                        let flickDir = 'left';
+
+                        if (rand < 0.38) type = 'tap';
+                        else if (rand < 0.62) type = 'drag';
+                        else if (rand < 0.82) {
+                            type = 'flick';
+                            flickDir = Math.random() > 0.5 ? 'right' : 'left';
+                        } else type = 'hold';
+
+                        notes.push(new Note(activeSongConfig.speed, type, flickDir));
+                        spawnTimer = 0;
+                    }
+                }
+
+                // --- 2. 音符运动与判定 ---
+                for (let i = notes.length - 1; i >= 0; i--) {
+                    const note = notes[i];
+                    note.update(currentTime);
+
+                    const noteBottom = note.y + note.height;
+                    const noteCenter = note.y + note.height / 2;
+                    const cx = note.x + note.width / 2;
+
+                    // Tap 单击
+                    if (note.type === 'tap') {
+                        if (noteBottom >= zoneTop && !note.enteredTop) {
+                            note.enteredTop = true;
+                            note.continuousHold = isSpaceDown;
+                        }
+                        if (note.enteredTop && !note.reachedLine) {
+                            if (!isSpaceDown) note.continuousHold = false;
+                        }
+                        if (noteCenter >= LINE_Y && !note.reachedLine) {
+                            note.reachedLine = true;
+                            if (note.continuousHold && isSpaceDown && !note.hit && !note.missed) {
+                                note.missed = true;
+                                triggerJudgeEffect(cx, LINE_Y, 'MISS', true);
+                            }
+                        }
+                        if (noteBottom >= gameCanvas.height && !note.hit && !note.missed) {
+                            note.missed = true;
+                            triggerJudgeEffect(cx, gameCanvas.height, 'MISS', false);
+                        }
+                        if (note.y > gameCanvas.height) {
+                            notes.splice(i, 1);
+                            continue;
+                        }
+                    }
+
+                    // Drag 黄条 (按住滑过即判定)
+                    else if (note.type === 'drag') {
+                        const distToLine = Math.abs(noteCenter - LINE_Y);
+                        if (distToLine <= TOLERANCE && isSpaceDown && !note.hit && !note.missed) {
+                            note.hit = true;
+                            combo++;
+                            score += 100;
+                            scoreText.innerText = score.toString().padStart(6, '0');
+                            comboText.innerText = `COMBO ${combo}`;
+                            AudioSys.playHit(true);
+                            triggerJudgeEffect(cx, LINE_Y, 'PERFECT', true);
+                            notes.splice(i, 1);
+                            continue;
+                        }
+                        if (noteBottom >= gameCanvas.height && !note.hit && !note.missed) {
+                            note.missed = true;
+                            triggerJudgeEffect(cx, gameCanvas.height, 'MISS', false);
+                        }
+                        if (note.y > gameCanvas.height) {
+                            notes.splice(i, 1);
+                            continue;
+                        }
+                    }
+
+                    // Hold 长按
+                    else if (note.type === 'hold') {
+                        const tailY = note.y - note.length;
+
+                        if (!note.isHolding && !note.hit && !note.missed) {
+                            const headDist = Math.abs(noteCenter - LINE_Y);
+                            if (headDist <= TOLERANCE && isSpaceDown) {
+                                note.isHolding = true;
+                                AudioSys.playHit(true);
+                                triggerJudgeEffect(cx, LINE_Y, 'PERFECT', true);
+                            } else if (note.y > LINE_Y + TOLERANCE) {
+                                note.missed = true;
+                                triggerJudgeEffect(cx, LINE_Y, 'MISS', true);
+                            }
+                        }
+
+                        if (note.isHolding && !note.missed && !note.hit) {
+                            if (!isSpaceDown) {
+                                note.isHolding = false;
+                                note.missed = true;
+                                triggerJudgeEffect(cx, LINE_Y, 'MISS', true);
+                            } else {
+                                if (Math.random() < 0.45) {
+                                    particles.push(new Particle(cx + (Math.random() - 0.5) * note.width * 0.7, LINE_Y, '#7ed6df'));
+                                }
+                                score += 1;
+                                scoreText.innerText = score.toString().padStart(6, '0');
+
+                                if (tailY >= LINE_Y) {
+                                    note.hit = true;
+                                    note.isHolding = false;
+                                    combo++;
+                                    score += 150;
+                                    scoreText.innerText = score.toString().padStart(6, '0');
+                                    comboText.innerText = `COMBO ${combo}`;
+                                    AudioSys.playHit(true);
+                                    triggerJudgeEffect(cx, LINE_Y, 'PERFECT', true);
+                                    notes.splice(i, 1);
+                                    continue;
+                                }
+                            }
+                        }
+
+                        if (tailY > gameCanvas.height) {
+                            notes.splice(i, 1);
+                            continue;
+                        }
+                    }
+
+                    // Flick 滑动
+                    else if (note.type === 'flick') {
+                        if (noteBottom >= gameCanvas.height && !note.hit && !note.missed) {
+                            note.missed = true;
+                            triggerJudgeEffect(cx, gameCanvas.height, 'MISS', false);
+                        }
+                        if (note.y > gameCanvas.height) {
+                            notes.splice(i, 1);
+                            continue;
+                        }
+                    }
+                }
+
+                // 粒子与光波更新
+                particles.forEach(p => p.update());
+                particles = particles.filter(p => p.life > 0);
+
+                lightWaves.forEach(l => l.update());
+                lightWaves = lightWaves.filter(l => l.life > 0);
+
+                // --- 3. 画面渲染 ---
+                gctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+                // 发光判定线
+                gctx.save();
+                gctx.shadowColor = '#ffffff';
+                gctx.shadowBlur = 12;
+                gctx.strokeStyle = '#ffffff';
+                gctx.lineWidth = 3;
+                gctx.beginPath();
+                gctx.moveTo(0, LINE_Y);
+                gctx.lineTo(gameCanvas.width, LINE_Y);
+                gctx.stroke();
+                gctx.restore();
+
+                // 渲染音符与特效
+                notes.forEach(note => note.draw());
+                lightWaves.forEach(l => l.draw());
+                particles.forEach(p => p.draw());
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
