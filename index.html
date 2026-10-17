@@ -346,6 +346,7 @@
         }
 
         .folder-window {
+            background: rgba(255, 255, 255, 0.85);
             background: rgba(25, 25, 30, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.18);
             border-radius: 26px;
@@ -575,7 +576,7 @@
 
     <div class="main-container animate-up" style="animation-delay: 0.1s;">
         <!-- 右上角下载安卓应用按钮 -->
-        <a href="https://github.com/ganyvze/ganyvze.github.io/releases/download/apk/gamee.apk" class="download-app-btn" title="下载安卓应用安装包">
+        <a href="https://github.com/ganyvze/ganyvze.github.io/releases/latest/download/gamee.apk" class="download-app-btn" title="下载安卓应用安装包">
             <span>下载安卓应用</span>
         </a>
 
@@ -657,8 +658,16 @@
                 <p class="game-desc">无轨多动判定线下落式音游体验。跟随动感节拍精准触控，捕捉跃动的旋律与谱面，挑战极致反应与全连高分。</p>
             </div>
 
+            <!-- 游戏10：贪吃蛇 -->
+            <div class="game-card animate-up" style="animation-delay: 1.3s;" onclick="launchGame('snake', 'snake')">
+                <div class="last-played-badge" id="badge-snake">上次游玩</div>
+                <div class="game-icon">🐍</div>
+                <h2 class="game-title">贪吃蛇</h2>
+                <p class="game-desc">经典复古贪吃蛇玩法。灵巧走位吞噬食物，不断延长身躯并避开致命边界与碰撞，挑战极限高分。</p>
+            </div>
+
             <!-- 独立游戏合辑文件夹 -->
-            <div class="game-card folder-card animate-up" style="animation-delay: 1.3s;" onclick="openFolder()" id="folder-card-main">
+            <div class="game-card folder-card animate-up" style="animation-delay: 1.4s;" onclick="openFolder()" id="folder-card-main">
                 <div class="last-played-badge" id="badge-folder">最近游玩</div>
                 <div class="folder-preview-box">
                     <span class="folder-mini-icon">🏰</span>
